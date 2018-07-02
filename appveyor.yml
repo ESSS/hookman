@@ -1,0 +1,40 @@
+skip_branch_with_pr: true
+
+image: Visual Studio 2017
+environment:
+  matrix:
+    - PYTHON: "C:\\Python36"
+      TOX_ENV: "py36"
+      MINICONDA: C:\Miniconda36-x64\
+
+platform:
+    - x64
+
+install:
+  - "%PYTHON%/python.exe -m pip install -U pip tox wheel"
+  - echo %cd%
+  - dir
+  - dir C:\Miniconda36-x64
+  - dir C:\Miniconda36-x64\share
+  - dir C:\Miniconda36-x64\Library
+  - dir C:\Miniconda36-x64\envs
+  - cmake --version
+  - choco install ninja
+  - ninja --version
+  - C:\Miniconda36-x64\Scripts\conda.exe config --set always_yes yes --set changeps1 no
+  - C:\Miniconda36-x64\Scripts\conda.exe config --add channels conda-forge
+  - C:\Miniconda36-x64\Scripts\conda.exe install pybind11
+
+build: false  # Not a C# project, build stuff at the test step instead.
+
+test_script:
+  - "%PYTHON%/Scripts/tox -e %TOX_ENV%"
+
+on_success:
+    # Report coverage results to codecov.io
+    # and export tox environment variables
+    - "%PYTHON%/Scripts/pip install codecov"
+    - set OS=WINDOWS
+    - "%PYTHON%/Scripts/codecov -e TOX_ENV OS"
+
+

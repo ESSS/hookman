@@ -19,7 +19,8 @@ class HooksSpecs():
     """
 
     def __init__(self, *, project_name: str, version: str, pyd_name: str, hooks: List[Callable]) -> None:
-        [self._check_hook_arguments(hook) for hook in hooks]
+        for hook in hooks:
+            self._check_hook_arguments(hook)
         self.project_name = project_name
         self.version = version
         self.pyd_name = pyd_name
@@ -74,7 +75,6 @@ class HookMan():
         """
         Return a HookCaller class that holds all references for the functions implemented on the plugins.
         """
-        # self._spec.pyd_name = '_alfasim_hookcaller'
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
 

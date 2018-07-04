@@ -53,7 +53,7 @@ class HookManGenerator():
             hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
             self._populate_local_variables(hook_spec_module.specs)
         else:
-            raise FileNotFoundError("You must inform a file.")
+            raise FileNotFoundError("File not found: {}".format(hook_spec_file_path))
 
     def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HooksSpecs:
         """

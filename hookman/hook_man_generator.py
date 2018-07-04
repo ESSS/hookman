@@ -251,7 +251,6 @@ class HookManGenerator():
         with open(hook_caller_python, mode='w') as file:
             file.writelines(dedent(f"""\
             include(pybind11Tools)
-            # find_package(pybind11 REQUIRED)
             
             pybind11_add_module(
                 {self.pyd_name}

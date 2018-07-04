@@ -26,13 +26,12 @@ def main(specs_path, dst_path):
     """
 
     from pathlib import Path
+    from hookman.hook_man_generator import HookManGenerator
+
     hook_specs_path = Path(specs_path)
-    if Path(hook_specs_path).is_file():
-        from hookman.hook_man_generator import HookManGenerator
-        hm_generator = HookManGenerator(hook_spec_file_path=hook_specs_path)
-        hm_generator.generate_files(Path(dst_path))
-    else:
-        return
+    hm_generator = HookManGenerator(hook_spec_file_path=hook_specs_path)
+    hm_generator.generate_files(Path(dst_path))
+
     return 0
 
 

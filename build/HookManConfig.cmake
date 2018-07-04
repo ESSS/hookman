@@ -1,31 +1,36 @@
+message(STATUS "(1) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 if (NOT "$ENV{CONDA_PREFIX}" STREQUAL "")
     if(WIN32)
         string(REPLACE "\\" "/" _CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/Library")
         string(REPLACE "\\" "/" _PYTHON_DIR "$ENV{CONDA_PREFIX}")
         set(CMAKE_PREFIX_PATH "${_CMAKE_PREFIX_PATH}" CACHE PATH "prefix path")
         set(PYTHON_DIR "${_PYTHON_DIR}" CACHE PATH "python directory")
-
     elseif(UNIX)
         set(CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX} CACHE PATH "prefix path")
         set(PYTHON_DIR $ENV{CONDA_PREFIX} CACHE PATH "python directory")
     endif()
+
     message(STATUS "Conda detected. CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
 else()
-    message(STATUS "I should be reading this message on appveyor")
-    #set(CMAKE_MODULE_PATH "C:/Miniconda36-x64/share/cmake/pybind11" ${CMAKE_MODULE_PATH})
+    # Add support for `pybind11` in CMake trough an environment variable, this configuration is currently used on appveyor
+  if(NOT "$ENV{PYBIND_PATH}" STREQUAL "")
+    message(STATUS "I SHOULD NOT BE READING THIS ON TRAVIS")
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{PYBIND_PATH}")
+  endif()
 endif()
 
+message(STATUS "(2) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # Add support for `pybind11` in CMake (cmake modules coming from `conda-forge`).
 if(WIN32)
     # On Windows, these packages are not installing things under `<env>/Library/...`, which would be the correct place.
     # This fixes things.
-    #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_PREFIX_PATH}/../share/cmake/pybind11")
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{PYBIND_PATH}")
-    message(STATUS "PATH: ${CMAKE_MODULE_PATH}")
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_PREFIX_PATH}/../share/cmake/pybind11")
 else()
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_PREFIX_PATH}/share/cmake/pybind11")
 endif()
+
+message(STATUS "(3) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 
 if(NOT WIN32)

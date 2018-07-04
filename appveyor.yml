@@ -5,27 +5,19 @@ environment:
   matrix:
     - PYTHON: "C:\\Python36-x64"
       TOX_ENV: "py36"
-      MINICONDA: C:\Miniconda36-x64\
       PYBIND_PATH: C:/Miniconda36-x64/share/cmake/pybind11
-
+      test: "import sys;print('%x' % sys.maxsize, sys.maxsize > 2**32)"
 
 platform:
     - x64
 
 install:
   - "%PYTHON%/python.exe -m pip install -U pip tox wheel"
-  - echo %cd%
-  - dir
-  - cmake --version
   - choco install ninja
-  - ninja --version
   - C:\Miniconda36-x64\Scripts\conda.exe config --set always_yes yes --set changeps1 no
   - C:\Miniconda36-x64\Scripts\conda.exe config --add channels conda-forge
   - C:\Miniconda36-x64\Scripts\conda.exe install pybind11
-  - dir C:\Miniconda36-x64\share\cmake\pybind11
-  - xcopy /s C:\Miniconda36-x64\share\cmake\pybind11 C:\projects\hookman\build
-  - dir C:\projects\hookman\build
-
+  - "%PYTHON%/python.exe -c %test%"
 
 
 build: false  # Not a C# project, build stuff at the test step instead.

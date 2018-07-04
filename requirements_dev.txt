@@ -2,7 +2,6 @@ bumpversion
 wheel
 coverage
 twine
-tox
 pytest
 pytest-cov
 pytest-runner

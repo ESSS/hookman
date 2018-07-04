@@ -53,7 +53,7 @@ class HookManGenerator():
             hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
             self._populate_local_variables(hook_spec_module.specs)
         else:
-            raise FileNotFoundError("File not found: {}".format(hook_spec_file_path))
+            raise FileNotFoundError(f"File not found: {hook_spec_file_path}")
 
     def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HooksSpecs:
         """
@@ -144,7 +144,7 @@ class HookManGenerator():
         list_with_hook_specs_arguments = []
 
         for hook in self.hooks:
-            line = f'#define HOOK_{hook.macro_name}({hook.args}) API_EXP {hook.r_type} FUNC_EXP {hook.function_name}({hook.args_with_type})' + NEW_LINE
+            line = f'#define HOOK_{hook.macro_name}({hook.args}) HOOKMAN_API_EXP {hook.r_type} HOOKMAN_FUNC_EXP {hook.function_name}({hook.args_with_type})' + NEW_LINE
             list_with_hook_specs_arguments.append(line)
 
         from textwrap import dedent
@@ -152,14 +152,14 @@ class HookManGenerator():
         #ifndef HEADER_FILE
         #define HEADER_FILE
         #ifdef WIN32
-            #define API_EXP __declspec(dllexport)
-            #define FUNC_EXP __cdecl
+            #define HOOKMAN_API_EXP __declspec(dllexport)
+            #define HOOKMAN_FUNC_EXP __cdecl
         #else
-            #define API_EXP
-            #define FUNC_EXP
+            #define HOOKMAN_API_EXP
+            #define HOOKMAN_FUNC_EXP
         #endif
 
-        #define INIT_HOOKS() API_EXP char* FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
+        #define INIT_HOOKS() HOOKMAN_API_EXP char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
         """)
         file_content += list_with_hook_specs_arguments
         file_content += dedent(f"""
@@ -191,10 +191,11 @@ class HookManGenerator():
         """)
 
         list_with_hook_calls += [
-            f'{INDENTATION}inline {hook.r_type} {hook.name}({hook.args_with_type}) {{ return this->_{hook.name}({hook.args}); }}' + NEW_LINE
+            f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> {hook.name}() {{' + NEW_LINE +
+            f'{INDENTATION*2}return this->_{hook.name};' + NEW_LINE +
+            f'{INDENTATION}}}'+ NEW_LINE
             for hook in self.hooks
         ]
-
         list_with_private_members += [
             f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> _{hook.name};' + NEW_LINE
             for hook in self.hooks
@@ -222,6 +223,7 @@ class HookManGenerator():
         file_content = []
         file_content += dedent(f"""\
             #include <pybind11/pybind11.h>
+            #include <pybind11/functional.h>
             #include <HookCaller.hpp>
 
             namespace py = pybind11;
@@ -231,6 +233,7 @@ class HookManGenerator():
                     .def(py::init<>())
         """)
         file_content += [
+            f'{2*INDENTATION}.def("{hook.name}", &HookMan::HookCaller::{hook.name})' + NEW_LINE +
             f'{2*INDENTATION}.def("set_{hook.name}_function", &HookMan::HookCaller::set_{hook.name}_function)' + NEW_LINE
             for hook in self.hooks
         ]

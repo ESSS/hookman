@@ -111,7 +111,6 @@ class HookMan():
         """
         Load the dll_path from the plugin and bind methods that are implemented on the hook_caller
         """
-        print(dll_path)
         plugin_dll = ctypes.cdll.LoadLibrary(str(dll_path))
 
         hooks_to_bind = {

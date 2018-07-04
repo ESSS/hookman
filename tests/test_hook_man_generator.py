@@ -8,7 +8,7 @@ from hookman.hook_man_generator import HookManGenerator
 def test_hook_man_generator(datadir):
 
     # Pass a folder
-    with pytest.raises(FileNotFoundError, match="You must inform a file."):
+    with pytest.raises(FileNotFoundError, match=f"File not found: *"):
         HookManGenerator(hook_spec_file_path=datadir)
 
     # Pass a invalid hook_spec_file (without specs)

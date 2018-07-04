@@ -59,7 +59,13 @@ def test_check_hook_arguments():
 
 
 def test_get_hook_caller(datadir, libs_path, plugin_specs):
-    simple_plugin_dll = libs_path / 'test_hooks.dll'
+    import os
+
+    if os.sys.platform == 'win32':
+        simple_plugin_dll = libs_path / 'test_hooks.dll'
+    else:
+        simple_plugin_dll = libs_path / 'libtest_hooks.so'
+
     dst_path = datadir / 'plugin'
     copy2(src=simple_plugin_dll, dst=dst_path)
 

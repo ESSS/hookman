@@ -31,8 +31,10 @@ install:
   - conda config --add channels conda-forge
   - conda info -a  # for debug reasons
   - conda install pybind11
+  - pip install --user codecov
 
 # Command to run tests, e.g. python setup.py test
+before_script: export PYTHONPATH=$PYTHONPATH:$(pwd)/build/libs
 script: tox
 
 # Assuming you have installed the travis-ci CLI tool, after you
@@ -49,9 +51,6 @@ deploy:
     tags: true
     repo: esss/hookman
     python: 3.6
-
-after_success:
-    codecov
 
 branches:
   only:

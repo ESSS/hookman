@@ -106,3 +106,4 @@ build/libs
 *tmp/
 /build/ninja/
 environment.yml
+.idea/

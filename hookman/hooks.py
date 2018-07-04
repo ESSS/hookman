@@ -1,5 +1,6 @@
 import ctypes
 import inspect
+import os
 from pathlib import Path
 from typing import Callable, List
 
@@ -91,13 +92,17 @@ class HookMan():
             "author": strictyaml.Str(),
             "contact_information": strictyaml.Str(),
             "plugin_version": strictyaml.Str(),
-            "dll_name": strictyaml.Str()
+            "dll_name": strictyaml.Str(),
+            "lib_name": strictyaml.Str(),
         })
 
         dll_locations = []
         for hook_config_file in self.plugin_config_files:
             plugin_config_content = strictyaml.load(hook_config_file.read_text(), schema).data
-            dll_name = plugin_config_content['dll_name']
+            if os.sys.platform == 'win32':
+                dll_name = plugin_config_content['dll_name']
+            else:
+                dll_name = plugin_config_content['lib_name']
             dll_locations.append(hook_config_file.parent / dll_name)
 
         return dll_locations
@@ -106,6 +111,7 @@ class HookMan():
         """
         Load the dll_path from the plugin and bind methods that are implemented on the hook_caller
         """
+        print(dll_path)
         plugin_dll = ctypes.cdll.LoadLibrary(str(dll_path))
 
         hooks_to_bind = {

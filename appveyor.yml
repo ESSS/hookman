@@ -17,9 +17,7 @@ install:
   - where python
   - python -m pip install -U pip tox wheel
   - choco install ninja
-  - C:\Miniconda36-x64\Scripts\conda.exe config --set always_yes yes --set changeps1 no
-  - C:\Miniconda36-x64\Scripts\conda.exe config --add channels conda-forge
-  - C:\Miniconda36-x64\Scripts\conda.exe install pybind11
+  - C:\Miniconda36-x64\Scripts\conda.exe install --channel conda-forge pybind11
   - python -c "import sys;print(hex(sys.maxsize), sys.maxsize > 2**32)"
 
 

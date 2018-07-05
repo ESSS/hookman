@@ -38,7 +38,7 @@ class Hook(NamedTuple):
     function_name: str
 
 
-class HookManGenerator():
+class HookManGenerator:
     """
     Class to assist in the process of creating necessary files for the hookman
     """
@@ -149,8 +149,8 @@ class HookManGenerator():
 
         from textwrap import dedent
         file_content += dedent(f"""\
-        #ifndef HEADER_FILE
-        #define HEADER_FILE
+        #ifndef {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
+        #define {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         #ifdef WIN32
             #define HOOKMAN_API_EXP __declspec(dllexport)
             #define HOOKMAN_FUNC_EXP __cdecl
@@ -180,9 +180,9 @@ class HookManGenerator():
         file_content += dedent(f"""\
         #include <functional>
 
-        namespace HookMan {{
+        namespace hookman {{
 
-        template <typename F_TYPE> std::function<F_TYPE> register_c_func(uintptr_t p) {{
+        template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {{
         {INDENTATION}return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));
         }}
 
@@ -203,7 +203,7 @@ class HookManGenerator():
 
         list_with_set_functions += [
             f'{1*INDENTATION}void set_{hook.name}_function(uintptr_t pointer) {{' + NEW_LINE +
-            f'{2*INDENTATION}this->_{hook.name} = register_c_func<{hook.r_type}({hook.args_type})>(pointer);' + NEW_LINE +
+            f'{2*INDENTATION}this->_{hook.name} = from_c_pointer<{hook.r_type}({hook.args_type})>(pointer);' + NEW_LINE +
             f'{1*INDENTATION}}}' + 2 * NEW_LINE
             for hook in self.hooks
         ]
@@ -229,12 +229,12 @@ class HookManGenerator():
             namespace py = pybind11;
 
             PYBIND11_MODULE({self.pyd_name}, m) {{
-                py::class_<HookMan::HookCaller>(m, "HookCaller")
+                py::class_<hookman::HookCaller>(m, "HookCaller")
                     .def(py::init<>())
         """)
         file_content += [
-            f'{2*INDENTATION}.def("{hook.name}", &HookMan::HookCaller::{hook.name})' + NEW_LINE +
-            f'{2*INDENTATION}.def("set_{hook.name}_function", &HookMan::HookCaller::set_{hook.name}_function)' + NEW_LINE
+            f'{2*INDENTATION}.def("{hook.name}", &hookman::HookCaller::{hook.name})' + NEW_LINE +
+            f'{2*INDENTATION}.def("set_{hook.name}_function", &hookman::HookCaller::set_{hook.name}_function)' + NEW_LINE
             for hook in self.hooks
         ]
         file_content += f'{2*INDENTATION};' + NEW_LINE + '}' + NEW_LINE

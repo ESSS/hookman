@@ -1,5 +1,5 @@
-#ifndef HEADER_FILE
-#define HEADER_FILE
+#ifndef ACME_HOOK_SPECS_HEADER_FILE
+#define ACME_HOOK_SPECS_HEADER_FILE
 #ifdef WIN32
     #define HOOKMAN_API_EXP __declspec(dllexport)
     #define HOOKMAN_FUNC_EXP __cdecl

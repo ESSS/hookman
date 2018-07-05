@@ -6,7 +6,6 @@ environment:
     - PYTHON_DIR: "C:/Python36-x64"
       TOXENV: "py36"
       PYBIND_PATH: C:/Miniconda36-x64/share/cmake/pybind11
-      test: "import sys;print('%x' % sys.maxsize, sys.maxsize > 2**32)"
 
 platform:
     - x64

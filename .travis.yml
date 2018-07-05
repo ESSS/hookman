@@ -14,17 +14,12 @@ addons:
       - ninja-build
 
 install:
-  - pip install -U pip tox-travis codecov codacy-coverage
+  - pip install -U pip tox-travis codecov
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export PYBIND_PATH="$HOME/miniconda/share/cmake/pybind11"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels conda-forge
-  - conda info -a  # for debug reasons
-  - conda install pybind11
-  - ls $HOME/miniconda/share
+  - conda install --channel conda-forge pybind11 -y
 
 
 script: tox

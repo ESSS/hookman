@@ -9,7 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
@@ -100,3 +99,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+build/libs
+/build/build_test/
+*.pytest_cache/
+*tmp/
+/build/ninja/
+environment.yml
+.idea/
+environment.yml

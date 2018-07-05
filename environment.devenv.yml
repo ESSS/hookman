@@ -1,0 +1,33 @@
+{% set TEST_HOOKMAN = os.environ.get('TEST_HOOKMAN', '0') != '0' %}
+name: hookman
+
+
+dependencies:
+    - python==3.6.5
+    - strictyaml
+    - invoke==1.0.0
+    - click
+
+    {% if TEST_HOOKMAN %}
+    - pytest
+    - pytest-datadir
+
+    # C++ compilation
+    - clangdev==6.0.0
+    - pybind11
+    - ninja=1.7.1
+    - cmake
+    {% if os.sys.platform == 'win32' %}
+    - vs2015_runtime
+    {% endif %}
+
+    {% endif %}
+
+environment:
+  PYTHONPATH:
+    - {{ os.path.join(root) }}
+    - {{ root }}/build/libs
+  LD_LIBRARY_PATH:
+    - {{ root }}/build/libs
+  PATH:
+    - {{ root }}/build/libs

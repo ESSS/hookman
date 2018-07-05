@@ -11,7 +11,6 @@ dependencies:
     {% if TEST_HOOKMAN %}
     - pytest
     - pytest-datadir
-    - cmake==3.11.0
 
     # C++ compilation
     - clangdev==6.0.0
@@ -19,7 +18,7 @@ dependencies:
     - ninja=1.7.1
     - cmake
     {% if os.sys.platform == 'win32' %}
-      - vs2015_runtime
+    - vs2015_runtime
     {% endif %}
 
     {% endif %}

@@ -1,4 +1,3 @@
-message(STATUS "(1) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 if (NOT "$ENV{CONDA_PREFIX}" STREQUAL "")
     if(WIN32)
         string(REPLACE "\\" "/" _CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/Library")
@@ -14,12 +13,10 @@ if (NOT "$ENV{CONDA_PREFIX}" STREQUAL "")
 else()
     # Add support for `pybind11` in CMake trough an environment variable, this configuration is currently used on appveyor
   if(NOT "$ENV{PYBIND_PATH}" STREQUAL "")
-    message(STATUS "I SHOULD NOT BE READING THIS ON TRAVIS")
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{PYBIND_PATH}")
   endif()
 endif()
 
-message(STATUS "(2) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # Add support for `pybind11` in CMake (cmake modules coming from `conda-forge`).
 if(WIN32)

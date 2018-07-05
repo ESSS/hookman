@@ -13,11 +13,9 @@ platform:
 install:
   - set "PATH=%PYTHON_DIR%;%PATH%"
   - set "APPVEYOR_PYTHON=%PYTHON_DIR%/python.exe"
-  - where python
   - python -m pip install -U pip tox wheel
   - choco install ninja
   - C:\Miniconda36-x64\Scripts\conda.exe install --channel conda-forge pybind11 -y
-  - python -c "import sys;print(hex(sys.maxsize), sys.maxsize > 2**32)"
 
 
 build: false  # Not a C# project, build stuff at the test step instead.

@@ -253,13 +253,17 @@ class HookManGenerator():
 
         with open(hook_caller_python, mode='w') as file:
             file.writelines(dedent(f"""\
-            include(pybind11Tools)
+            include(pybind11Config)
             
             pybind11_add_module(
                 {self.pyd_name}
                     HookCallerPython.cpp
             )
-            
+            target_include_directories(
+               {self.pyd_name}
+                PRIVATE
+                    ${{pybind11_INCLUDE_DIRS}}  # from pybind11Config
+            )
             target_link_libraries(
                 {self.pyd_name}
                 PRIVATE
@@ -268,3 +272,4 @@ class HookManGenerator():
             
             install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
             """))
+

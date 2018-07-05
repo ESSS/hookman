@@ -22,7 +22,6 @@ def main(specs_path, dst_path):
 
     Example:
     > hookman /<some_dir>/hook_specs.py --dst-path=/home/<some_other_path>
-
     """
 
     from pathlib import Path

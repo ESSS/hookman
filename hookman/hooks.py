@@ -67,7 +67,7 @@ class HookMan:
             raise FileNotFoundError("The given path doesn't have a .yaml file")
 
         self.hooks_available = {
-            f'{hook.__name__.lower()}': f'{specs.project_name}_v{specs.version}_{hook.__name__.lower()}'
+            f'{hook.__name__.lower()}': f'{specs.project_name.lower()}_v{specs.version}_{hook.__name__.lower()}'
             for hook in specs.hooks
         }
 
@@ -114,7 +114,7 @@ class HookMan:
         plugin_dll = ctypes.cdll.LoadLibrary(str(dll_path))
 
         hooks_to_bind = {
-            f'set_{hook_name}_function': self._get_function_addres(plugin_dll, full_hook_name)
+            f'set_{hook_name}_function': self._get_function_addres(plugin_dll,full_hook_name)
             for hook_name, full_hook_name in self.hooks_available.items()
             if self.is_implemented_on_plugin(plugin_dll, full_hook_name)
         }

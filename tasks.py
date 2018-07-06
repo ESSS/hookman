@@ -68,7 +68,7 @@ def build(ctx):
     from pathlib import Path
     import shutil
     from textwrap import dedent
-    from hookman.hook_man_generator import HookManGenerator
+    from hookman.hookman_generator import HookManGenerator
 
     project_dir = Path(__file__).parent
     test_dir = project_dir / 'tests'

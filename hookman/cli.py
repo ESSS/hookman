@@ -22,11 +22,10 @@ def main(specs_path, dst_path):
 
     Example:
     > hookman /<some_dir>/hook_specs.py --dst-path=/home/<some_other_path>
-
     """
 
     from pathlib import Path
-    from hookman.hook_man_generator import HookManGenerator
+    from hookman.hookman_generator import HookManGenerator
 
     hook_specs_path = Path(specs_path)
     hm_generator = HookManGenerator(hook_spec_file_path=hook_specs_path)

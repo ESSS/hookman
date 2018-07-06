@@ -7,7 +7,7 @@ from typing import Callable, List
 import strictyaml
 
 
-class HooksSpecs():
+class HooksSpecs:
     """
     A class that holds the specification of the hooks, currently the following specification are available:
     - Project Name:
@@ -49,7 +49,7 @@ class HooksSpecs():
             raise TypeError("All hooks must have documentation")
 
 
-class HookMan():
+class HookMan:
     """
     Main class of HookMan, this class holds all the information related to the plugins
     """

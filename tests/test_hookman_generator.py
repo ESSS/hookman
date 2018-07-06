@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from hookman.hook_man_generator import HookManGenerator
+from hookman.hookman_generator import HookManGenerator
 
 
 def test_hook_man_generator(datadir):

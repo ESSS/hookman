@@ -9,9 +9,10 @@ from coilib50.path.dotpath import Path
 def load_config_content(hook_config_file: Path) -> OrderedDict:
     import strictyaml
     schema = strictyaml.Map({
-        "author": strictyaml.Str(),
-        "contact_information": strictyaml.Str(),
+        "plugin_name": strictyaml.Str(),
         "plugin_version": strictyaml.Str(),
+        "author": strictyaml.Str(),
+        "email": strictyaml.Str(),
         "dll_name": strictyaml.Str(),
         "lib_name": strictyaml.Str(),
     })
@@ -40,7 +41,6 @@ def get_shared_libs_path(plugin_config_files: Union[List[Path], Path]) -> Option
     Load the config file of each plugin available and return a list with the location of all DLL.
     If a given config files doesn't exist a FileNotFoundError exception will be raised.
     """
-
     dll_locations = []
 
     if not isinstance(plugin_config_files, list):

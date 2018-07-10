@@ -1,7 +1,8 @@
 import ctypes
 import inspect
+from collections import OrderedDict
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from hookman import hookman_utils
 
@@ -57,15 +58,29 @@ class HookMan:
     def __init__(self, *, specs: HooksSpecs, plugin_dirs: List[Path]):
         self.specs = specs
         self.plugins_dirs = plugin_dirs
-        # self._find_config_files(plugin_dirs)
-        # else:
-        #     raise FileNotFoundError("The given path doesn't have a .yaml file")
-
         self.hooks_available = {
             f'{hook.__name__.lower()}': f'{specs.project_name.lower()}_v{specs.version}_{hook.__name__.lower()}'
             for hook in specs.hooks
         }
 
+    def plugins_available(self) -> Optional[List[OrderedDict]]:
+        """
+        Return a list with all plugins that are available on the plugins_dirs.
+        The list contains a OrderedDict with the content of the config file:
+             - plugin_name
+             - plugin_version
+             - author
+             - email
+             - dll_name
+             - lib_name
+        """
+        plugins_available = []
+        plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
+        if plugin_config_files:
+            for config_file in plugin_config_files:
+                plugins_available.append(hookman_utils.load_config_content(config_file))
+
+        return plugins_available
 
     def get_hook_caller(self) -> 'HookCaller':
         """
@@ -83,7 +98,6 @@ class HookMan:
 
         return hook_caller
 
-
     def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller: 'HookCaller'):
         """
         Load the shared_lib_path from the plugin and bind methods that are implemented on the hook_caller
@@ -91,7 +105,8 @@ class HookMan:
         plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
 
         hooks_to_bind = {
-            f'set_{hook_name}_function': hookman_utils.get_function_address(plugin_dll, full_hook_name)
+            f'set_{hook_name}_function': hookman_utils.get_function_address(plugin_dll,
+                full_hook_name)
             for hook_name, full_hook_name in self.hooks_available.items()
             if hookman_utils.is_implemented_on_plugin(plugin_dll, full_hook_name)
         }

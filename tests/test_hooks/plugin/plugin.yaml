@@ -1,5 +1,0 @@
-author: 'simple_plugin_author'
-contact_information: 'simple_plugin_author@simple_plugin_author.com'
-plugin_version: '4'
-dll_name: 'test_hooks.dll'
-lib_name: 'libtest_hooks.so'

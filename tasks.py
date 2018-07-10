@@ -58,7 +58,6 @@ def compile(ctx):
             ctx.run(command=call_cmake + '&&' + call_ninja + '&&' + call_install)
 
 
-
 @invoke.task
 def build(ctx):
     """
@@ -71,24 +70,27 @@ def build(ctx):
     from hookman.hookman_generator import HookManGenerator
 
     project_dir = Path(__file__).parent
+
     test_dir = project_dir / 'tests'
     test_build_dir = project_dir / 'build/build_test'
+
+    # Clean UP
+    if test_build_dir.exists():
+        shutil.rmtree(test_build_dir)
+    os.makedirs(test_build_dir)
+
+    # Finding Tests
     hook_spec_paths = [path
         for path in test_dir.glob('**/hook_specs.py')
         if 'tmp' not in path.parts
     ]
 
-    if test_build_dir.exists():
-        shutil.rmtree(test_build_dir)
-
-    os.makedirs(test_build_dir)
-
-    # Cmake file for all compilations
-    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in
-        hook_spec_paths]
+    # Root CMakeList.txt that includes all sub_directory with tests to be compile
+    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in hook_spec_paths]
     with open(test_build_dir / 'CMakeLists.txt', mode='w+') as file:
         file.writelines(cmake_file_of_test_build_dir)
 
+    # For each hook_specs, create a directory for the compilation and generate the files
     for hook_spec_path in hook_spec_paths:
         folder_test_name = hook_spec_path.parent.name
         dir_for_compilation = test_build_dir / folder_test_name
@@ -104,15 +106,16 @@ def build(ctx):
             add_subdirectory(binding)
             """))
 
-        list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('plugin/*.c')]
+        list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('**/*.c')]
         for i in list_with_c_files_names:
             shutil.copy2(src=i, dst=dir_for_compilation / 'plugin')
+
         cmake_plugin = dir_for_compilation / 'plugin/CMakeLists.txt'
         if list_with_c_files_names:
             with open(cmake_plugin, mode='w') as file:
                 file.writelines(dedent(f"""\
                     add_library({folder_test_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
-    
+
                     install(TARGETS {folder_test_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
                     """
                 ))

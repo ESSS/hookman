@@ -1,0 +1,8 @@
+plugin_name: 'plugin_2'
+plugin_version: '1'
+
+author: 'plugin_2_author'
+email: 'plugin_2@plugin_2.com'
+
+dll_name: 'test_hooks.dll'
+lib_name: 'libtest_hooks.so'

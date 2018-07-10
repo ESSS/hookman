@@ -1,0 +1,5 @@
+author: 'test_hookman_utils'
+contact_information: 'test_hookman_utils@test_hookman_utils'
+plugin_version: '1'
+dll_name: 'name_of_the_shared_lib.dll'
+lib_name: 'name_of_the_shared_lib.so'

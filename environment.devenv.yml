@@ -7,7 +7,9 @@ dependencies:
     - invoke==1.0.0
     - click
     - pytest
+    - pytest-cov
     - pytest-datadir
+    - pytest-mock
 
     # C++ compilation
     - clangdev==6.0.0

@@ -41,7 +41,7 @@ def compile(ctx):
                     r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
                 os.path.expandvars(
                     r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\WDExpress\VC\Auxiliary\Build\vcvarsall.bat'),
-                # App Veyor PROGRAMFILES not defined
+                    # App Veyor PROGRAMFILES not defined
                 r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat",
             )
             for msvc_path in paths:
@@ -59,9 +59,9 @@ def compile(ctx):
 
 
 @invoke.task
-def build(ctx):
+def generate_files(ctx):
     """
-    A task to build all the necessary files for the test and compile the dlls and pyd;
+    Task to generate the files necessaries to compile the tests
     """
     import os
     from pathlib import Path
@@ -86,7 +86,8 @@ def build(ctx):
     ]
 
     # Root CMakeList.txt that includes all sub_directory with tests to be compile
-    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in hook_spec_paths]
+    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in
+        hook_spec_paths]
     with open(test_build_dir / 'CMakeLists.txt', mode='w+') as file:
         file.writelines(cmake_file_of_test_build_dir)
 
@@ -101,10 +102,10 @@ def build(ctx):
 
         with open(dir_for_compilation / 'CMakeLists.txt', mode='w+') as file:
             file.write(dedent("""\
-            add_subdirectory(plugin)
-            add_subdirectory(cpp)
-            add_subdirectory(binding)
-            """))
+                add_subdirectory(plugin)
+                add_subdirectory(cpp)
+                add_subdirectory(binding)
+                """))
 
         list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('**/*.c')]
         for i in list_with_c_files_names:
@@ -114,11 +115,50 @@ def build(ctx):
         if list_with_c_files_names:
             with open(cmake_plugin, mode='w') as file:
                 file.writelines(dedent(f"""\
-                    add_library({folder_test_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
+                        add_library({folder_test_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
 
-                    install(TARGETS {folder_test_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
-                    """
+                        install(TARGETS {folder_test_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
+                        """
                 ))
         else:
             open(cmake_plugin, mode='w+').close()
+
+
+@invoke.task
+def build(ctx):
+    """
+    A task to build all the necessary files for the test and compile the dlls and pyd;
+    """
+    generate_files(ctx)
     compile(ctx)
+    _create_zip_files(ctx)
+
+
+def _create_zip_files(ctx):
+    """
+    This functions can be just called when the generate_files and compile tasks have been already invoked
+    """
+    import os
+    import shutil
+    from pathlib import Path
+    from zipfile import ZipFile
+    project_dir = Path(__file__).parent
+    libs_dir = project_dir / 'build/libs'
+    plugins_zip = project_dir / 'build/plugin_zip'
+
+    if plugins_zip.exists():
+        shutil.rmtree(plugins_zip)
+    os.makedirs(plugins_zip)
+
+    # Currently the generation of zip files for test are not automatically, you must indicate
+    # which plugins should be compressed in zip file
+    if os.sys.platform == 'win32':
+        shared_libs_path = libs_dir / 'simple_plugin.dll'
+    else:
+        shared_libs_path = libs_dir / 'libsimple_plugin.so'
+
+    plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
+
+    with ZipFile(plugins_zip / 'simple_plugin.zip', 'w') as zip:
+        zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+        zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)

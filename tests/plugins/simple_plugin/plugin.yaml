@@ -4,5 +4,4 @@ plugin_version: '1'
 author: 'simple_plugin_author'
 email: 'simple_plugin_author@simple_plugin_author.com'
 
-dll_name: 'simple_plugin.dll'
-lib_name: 'libsimple_plugin.so'
+shared_lib: 'simple_plugin'

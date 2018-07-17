@@ -1,10 +1,14 @@
 import ctypes
 import inspect
+import os
 from collections import OrderedDict
 from pathlib import Path
 from typing import Callable, List, Optional
+from zipfile import ZipFile, is_zipfile
 
 from hookman import hookman_utils
+from hookman.exceptions import InvalidDestinationPath, InvalidZipFile, PluginAlreadyInstalled, \
+    PluginNotFound
 
 
 class HooksSpecs:
@@ -63,6 +67,43 @@ class HookMan:
             for hook in specs.hooks
         }
 
+    def install_plugin(self, plugin_file_path: Path, dst_path: Path):
+        """
+        Extract the content of the zip file into plugin_dirs
+        """
+        if not is_zipfile(plugin_file_path):
+            raise InvalidZipFile(f"{plugin_file_path} is not a valid zip file")
+
+        plugin_file_zip = ZipFile(plugin_file_path)
+        list_of_files = [file.filename for file in plugin_file_zip.filelist]
+
+        plugin_file_str = plugin_file_zip.read('plugin.yaml').decode("utf-8")
+        plugin_file_content = hookman_utils.load_plugin_config_file(plugin_file_str)
+
+        if plugin_file_content['shared_lib'] not in list_of_files:
+            raise PluginNotFound(f"{plugin_file_content['shared_lib']} could not be found "
+                                 f"inside the plugin file")
+
+        if dst_path not in self.plugins_dirs:
+            raise InvalidDestinationPath(f"Invalid destination path, {dst_path} is not one of "
+                                         f"the paths that were informed when the HookMan "
+                                         f"object was initialized: {self.plugins_dirs}.")
+
+        plugins_dirs = []
+        for _, dirs, _ in os.walk(dst_path):
+            plugins_dirs = dirs
+            break  # Get just the first level
+
+        plugin_name = Path(plugin_file_zip.filename).resolve().stem
+
+        if plugin_name in plugins_dirs:
+            raise PluginAlreadyInstalled("Plugin already installed")
+
+        plugin_destination_folder = dst_path / plugin_name
+        os.makedirs(plugin_destination_folder)
+        plugin_file_zip.extractall(plugin_destination_folder)
+
+
     def plugins_available(self) -> Optional[List[OrderedDict]]:
         """
         Return a list with all plugins that are available on the plugins_dirs.
@@ -78,7 +119,7 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
         if plugin_config_files:
             for config_file in plugin_config_files:
-                plugins_available.append(hookman_utils.load_config_content(config_file))
+                plugins_available.append(hookman_utils.load_plugin_config_with_description(config_file))
 
         return plugins_available
 
@@ -90,7 +131,6 @@ class HookMan:
         hook_caller = _hookman.HookCaller()
 
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-
         shared_libs_location = hookman_utils.get_shared_libs_path(plugin_config_files)
 
         for lib_path in shared_libs_location:
@@ -105,8 +145,7 @@ class HookMan:
         plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
 
         hooks_to_bind = {
-            f'set_{hook_name}_function': hookman_utils.get_function_address(plugin_dll,
-                full_hook_name)
+            f'set_{hook_name}_function': hookman_utils.get_function_address(plugin_dll, full_hook_name)
             for hook_name, full_hook_name in self.hooks_available.items()
             if hookman_utils.is_implemented_on_plugin(plugin_dll, full_hook_name)
         }

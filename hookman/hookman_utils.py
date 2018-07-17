@@ -1,26 +1,52 @@
 import ctypes
 import os
 from collections import OrderedDict
+from pathlib import Path
 from typing import List, Optional, Union
 
-from coilib50.path.dotpath import Path
+
+def load_plugin_config_with_description(hook_config_file: Path) -> OrderedDict:
+    """
+    Return an OrderedDict with the content of the config file plus the plugin description.
+    """
+    hook_config_file_content = load_plugin_config_file(hook_config_file.read_text())
+    readme_file = hook_config_file.parent / 'readme.md'
+
+    if readme_file.exists():
+        hook_config_file_content['description'] = readme_file.read_text()
+    else:
+        hook_config_file_content['description'] = "Could not find a description for this plugin"
+
+    return hook_config_file_content
 
 
-def load_config_content(hook_config_file: Path) -> OrderedDict:
+def load_plugin_config_file(hook_config_file: str) -> OrderedDict:
+    """
+    Load the content of the plugin.yaml file.
+    Noticed that the entry shared_lib will be update according to the operating system
+
+    Obs.: This method receives a str instead of Path because when the ZipFile is loaded (on install_plugin)
+    it's not possible to get a Path, just the file content.
+    """
     import strictyaml
     schema = strictyaml.Map({
         "plugin_name": strictyaml.Str(),
         "plugin_version": strictyaml.Str(),
         "author": strictyaml.Str(),
         "email": strictyaml.Str(),
-        "dll_name": strictyaml.Str(),
-        "lib_name": strictyaml.Str(),
+        "shared_lib": strictyaml.Str(),
     })
-    hook_config_file_content = strictyaml.load(hook_config_file.read_text(), schema).data
+    hook_config_file_content = strictyaml.load(hook_config_file, schema).data
+
+    if os.sys.platform == 'win32':
+        hook_config_file_content['shared_lib'] = f"{hook_config_file_content['shared_lib']}.dll"
+    else:
+        hook_config_file_content['shared_lib'] = f"lib{hook_config_file_content['shared_lib']}.so"
+
     return hook_config_file_content
 
 
-def find_config_files(plugin_dirs: Union[List[Path], Path]) -> Optional[List[Path]]:
+def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
     """
     Try to find all configurations files from plugins implementations on the given path (plugins_dirs)
     If in the given there is any plugin, this function will return None
@@ -41,7 +67,7 @@ def get_shared_libs_path(plugin_config_files: Union[List[Path], Path]) -> Option
     Load the config file of each plugin available and return a list with the location of all DLL.
     If a given config files doesn't exist a FileNotFoundError exception will be raised.
     """
-    dll_locations = []
+    shared_lib_paths = []
 
     if not isinstance(plugin_config_files, list):
         plugin_config_files = [plugin_config_files]  # type: List[Path]
@@ -50,15 +76,10 @@ def get_shared_libs_path(plugin_config_files: Union[List[Path], Path]) -> Option
         if not hook_config_file.exists():
             continue
 
-        plugin_config_content = load_config_content(hook_config_file)
+        plugin_config_content = load_plugin_config_with_description(hook_config_file)
+        shared_lib_paths.append(hook_config_file.parent / plugin_config_content['shared_lib'])
 
-        if os.sys.platform == 'win32':
-            dll_name = plugin_config_content['dll_name']
-        else:
-            dll_name = plugin_config_content['lib_name']
-        dll_locations.append(hook_config_file.parent / dll_name)
-
-    return dll_locations
+    return shared_lib_paths
 
 
 def is_implemented_on_plugin(plugin_dll: ctypes.CDLL, hook_name: str) -> bool:

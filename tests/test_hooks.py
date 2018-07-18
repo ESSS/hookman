@@ -4,6 +4,7 @@ from hookman.hooks import HookMan, HooksSpecs
 
 
 def test_hook_specs_without_arguments():
+
     def method_without_arguments() -> 'float':
         """
         test_method_without_arguments
@@ -16,6 +17,7 @@ def test_hook_specs_without_arguments():
 
 
 def test_hook_specs_with_missing_type_on_argument():
+
     def method_with_missing_type_on_argument(a: 'int', b) -> 'float':
         """
         fail_method_with_missing_type_on_argument
@@ -28,6 +30,7 @@ def test_hook_specs_with_missing_type_on_argument():
 
 
 def test_hook_specs_without_docs_arguments():
+
     def method_with_docs_missing(a: 'int') -> 'int':
         pass  # pragma: no cover
 
@@ -59,18 +62,24 @@ def test_plugins_available(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'multiple_plugins'])
     plugins = hm.plugins_available()
     assert len(plugins) == 2
-    assert list(plugins[0].keys()) == ['plugin_name', 'plugin_version', 'author', 'email',
-        'shared_lib', 'description']
+    assert list(plugins[0].keys()) == [
+        'plugin_name',
+        'plugin_version',
+        'author',
+        'email',
+        'shared_lib',
+        'description'
+    ]
 
 
 def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
-    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
-    mocked_config_content = {'shared_lib': 'NON_VALID_SHARED_LIB'}
     from hookman import hookman_utils
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
+
+    mocked_config_content = {'shared_lib': 'NON_VALID_SHARED_LIB'}
     mocker.patch.object(hookman_utils, 'load_plugin_config_file', return_value=mocked_config_content)
 
     # Trying to install without a SHARED LIB inside the plugin
-
     from hookman.exceptions import PluginNotFound
     with pytest.raises(PluginNotFound, match=f"{mocked_config_content['shared_lib']} could not be found inside the plugin file"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
@@ -78,6 +87,7 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
 
 def test_install_with_invalid_dst_path(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
+
     # Trying to install in the plugin on an different path informed on the construction of the HookMan object
     from hookman.exceptions import InvalidDestinationPath
     with pytest.raises(InvalidDestinationPath, match=f"Invalid destination path"):
@@ -87,9 +97,7 @@ def test_install_with_invalid_dst_path(simple_plugin):
 def test_install_plugin_with_invalid_file(mocker, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
 
-    # ================================================================================
     # Trying to install with a invalid file
-    # ================================================================================
     from hookman.exceptions import InvalidZipFile
     with pytest.raises(InvalidZipFile, match=f"is not a valid zip file"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'] / 'nonexistent_file', dst_path=simple_plugin['path'])
@@ -97,9 +105,10 @@ def test_install_plugin_with_invalid_file(mocker, simple_plugin):
 
 def test_install_plugin_duplicate(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
-    # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
     import os
     os.makedirs(simple_plugin['path'] / 'simple_plugin')
+
+    # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
     from hookman.exceptions import PluginAlreadyInstalled
     with pytest.raises(PluginAlreadyInstalled, match=f"Plugin already installed"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
@@ -110,3 +119,13 @@ def test_install_plugin(datadir, simple_plugin):
     assert (simple_plugin['path'] / 'simple_plugin').exists() == False
     hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
     assert (simple_plugin['path'] / 'simple_plugin').exists() == True
+
+
+def test_remove_plugin(datadir, simple_plugin):
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'multiple_plugins'])
+
+    assert len(hm.plugins_available()) == 2
+
+    hm.remove_plugin('plugin_2')
+
+    assert len(hm.plugins_available()) == 1

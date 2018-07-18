@@ -1,14 +1,15 @@
 import ctypes
 import inspect
 import os
+import shutil
 from collections import OrderedDict
 from pathlib import Path
 from typing import Callable, List, Optional
 from zipfile import ZipFile, is_zipfile
 
 from hookman import hookman_utils
-from hookman.exceptions import InvalidDestinationPath, InvalidZipFile, PluginAlreadyInstalled, \
-    PluginNotFound
+from hookman.exceptions import (
+    InvalidDestinationPath, InvalidZipFile, PluginAlreadyInstalled, PluginNotFound)
 
 
 class HooksSpecs:
@@ -103,6 +104,13 @@ class HookMan:
         os.makedirs(plugin_destination_folder)
         plugin_file_zip.extractall(plugin_destination_folder)
 
+    def remove_plugin(self, plugin_name):
+        plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
+        for config_file in plugin_config_files:
+            plugin_file_content = hookman_utils.load_plugin_config_file(config_file.read_text())
+            if plugin_file_content['plugin_name'] == plugin_name:
+                shutil.rmtree(config_file.parent)
+                break
 
     def plugins_available(self) -> Optional[List[OrderedDict]]:
         """
@@ -112,8 +120,8 @@ class HookMan:
              - plugin_version
              - author
              - email
-             - dll_name
-             - lib_name
+             - shared_lib
+             - description
         """
         plugins_available = []
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
@@ -123,7 +131,7 @@ class HookMan:
 
         return plugins_available
 
-    def get_hook_caller(self) -> 'HookCaller':
+    def get_hook_caller(self):
         """
         Return a HookCaller class that holds all references for the functions implemented on the plugins.
         """
@@ -138,7 +146,7 @@ class HookMan:
 
         return hook_caller
 
-    def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller: 'HookCaller'):
+    def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller):
         """
         Load the shared_lib_path from the plugin and bind methods that are implemented on the hook_caller
         """

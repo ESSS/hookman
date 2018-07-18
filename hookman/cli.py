@@ -2,6 +2,7 @@
 
 """Console script for hookman."""
 import sys
+
 import click
 
 

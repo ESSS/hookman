@@ -193,7 +193,7 @@ class HookManGenerator:
         list_with_hook_calls += [
             f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> {hook.name}() {{' + NEW_LINE +
             f'{INDENTATION*2}return this->_{hook.name};' + NEW_LINE +
-            f'{INDENTATION}}}'+ NEW_LINE
+            f'{INDENTATION}}}' + NEW_LINE
             for hook in self.hooks
         ]
         list_with_private_members += [
@@ -254,7 +254,7 @@ class HookManGenerator:
         with open(hook_caller_python, mode='w') as file:
             file.writelines(dedent(f"""\
             include(pybind11Config)
-            
+
             pybind11_add_module(
                 {self.pyd_name}
                     HookCallerPython.cpp
@@ -269,7 +269,6 @@ class HookManGenerator:
                 PRIVATE
                     {self.pyd_name}_interface
             )
-            
+
             install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
             """))
-

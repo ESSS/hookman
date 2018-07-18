@@ -22,13 +22,12 @@ def test_hook_man_generator(datadir):
     obtained_hook_specs_file = datadir / 'plugin' / 'hook_specs.h'
     expected_hook_specs_file = datadir / 'expected_hook_specs.h'
 
-    obtained_hook_caller_file = datadir / 'cpp' /  'HookCaller.hpp'
+    obtained_hook_caller_file = datadir / 'cpp' / 'HookCaller.hpp'
     expected_hook_caller_file = datadir / 'ExpectedHookCaller.hpp'
 
-    obtained_hook_caller_python_file = datadir / 'binding' /  'HookCallerPython.cpp'
+    obtained_hook_caller_python_file = datadir / 'binding' / 'HookCallerPython.cpp'
     expected_hook_caller_python_file = datadir / 'ExpectedHookCallerPython.cpp'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
     assert obtained_hook_caller_file.read_text() == expected_hook_caller_file.read_text()
     assert obtained_hook_caller_python_file.read_text() == expected_hook_caller_python_file.read_text()
-

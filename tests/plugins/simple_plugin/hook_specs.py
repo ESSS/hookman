@@ -6,10 +6,12 @@ def friction_factor(v1: 'int', v2: 'int') -> 'int':
     Docs for Friction Factor
     """
 
+
 def env_temperature(v3: 'float', v4: 'float') -> 'float':
     """
     Docs for Environment Temperature
     """
+
 
 specs = HooksSpecs(
     project_name='ACME',

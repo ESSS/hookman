@@ -16,4 +16,3 @@ def test_command_line_interface(datadir):
 
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
-

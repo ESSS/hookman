@@ -19,7 +19,6 @@ def test_load_config_content(datadir):
         load_plugin_config_with_description(datadir / 'NonValid')
 
 
-
 def test_get_shared_libs_path(datadir, mocker):
     from hookman.hookman_utils import get_shared_libs_path
 

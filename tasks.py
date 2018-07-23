@@ -86,14 +86,14 @@ def generate_files(ctx):
     ]
 
     # Root CMakeList.txt that includes all sub_directory with tests to be compile
-    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in
-        hook_spec_paths]
+    cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in hook_spec_paths]
     with open(test_build_dir / 'CMakeLists.txt', mode='w+') as file:
         file.writelines(cmake_file_of_test_build_dir)
 
     # For each hook_specs, create a directory for the compilation and generate the files
     for hook_spec_path in hook_spec_paths:
         folder_test_name = hook_spec_path.parent.name
+
         dir_for_compilation = test_build_dir / folder_test_name
         os.makedirs(dir_for_compilation)
 
@@ -151,14 +151,36 @@ def _create_zip_files(ctx):
     os.makedirs(plugins_zip)
 
     # Currently the generation of zip files for test are not automatically, you must indicate
-    # which plugins should be compressed in zip file
-    if os.sys.platform == 'win32':
-        shared_libs_path = libs_dir / 'simple_plugin.dll'
-    else:
-        shared_libs_path = libs_dir / 'libsimple_plugin.so'
+    # which plugins should be compressed in zip file.
+    # TODO Look for folders inside the tests/plugins and automatically generate zip files
+    for _, dirs, _ in os.walk(Path("tests/plugins/")):
+        plugins_dirs = dirs
+        break  # Get just the first level
 
-    plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
+    for plugin in plugins_dirs:
+        plugin_yaml_path = project_dir / f"tests/plugins/{plugin}/plugin.yaml"
+        plugin_readme_path = project_dir / f"tests/plugins/{plugin}/readme.md"
 
-    with ZipFile(plugins_zip / 'simple_plugin.zip', 'w') as zip:
-        zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
-        zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+        if os.sys.platform == 'win32':
+            shared_libs_path = libs_dir / f"{plugin}.dll"
+        else:
+            shared_libs_path = libs_dir / f"lib{plugin}.so"
+
+        with ZipFile(plugins_zip / f"{plugin}.zip", 'w') as zip:
+            zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+            zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+            zip.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
+
+    # if os.sys.platform == 'win32':
+    #     shared_libs_path = libs_dir / 'simple_plugin.dll'
+    # else:
+    #     shared_libs_path = libs_dir / 'libsimple_plugin.so'
+    #
+    # plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
+    #
+    # with ZipFile(plugins_zip / 'simple_plugin.zip', 'w') as zip:
+    #     zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+    #     zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+    #
+    #
+    # plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'

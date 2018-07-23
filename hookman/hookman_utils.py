@@ -5,21 +5,6 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 
-def load_plugin_config_with_description(hook_config_file: Path) -> OrderedDict:
-    """
-    Return an OrderedDict with the content of the config file plus the plugin description.
-    """
-    hook_config_file_content = load_plugin_config_file(hook_config_file.read_text())
-    readme_file = hook_config_file.parent / 'readme.md'
-
-    if readme_file.exists():
-        hook_config_file_content['description'] = readme_file.read_text()
-    else:
-        hook_config_file_content['description'] = "Could not find a description for this plugin"
-
-    return hook_config_file_content
-
-
 def load_plugin_config_file(hook_config_file: str) -> OrderedDict:
     """
     Load the content of the plugin.yaml file.
@@ -76,7 +61,7 @@ def get_shared_libs_path(plugin_config_files: Union[List[Path], Path]) -> Option
         if not hook_config_file.exists():
             continue
 
-        plugin_config_content = load_plugin_config_with_description(hook_config_file)
+        plugin_config_content = load_plugin_config_file(hook_config_file.read_text())
         shared_lib_paths.append(hook_config_file.parent / plugin_config_content['shared_lib'])
 
     return shared_lib_paths

@@ -58,17 +58,18 @@ def test_get_hook_caller_without_plugin(datadir, compiled_libs_folder, simple_pl
     assert env_temperature is None
 
 
-def test_plugins_available(datadir, simple_plugin):
-    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'multiple_plugins'])
+def test_plugins_available(simple_plugin):
+    plugin_dirs = [simple_plugin['path']]
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugin_dirs)
     plugins = hm.plugins_available()
-    assert len(plugins) == 2
+    assert len(plugins) == 1
     assert list(plugins[0].keys()) == [
         'plugin_name',
         'plugin_version',
         'author',
         'email',
         'shared_lib',
-        'description'
+        'description',
     ]
 
 

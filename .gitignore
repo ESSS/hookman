@@ -108,3 +108,4 @@ build/libs
 environment.yml
 .idea/
 environment.yml
+/build/plugin_zip/

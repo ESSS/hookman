@@ -16,7 +16,7 @@ def env_temperature(v3: 'float', v4: 'float') -> 'float':
 specs = HooksSpecs(
     project_name='ACME',
     version='1',
-    pyd_name='_simple_plugin',
+    pyd_name='_simple',
     hooks=[
         friction_factor,
         env_temperature,

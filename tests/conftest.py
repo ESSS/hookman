@@ -47,14 +47,3 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
 
     simple_plugin = {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
     return simple_plugin
-
-# @pytest.fixture
-# def simple_plugin_specs(plugins_folder):
-#     # Load the hook_specs.py (inside the test folder) into plugin_specs
-#     hook_specs = plugins_folder / 'simple_plugin/hook_specs.py'
-#     import importlib
-#     spec = importlib.util.spec_from_file_location('hook_specs', hook_specs)
-#     plugin_specs = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(plugin_specs)
-#
-#     return plugin_specs.specs

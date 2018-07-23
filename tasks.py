@@ -184,3 +184,8 @@ def _create_zip_files(ctx):
     #
     #
     # plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
+
+
+@invoke.task
+def ci_build(ctx):
+    build(ctx)

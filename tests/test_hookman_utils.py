@@ -11,12 +11,13 @@ def test_find_config_files(datadir):
 
 
 def test_load_config_content(datadir):
-    from hookman.hookman_utils import load_plugin_config_with_description
-    config_file_content = load_plugin_config_with_description(datadir / 'plugin.yaml')
+    from hookman.hookman_utils import load_plugin_config_file
+    plugin_yaml_file = datadir / 'plugin.yaml'
+    config_file_content = load_plugin_config_file(plugin_yaml_file.read_text(encoding="utf-8"))
     assert config_file_content is not None
 
-    with pytest.raises(FileNotFoundError):
-        load_plugin_config_with_description(datadir / 'NonValid')
+    with pytest.raises(TypeError, match="StrictYAML can only read a string of valid YAML"):
+        load_plugin_config_file(datadir / 'NonValid')
 
 
 def test_get_shared_libs_path(datadir, mocker):

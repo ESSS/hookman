@@ -166,24 +166,11 @@ def _create_zip_files(ctx):
         else:
             shared_libs_path = libs_dir / f"lib{plugin}.so"
 
-        with ZipFile(plugins_zip / f"{plugin}.zip", 'w') as zip:
-            zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
-            zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)
-            zip.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
+        with ZipFile(plugins_zip / f"{plugin}.zip", 'w') as zip_file:
+            zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+            zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+            zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
 
-    # if os.sys.platform == 'win32':
-    #     shared_libs_path = libs_dir / 'simple_plugin.dll'
-    # else:
-    #     shared_libs_path = libs_dir / 'libsimple_plugin.so'
-    #
-    # plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
-    #
-    # with ZipFile(plugins_zip / 'simple_plugin.zip', 'w') as zip:
-    #     zip.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
-    #     zip.write(filename=shared_libs_path, arcname=shared_libs_path.name)
-    #
-    #
-    # plugin_yaml_path = project_dir / 'tests/plugins/simple_plugin/plugin.yaml'
 
 
 @invoke.task

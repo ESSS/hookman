@@ -127,7 +127,7 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
         if plugin_config_files:
             for config_file in plugin_config_files:
-                plugins_available.append(self.load_plugin_info(config_file))
+                plugins_available.append(load_plugin_info(config_file))
 
         return plugins_available
 
@@ -162,19 +162,7 @@ class HookMan:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
 
-    def load_plugin_info(self, hook_config_file: Path) -> OrderedDict:
-        """
-        Return an OrderedDict with the content of the config file plus the plugin description.
-        """
-        hook_config_file_content = hookman_utils.load_plugin_config_file(hook_config_file.read_text())
-        readme_file = hook_config_file.parent / 'readme.md'
 
-        if readme_file.exists():
-            hook_config_file_content['description'] = readme_file.read_text()
-        else:
-            hook_config_file_content['description'] = "Could not find a description for this plugin"
-
-        return hook_config_file_content
 
     def _get_hooks_implemented(self, hook_config_file) -> set:
         hooks_implemented = set()
@@ -186,3 +174,17 @@ class HookMan:
             if hookman_utils.is_implemented_on_plugin(plugin_dll, full_hook_name)
         }
         return hooks_implemented
+
+def load_plugin_info(hook_config_file: Path) -> OrderedDict:
+    """
+    Return an OrderedDict with the content of the config file plus the plugin description.
+    """
+    hook_config_file_content = hookman_utils.load_plugin_config_file(hook_config_file.read_text())
+    readme_file = hook_config_file.parent / 'readme.md'
+
+    if readme_file.exists():
+        hook_config_file_content['description'] = readme_file.read_text()
+    else:
+        hook_config_file_content['description'] = "Could not find a description for this plugin"
+
+    return hook_config_file_content

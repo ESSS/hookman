@@ -94,7 +94,7 @@ class HookMan:
         for _, dirs, _ in os.walk(dst_path):
             plugins_dirs = dirs
             break  # Get just the first level
-
+        plugins_dirs.sort()
         plugin_name = Path(plugin_file_zip.filename).resolve().stem
 
         if plugin_name in plugins_dirs:

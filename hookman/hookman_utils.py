@@ -44,6 +44,7 @@ def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
     for plugin_dir in plugin_dirs:
         config_files += plugin_dir.glob('**/plugin.yaml')
 
+    config_files.sort()
     return config_files
 
 

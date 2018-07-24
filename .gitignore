@@ -107,5 +107,5 @@ build/libs
 /build/ninja/
 environment.yml
 .idea/
-environment.yml
-/build/plugin_zip/
+/build/plugin_zip
+

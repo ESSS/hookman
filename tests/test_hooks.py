@@ -81,8 +81,8 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
     mocker.patch.object(hookman_utils, 'load_plugin_config_file', return_value=mocked_config_content)
 
     # Trying to install without a SHARED LIB inside the plugin
-    from hookman.exceptions import PluginNotFound
-    with pytest.raises(PluginNotFound, match=f"{mocked_config_content['shared_lib']} could not be found inside the plugin file"):
+    from hookman.exceptions import PluginNotFoundError
+    with pytest.raises(PluginNotFoundError, match=f"{mocked_config_content['shared_lib']} could not be found inside the plugin file"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
 
 
@@ -90,8 +90,8 @@ def test_install_with_invalid_dst_path(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
 
     # Trying to install in the plugin on an different path informed on the construction of the HookMan object
-    from hookman.exceptions import InvalidDestinationPath
-    with pytest.raises(InvalidDestinationPath, match=f"Invalid destination path"):
+    from hookman.exceptions import InvalidDestinationPathError
+    with pytest.raises(InvalidDestinationPathError, match=f"Invalid destination path"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'] / 'INVALID_PATH')
 
 
@@ -99,8 +99,8 @@ def test_install_plugin_with_invalid_file(mocker, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
 
     # Trying to install with a invalid file
-    from hookman.exceptions import InvalidZipFile
-    with pytest.raises(InvalidZipFile, match=f"is not a valid zip file"):
+    from hookman.exceptions import InvalidZipFileError
+    with pytest.raises(InvalidZipFileError, match=f"is not a valid zip file"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'] / 'nonexistent_file', dst_path=simple_plugin['path'])
 
 
@@ -110,8 +110,8 @@ def test_install_plugin_duplicate(simple_plugin):
     os.makedirs(simple_plugin['path'] / 'simple_plugin')
 
     # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
-    from hookman.exceptions import PluginAlreadyInstalled
-    with pytest.raises(PluginAlreadyInstalled, match=f"Plugin already installed"):
+    from hookman.exceptions import PluginAlreadyInstalledError
+    with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
 
 

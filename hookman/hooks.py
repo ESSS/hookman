@@ -9,7 +9,7 @@ from zipfile import ZipFile, is_zipfile
 
 from hookman import hookman_utils
 from hookman.exceptions import (
-    InvalidDestinationPath, InvalidZipFile, PluginAlreadyInstalled, PluginNotFound)
+    InvalidDestinationPathError, InvalidZipFileError, PluginAlreadyInstalledError, PluginNotFoundError)
 
 
 class HooksSpecs:
@@ -73,7 +73,7 @@ class HookMan:
         Extract the content of the zip file into plugin_dirs
         """
         if not is_zipfile(plugin_file_path):
-            raise InvalidZipFile(f"{plugin_file_path} is not a valid zip file")
+            raise InvalidZipFileError(f"{plugin_file_path} is not a valid zip file")
 
         plugin_file_zip = ZipFile(plugin_file_path)
         list_of_files = [file.filename for file in plugin_file_zip.filelist]
@@ -82,11 +82,11 @@ class HookMan:
         plugin_file_content = hookman_utils.load_plugin_config_file(plugin_file_str)
 
         if plugin_file_content['shared_lib'] not in list_of_files:
-            raise PluginNotFound(f"{plugin_file_content['shared_lib']} could not be found "
+            raise PluginNotFoundError(f"{plugin_file_content['shared_lib']} could not be found "
                                  f"inside the plugin file")
 
         if dst_path not in self.plugins_dirs:
-            raise InvalidDestinationPath(f"Invalid destination path, {dst_path} is not one of "
+            raise InvalidDestinationPathError(f"Invalid destination path, {dst_path} is not one of "
                                          f"the paths that were informed when the HookMan "
                                          f"object was initialized: {self.plugins_dirs}.")
 
@@ -98,7 +98,7 @@ class HookMan:
         plugin_name = Path(plugin_file_zip.filename).resolve().stem
 
         if plugin_name in plugins_dirs:
-            raise PluginAlreadyInstalled("Plugin already installed")
+            raise PluginAlreadyInstalledError("Plugin already installed")
 
         plugin_destination_folder = dst_path / plugin_name
         os.makedirs(plugin_destination_folder)

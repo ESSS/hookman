@@ -17,7 +17,7 @@ install:
   - choco install ninja
   - C:\Miniconda36-x64\Scripts\conda.exe install --channel conda-forge pybind11 -y
 
-
+  
 build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:

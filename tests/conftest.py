@@ -25,7 +25,7 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
 
     # Use the simple plugin available at plugins folder for this test
     plugin_dir = datadir / 'simple_plugin/'
-    copytree(src=plugins_folder / 'simple_plugin', dst=plugin_dir)
+    copytree(src=plugins_folder / 'acme/simple_plugin', dst=plugin_dir)
 
     # Get the compiled lib
     if os.sys.platform == 'win32':
@@ -37,7 +37,7 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
     copy2(src=simple_plugin_dll, dst=plugin_dir)
 
     # Load the hook_specs.py (inside the test folder) into plugin_specs
-    hook_specs = plugins_folder / 'simple_plugin/hook_specs.py'
+    hook_specs = plugins_folder / 'acme/hook_specs.py'
     import importlib
     spec = importlib.util.spec_from_file_location('hook_specs', hook_specs)
     plugin_specs = importlib.util.module_from_spec(spec)

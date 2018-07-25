@@ -150,12 +150,7 @@ def _create_zip_files(ctx):
         shutil.rmtree(plugins_zip)
     os.makedirs(plugins_zip)
 
-    # Currently the generation of zip files for test are not automatically, you must indicate
-    # which plugins should be compressed in zip file.
-    # TODO Look for folders inside the tests/plugins and automatically generate zip files
-    for _, dirs, _ in os.walk(Path("tests/plugins/")):
-        plugins_dirs = dirs
-        break  # Get just the first level
+    plugins_dirs = [x.name for x in Path("tests/plugins/").iterdir() if x.is_dir()]
 
     for plugin in plugins_dirs:
         plugin_yaml_path = project_dir / f"tests/plugins/{plugin}/plugin.yaml"
@@ -170,9 +165,3 @@ def _create_zip_files(ctx):
             zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
             zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
             zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
-
-
-
-@invoke.task
-def ci_build(ctx):
-    build(ctx)

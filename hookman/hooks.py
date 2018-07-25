@@ -2,14 +2,14 @@ import ctypes
 import inspect
 import os
 import shutil
-from collections import OrderedDict
 from pathlib import Path
 from typing import Callable, List, Optional
 from zipfile import ZipFile, is_zipfile
 
 from hookman import hookman_utils
 from hookman.exceptions import (
-    InvalidDestinationPathError, InvalidZipFileError, PluginAlreadyInstalledError, PluginNotFoundError)
+    InvalidDestinationPathError, InvalidZipFileError, PluginAlreadyInstalledError)
+from hookman.plugin_config import PluginInfo
 
 
 class HooksSpecs:
@@ -72,62 +72,42 @@ class HookMan:
         """
         Extract the content of the zip file into plugin_dirs
         """
-        if not is_zipfile(plugin_file_path):
-            raise InvalidZipFileError(f"{plugin_file_path} is not a valid zip file")
-
         plugin_file_zip = ZipFile(plugin_file_path)
-        list_of_files = [file.filename for file in plugin_file_zip.filelist]
-
-        plugin_file_str = plugin_file_zip.read('plugin.yaml').decode("utf-8")
-        plugin_file_content = hookman_utils.load_plugin_config_file(plugin_file_str)
-
-        if plugin_file_content['shared_lib'] not in list_of_files:
-            raise PluginNotFoundError(f"{plugin_file_content['shared_lib']} could not be found "
-                                 f"inside the plugin file")
+        PluginInfo.plugin_file_validation(plugin_file_zip=plugin_file_zip)
 
         if dst_path not in self.plugins_dirs:
             raise InvalidDestinationPathError(f"Invalid destination path, {dst_path} is not one of "
-                                         f"the paths that were informed when the HookMan "
-                                         f"object was initialized: {self.plugins_dirs}.")
+                                              f"the paths that were informed when the HookMan "
+                                              f"object was initialized: {self.plugins_dirs}.")
 
-        plugins_dirs = []
-        for _, dirs, _ in os.walk(dst_path):
-            plugins_dirs = dirs
-            break  # Get just the first level
-        plugins_dirs.sort()
         plugin_name = Path(plugin_file_zip.filename).resolve().stem
+        plugins_dirs = [x for x in dst_path.iterdir() if x.is_dir()]
 
-        if plugin_name in plugins_dirs:
+        if plugin_name in [x.name for x in plugins_dirs]:
             raise PluginAlreadyInstalledError("Plugin already installed")
 
         plugin_destination_folder = dst_path / plugin_name
-        os.makedirs(plugin_destination_folder)
+        plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
 
-    def remove_plugin(self, plugin_name):
-        plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        for config_file in plugin_config_files:
-            plugin_file_content = hookman_utils.load_plugin_config_file(config_file.read_text())
-            if plugin_file_content['plugin_name'] == plugin_name:
-                shutil.rmtree(config_file.parent)
+    def remove_plugin(self, plugin_name: str):
+        for plugin in self.plugins_available():
+            if plugin.name == plugin_name:
+                shutil.rmtree(plugin.location.parent)
                 break
 
-    def plugins_available(self) -> Optional[List[OrderedDict]]:
+
+    def plugins_available(self) -> Optional[List[PluginInfo]]:
         """
         Return a list with all plugins that are available on the plugins_dirs.
-        The list contains a OrderedDict with the content of the config file:
-             - plugin_name
-             - plugin_version
-             - author
-             - email
-             - shared_lib
-             - description
+        The list contains a PluginInfo object that contains information about the plugin
+        (configuration available at the YAML file and computed values )
         """
         plugins_available = []
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
         if plugin_config_files:
             for config_file in plugin_config_files:
-                plugins_available.append(load_plugin_info(config_file))
+                plugins_available.append(PluginInfo(config_file))
 
         return plugins_available
 
@@ -137,12 +117,8 @@ class HookMan:
         """
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
-
-        plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        shared_libs_location = hookman_utils.get_shared_libs_path(plugin_config_files)
-
-        for lib_path in shared_libs_location:
-            self._bind_libs_functions_on_hook_caller(lib_path, hook_caller)
+        for plugin in self.plugins_available():
+            self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
 
         return hook_caller
 
@@ -153,38 +129,11 @@ class HookMan:
         plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
 
         hooks_to_bind = {
-            f'set_{hook_name}_function': hookman_utils.get_function_address(plugin_dll, full_hook_name)
+            f'set_{hook_name}_function': PluginInfo.get_function_address(plugin_dll, full_hook_name)
             for hook_name, full_hook_name in self.hooks_available.items()
-            if hookman_utils.is_implemented_on_plugin(plugin_dll, full_hook_name)
+            if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name)
         }
 
         for hook in hooks_to_bind:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
-
-
-
-    def _get_hooks_implemented(self, hook_config_file) -> set:
-        hooks_implemented = set()
-        shared_lib_path = hookman_utils.get_shared_libs_path(hook_config_file)
-        plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path[0]))
-        hooks_implemented = {
-            hook_name
-            for hook_name, full_hook_name in self.hooks_available.items()
-            if hookman_utils.is_implemented_on_plugin(plugin_dll, full_hook_name)
-        }
-        return hooks_implemented
-
-def load_plugin_info(hook_config_file: Path) -> OrderedDict:
-    """
-    Return an OrderedDict with the content of the config file plus the plugin description.
-    """
-    hook_config_file_content = hookman_utils.load_plugin_config_file(hook_config_file.read_text())
-    readme_file = hook_config_file.parent / 'readme.md'
-
-    if readme_file.exists():
-        hook_config_file_content['description'] = readme_file.read_text()
-    else:
-        hook_config_file_content['description'] = "Could not find a description for this plugin"
-
-    return hook_config_file_content

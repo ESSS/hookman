@@ -3,11 +3,6 @@ class HookmanError(Exception):
     Base class for all hookman exceptions.
     """
 
-class InvalidZipFileError(HookmanError):
-    '''
-    Exception raised when the file informed it's not a zip file
-    '''
-
 
 class PluginNotFoundError(HookmanError):
     '''

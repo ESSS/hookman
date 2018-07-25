@@ -1,0 +1,8 @@
+plugin_name: 'Plugin Config'
+plugin_version: '1'
+
+author: 'test_plugin_config'
+email: 'test_plugin_config@test_plugin_config'
+
+shared_lib: 'name_of_the_shared_lib'
+

@@ -1,0 +1,7 @@
+plugin_name: 'Simple Plugin 2'
+plugin_version: '1'
+
+author: 'simple_plugin_2_author'
+email: 'simple_plugin_2_author@simple_plugin_2_author.com'
+
+shared_lib: 'simple_plugin_2'

@@ -109,3 +109,4 @@ environment.yml
 .idea/
 /build/plugin_zip
 
+/build/build_directory_for_tests/

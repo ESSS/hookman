@@ -15,6 +15,6 @@ include(HookManConfig)
 
 set(CMAKE_C_STANDARD 99)
 
-add_subdirectory(build_test/)
+add_subdirectory(build_directory_for_tests/)
 
 

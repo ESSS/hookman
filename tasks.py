@@ -1,3 +1,5 @@
+import sys
+
 import invoke
 
 
@@ -67,31 +69,32 @@ def generate_files(ctx):
 
     project_dir = Path(__file__).parent
 
-    test_dir = project_dir / 'tests'
-    test_build_dir = project_dir / 'build/build_test'
+    directory_of_the_tests = project_dir / 'tests/plugins'
+    directory_to_build_tests = project_dir / 'build/build_directory_for_tests'
 
     # Clean UP
-    if test_build_dir.exists():
-        shutil.rmtree(test_build_dir)
-    os.makedirs(test_build_dir)
+    if directory_to_build_tests.exists():
+        shutil.rmtree(directory_to_build_tests)
+    os.makedirs(directory_to_build_tests)
 
-    # Finding Tests
+    # Finding hook_specs.py
     hook_spec_paths = [path
-        for path in test_dir.glob('**/hook_specs.py')
+        for path in directory_of_the_tests.glob('**/hook_specs.py')
         if 'tmp' not in path.parts
     ]
 
     # Root CMakeList.txt that includes all sub_directory with tests to be compile
     cmake_file_of_test_build_dir = [f'add_subdirectory({i.parent.name })\n' for i in hook_spec_paths]
-    with open(test_build_dir / 'CMakeLists.txt', mode='w+') as file:
+    with open(directory_to_build_tests / 'CMakeLists.txt', mode='w+') as file:
         file.writelines(cmake_file_of_test_build_dir)
 
     # For each hook_specs, create a directory for the compilation and generate the files
     for hook_spec_path in hook_spec_paths:
-        folder_test_name = hook_spec_path.parent.name
+        project_name = hook_spec_path.parent.name
 
-        dir_for_compilation = test_build_dir / folder_test_name
-        os.makedirs(dir_for_compilation)
+        dir_for_compilation = directory_to_build_tests / project_name
+        dir_for_compilation.mkdir(parents=True)
+        # os.makedirs(dir_for_compilation)
 
         hm_generator = HookManGenerator(hook_spec_file_path=hook_spec_path)
         hm_generator.generate_files(dst_path=dir_for_compilation)
@@ -103,21 +106,43 @@ def generate_files(ctx):
                 add_subdirectory(binding)
                 """))
 
-        list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('**/*.c')]
-        for i in list_with_c_files_names:
-            shutil.copy2(src=i, dst=dir_for_compilation / 'plugin')
-
         cmake_plugin = dir_for_compilation / 'plugin/CMakeLists.txt'
-        if list_with_c_files_names:
-            with open(cmake_plugin, mode='w') as file:
-                file.writelines(dedent(f"""\
-                        add_library({folder_test_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
+        # Find folder with Plugins
+        plugins_dirs = [x for x in hook_spec_path.parent.iterdir() if x.is_dir()]
 
-                        install(TARGETS {folder_test_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
-                        """
+        # Identify the C Files
+        for plugin in plugins_dirs:
+            list_with_c_files_names = [c_file for c_file in plugin.glob('**/*.c')]
+
+            # Copy the c files to compilation dir
+            for i in list_with_c_files_names:
+                shutil.copy2(src=i, dst=dir_for_compilation / 'plugin')
+
+            # Write the plugin in a cmake file
+            cmake_file_for_plugin = dir_for_compilation / 'plugin/CMakeLists.txt'
+            with open(cmake_file_for_plugin, mode='a') as file:
+                file.writelines(dedent(f"""\
+                    add_library({plugin.name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
+
+                    install(TARGETS {plugin.name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
+                    """
                 ))
-        else:
-            open(cmake_plugin, mode='w+').close()
+
+        # list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('**/*.c')]
+        # for i in list_with_c_files_names:
+        #     shutil.copy2(src=i, dst=dir_for_compilation / 'plugin')
+        #
+        # cmake_plugin = dir_for_compilation / 'plugin/CMakeLists.txt'
+        # if list_with_c_files_names:
+        #     with open(cmake_plugin, mode='w') as file:
+        #         file.writelines(dedent(f"""\
+        #                 add_library({project_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
+        #
+        #                 install(TARGETS {project_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
+        #                 """
+        #         ))
+        # else:
+        #     open(cmake_plugin, mode='w+').close()
 
 
 @invoke.task
@@ -134,30 +159,34 @@ def _create_zip_files(ctx):
     """
     This functions can be just called when the generate_files and compile tasks have been already invoked
     """
-    import os
     import shutil
     from pathlib import Path
     from zipfile import ZipFile
     project_dir = Path(__file__).parent
     libs_dir = project_dir / 'build/libs'
+    plugins_src_dir = project_dir / "tests/plugins/"
+    plugins_projects = [x for x in plugins_src_dir.iterdir() if x.is_dir()]
     plugins_zip = project_dir / 'build/plugin_zip'
+    print("\n\n-- Creating Zip Files \n")
 
     if plugins_zip.exists():
         shutil.rmtree(plugins_zip)
-    os.makedirs(plugins_zip)
 
-    plugins_dirs = [x.name for x in Path("tests/plugins/").iterdir() if x.is_dir()]
+    plugins_zip.mkdir(parents=True)
 
-    for plugin in plugins_dirs:
-        plugin_yaml_path = project_dir / f"tests/plugins/{plugin}/plugin.yaml"
-        plugin_readme_path = project_dir / f"tests/plugins/{plugin}/readme.md"
+    for project in plugins_projects:
+        plugins_dirs = [x.name for x in project.iterdir() if x.is_dir()]
 
-        if os.sys.platform == 'win32':
-            shared_libs_path = libs_dir / f"{plugin}.dll"
-        else:
-            shared_libs_path = libs_dir / f"lib{plugin}.so"
+        for plugin in plugins_dirs:
+            plugin_yaml_path = project_dir / f"tests/plugins/{project.name}/{plugin}/plugin.yaml"
+            plugin_readme_path = project_dir / f"tests/plugins/{project.name}/{plugin}/readme.md"
 
-        with ZipFile(plugins_zip / f"{plugin}.hmplugin", 'w') as zip_file:
-            zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
-            zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
-            zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
+            if sys.platform == 'win32':
+                shared_libs_path = libs_dir / f"{plugin}.dll"
+            else:
+                shared_libs_path = libs_dir / f"lib{plugin}.so"
+
+            with ZipFile(plugins_zip / f"{plugin}.hmplugin", 'w') as zip_file:
+                zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+                zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+                zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)

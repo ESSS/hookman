@@ -1,14 +1,12 @@
 import ctypes
 import inspect
-import os
 import shutil
 from pathlib import Path
 from typing import Callable, List, Optional
-from zipfile import ZipFile, is_zipfile
+from zipfile import ZipFile
 
 from hookman import hookman_utils
-from hookman.exceptions import (
-    InvalidDestinationPathError, InvalidZipFileError, PluginAlreadyInstalledError)
+from hookman.exceptions import InvalidDestinationPathError, PluginAlreadyInstalledError
 from hookman.plugin_config import PluginInfo
 
 

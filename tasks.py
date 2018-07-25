@@ -33,15 +33,11 @@ def compile(ctx):
     with ctx.cd(str(ninja_dir)):
         if sys.platform == 'win32':
             paths = (
-                os.path.expandvars(
-                    r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-                os.path.expandvars(
-                    r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat'),
-                os.path.expandvars(
-                    r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
-                os.path.expandvars(
-                    r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\WDExpress\VC\Auxiliary\Build\vcvarsall.bat'),
-                    # App Veyor PROGRAMFILES not defined
+                os.path.expandvars(r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
+                os.path.expandvars(r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat'),
+                os.path.expandvars(r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+                os.path.expandvars(r'${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\WDExpress\VC\Auxiliary\Build\vcvarsall.bat'),
+                # On AppVeyor the variable PROGRAMFILES is not defined
                 r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat",
             )
             for msvc_path in paths:

@@ -29,12 +29,12 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
 
     # Get the compiled lib
     if os.sys.platform == 'win32':
-        simple_plugin_dll = compiled_libs_folder / 'simple_plugin.dll'
+        plugin_dll = compiled_libs_folder / 'simple_plugin.dll'
     else:
-        simple_plugin_dll = compiled_libs_folder / 'libsimple_plugin.so'
+        plugin_dll = compiled_libs_folder / 'libsimple_plugin.so'
 
-    from shutil import copy2
-    copy2(src=simple_plugin_dll, dst=plugin_dir)
+    from shutil import copy
+    copy(src=plugin_dll, dst=plugin_dir)
 
     # Load the hook_specs.py (inside the test folder) into plugin_specs
     hook_specs = plugins_folder / 'acme/hook_specs.py'
@@ -45,5 +45,34 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
 
     simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
 
-    simple_plugin = {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
-    return simple_plugin
+    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': plugin_zip_file}
+
+
+@pytest.fixture
+def simple_plugin_2(datadir, plugins_folder, compiled_libs_folder, plugins_zip_folder):
+    import os
+    from shutil import copytree
+
+    # Use the simple plugin available at plugins folder for this test
+    plugin_dir = datadir / 'simple_plugin_2/'
+    copytree(src=plugins_folder / 'acme/simple_plugin_2', dst=plugin_dir)
+
+    # Get the compiled lib
+    if os.sys.platform == 'win32':
+        plugin_dll = compiled_libs_folder / 'simple_plugin_2.dll'
+    else:
+        plugin_dll = compiled_libs_folder / 'libsimple_plugin_2.so'
+
+    from shutil import copy
+    copy(src=plugin_dll, dst=plugin_dir)
+
+    # Load the hook_specs.py (inside the test folder) into plugin_specs
+    hook_specs = plugins_folder / 'acme/hook_specs.py'
+    import importlib
+    spec = importlib.util.spec_from_file_location('hook_specs', hook_specs)
+    plugin_specs = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(plugin_specs)
+
+    plugin_zip_file = plugins_zip_folder / 'simple_plugin_2.zip'
+
+    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': plugin_zip_file}

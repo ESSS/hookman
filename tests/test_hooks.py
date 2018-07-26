@@ -60,13 +60,16 @@ def test_plugins_available(simple_plugin):
     import attr
     assert list(attr.asdict(plugins[0]).keys()) == [
         'location',
-        'name',
-        'version',
+        'hooks_available',
+
         'author',
+        'description',
         'email',
+        'hooks_implemented',
+        'name',
         'shared_lib_name',
         'shared_lib_path',
-        'description',
+        'version',
     ]
 
 
@@ -109,9 +112,24 @@ def test_install_plugin(datadir, simple_plugin):
     assert (simple_plugin['path'] / 'simple_plugin').exists() == True
 
 
-def test_remove_plugin(datadir, simple_plugin):
-    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'multiple_plugins'])
+def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
+    plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
 
     assert len(hm.plugins_available()) == 2
-    hm.remove_plugin('plugin_2')
+    hm.remove_plugin('Simple Plugin 2')
     assert len(hm.plugins_available()) == 1
+
+
+# def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
+#     plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
+#     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
+#     from hookman.exceptions import ConflictBetweenPluginsError
+#     with pytest.raises(ConflictBetweenPluginsError):
+#         hook_caller = hm.get_hook_caller()
+#
+#     # friction_factor = hook_caller.friction_factor()
+#     # env_temperature = hook_caller.env_temperature()
+#     # assert friction_factor is not None
+#     # assert env_temperature is None
+#     # assert friction_factor(1, 2) == 3

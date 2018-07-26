@@ -6,7 +6,8 @@ from typing import Callable, List, Optional
 from zipfile import ZipFile
 
 from hookman import hookman_utils
-from hookman.exceptions import InvalidDestinationPathError, PluginAlreadyInstalledError
+from hookman.exceptions import ConflictBetweenPluginsError, InvalidDestinationPathError, \
+    PluginAlreadyInstalledError
 from hookman.plugin_config import PluginInfo
 
 
@@ -91,6 +92,7 @@ class HookMan:
     def remove_plugin(self, plugin_name: str):
         for plugin in self.plugins_available():
             if plugin.name == plugin_name:
+                print(plugin.location.parent)
                 shutil.rmtree(plugin.location.parent)
                 break
 
@@ -105,18 +107,24 @@ class HookMan:
 
     def get_hook_caller(self):
         """
-        Return a HookCaller class that holds all references for the functions implemented on the plugins.
+        Return a HookCaller class that holds all references for the functions implemented
+        on the plugins.
         """
-        _hookman = __import__(self.specs.pyd_name)
-        hook_caller = _hookman.HookCaller()
-        for plugin in self.plugins_available():
-            self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
+        if not self.plugins_has_conflicts():
+            _hookman = __import__(self.specs.pyd_name)
+            hook_caller = _hookman.HookCaller()
+            for plugin in self.plugins_available():
+                self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
+        else:
+            raise ConflictBetweenPluginsError(
+                f"Could not get a Hook Caller due to existing conflict between installed plugins")
 
         return hook_caller
 
     def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller):
         """
-        Load the shared_lib_path from the plugin and bind methods that are implemented on the hook_caller
+        Load the shared_lib_path from the plugin and bind methods that are implemented on the
+        hook_caller.
         """
         plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
 
@@ -129,3 +137,15 @@ class HookMan:
         for hook in hooks_to_bind:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
+
+
+    def plugins_has_conflicts(self):
+        return False
+
+    def get_status(self):
+        """
+        Check if the plugins doesn't have conflict between then.
+        If a conflict is found a dictionary with the plugins names will be return
+        Ex.:
+        status: {'msg': "Ok" / "NOK", 'status':[plugin1, plugin2]}
+        """

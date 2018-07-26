@@ -10,6 +10,13 @@ from attr import attrib
 from hookman.exceptions import PluginNotFoundError
 from hookman.hookman_utils import load_shared_lib
 
+@attr.s(frozen=True, auto_attribs=True)
+class ConflictStatus(object):
+    """
+    Class that hold information related to conflict between plugins.
+    """
+    plugins : List[str]
+    hook : str
 
 @attr.s(frozen=True)
 class PluginInfo(object):

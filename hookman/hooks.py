@@ -8,7 +8,7 @@ from zipfile import ZipFile
 from hookman import hookman_utils
 from hookman.exceptions import ConflictBetweenPluginsError, InvalidDestinationPathError, \
     PluginAlreadyInstalledError
-from hookman.plugin_config import PluginInfo
+from hookman.plugin_config import PluginInfo, ConflictStatus
 
 
 class HooksSpecs:
@@ -139,13 +139,34 @@ class HookMan:
             cpp_func(hooks_to_bind[hook])
 
 
-    def plugins_has_conflicts(self):
-        return False
+    def plugins_has_conflicts(self) -> bool:
+        """
+        Auxiliary methods that checks if the get_status has any conflict
+        """
+        if self.get_status():
+            return True
+        else:
+            return False
 
-    def get_status(self):
+    def get_status(self) -> List[Optional[ConflictStatus]]:
         """
-        Check if the plugins doesn't have conflict between then.
-        If a conflict is found a dictionary with the plugins names will be return
-        Ex.:
-        status: {'msg': "Ok" / "NOK", 'status':[plugin1, plugin2]}
+        Check if the plugins has conflicts between then.
+        If a conflict is found a list of ConflictStatus object will be returned.
+        Otherwise a empty list is returned.
         """
+        list_of_conflicts = []
+        plugins_available = self.plugins_available()
+        if not plugins_available:
+            return list_of_conflicts
+
+        hooks_status = {hook_name: [] for hook_name in plugins_available[0].hooks_available.keys()}
+
+        for plugin in plugins_available:
+            for hook in plugin.hooks_implemented:
+                hooks_status[hook].append(plugin.name)
+
+        for key, value in hooks_status.items():
+            if len(value) > 1:
+                list_of_conflicts.append(ConflictStatus(plugins=value, hook=key))
+
+        return list_of_conflicts

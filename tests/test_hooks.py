@@ -33,6 +33,13 @@ def test_hook_specs_without_docs_arguments():
         specs = HooksSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_with_docs_missing])
 
 
+def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
+    plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
+    from hookman.exceptions import ConflictBetweenPluginsError
+    with pytest.raises(ConflictBetweenPluginsError):
+        hook_caller = hm.get_hook_caller()
+
 def test_get_hook_caller(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
     hook_caller = hm.get_hook_caller()

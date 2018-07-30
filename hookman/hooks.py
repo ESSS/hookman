@@ -103,7 +103,7 @@ class HookMan:
         (configuration available at the YAML file and computed values )
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        return [PluginInfo(plugin_file) for plugin_file in plugin_config_files]
+        return [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
 
     def get_hook_caller(self):
         """

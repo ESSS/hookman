@@ -128,21 +128,6 @@ def generate_files(ctx):
                     """
                 ))
 
-        # list_with_c_files_names = [c_file for c_file in hook_spec_path.parent.glob('**/*.c')]
-        # for i in list_with_c_files_names:
-        #     shutil.copy2(src=i, dst=dir_for_compilation / 'plugin')
-        #
-        # cmake_plugin = dir_for_compilation / 'plugin/CMakeLists.txt'
-        # if list_with_c_files_names:
-        #     with open(cmake_plugin, mode='w') as file:
-        #         file.writelines(dedent(f"""\
-        #                 add_library({project_name} SHARED {" ".join(str(x.name) for x in list_with_c_files_names)} hook_specs.h)
-        #
-        #                 install(TARGETS {project_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
-        #                 """
-        #         ))
-        # else:
-        #     open(cmake_plugin, mode='w+').close()
 
 
 @invoke.task
@@ -187,6 +172,6 @@ def _create_zip_files(ctx):
                 shared_libs_path = libs_dir / f"lib{plugin}.so"
 
             with ZipFile(plugins_zip / f"{plugin}.hmplugin", 'w') as zip_file:
-                zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
-                zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
-                zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)
+                    zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
+                    zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
+                    zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)

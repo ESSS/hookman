@@ -157,7 +157,7 @@ def _create_zip_files(ctx):
         else:
             shared_libs_path = libs_dir / f"lib{plugin}.so"
 
-        with ZipFile(plugins_zip / f"{plugin}.zip", 'w') as zip_file:
+        with ZipFile(plugins_zip / f"{plugin}.hmplugin", 'w') as zip_file:
             zip_file.write(filename=plugin_yaml_path, arcname=plugin_yaml_path.name)
             zip_file.write(filename=shared_libs_path, arcname=shared_libs_path.name)
             zip_file.write(filename=plugin_readme_path, arcname=plugin_readme_path.name)

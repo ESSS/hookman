@@ -43,7 +43,7 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
     plugin_specs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(plugin_specs)
 
-    simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.zip'
+    simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
 
     simple_plugin = {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
     return simple_plugin

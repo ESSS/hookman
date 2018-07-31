@@ -57,7 +57,7 @@ class PluginInfo(object):
         return plugin_config_file_content
 
     @classmethod
-    def plugin_file_validation(cls, plugin_file_zip: ZipFile):
+    def validate_plugin_file(cls, plugin_file_zip: ZipFile):
         """
         Check if the given plugin_file is valid,
         currently the only check that this method do is to verify if the shared_lib is available

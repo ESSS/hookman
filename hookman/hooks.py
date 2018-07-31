@@ -71,7 +71,7 @@ class HookMan:
         Extract the content of the zip file into plugin_dirs
         """
         plugin_file_zip = ZipFile(plugin_file_path)
-        PluginInfo.plugin_file_validation(plugin_file_zip=plugin_file_zip)
+        PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
 
         if dst_path not in self.plugins_dirs:
             raise InvalidDestinationPathError(f"Invalid destination path, {dst_path} is not one of "
@@ -94,20 +94,14 @@ class HookMan:
                 shutil.rmtree(plugin.location.parent)
                 break
 
-
     def plugins_available(self) -> Optional[List[PluginInfo]]:
         """
         Return a list with all plugins that are available on the plugins_dirs.
         The list contains a PluginInfo object that contains information about the plugin
         (configuration available at the YAML file and computed values )
         """
-        plugins_available = []
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        if plugin_config_files:
-            for config_file in plugin_config_files:
-                plugins_available.append(PluginInfo(config_file))
-
-        return plugins_available
+        return [PluginInfo(plugin_file) for plugin_file in plugin_config_files]
 
     def get_hook_caller(self):
         """

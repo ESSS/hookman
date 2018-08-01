@@ -1,14 +1,15 @@
 import ctypes
 import inspect
 import shutil
+from collections import defaultdict
 from pathlib import Path
 from typing import Callable, List, Optional
 from zipfile import ZipFile
 
 from hookman import hookman_utils
-from hookman.exceptions import ConflictBetweenPluginsError, InvalidDestinationPathError, \
-    PluginAlreadyInstalledError
-from hookman.plugin_config import PluginInfo, ConflictStatus
+from hookman.exceptions import (
+    ConflictBetweenPluginsError, InvalidDestinationPathError, PluginAlreadyInstalledError)
+from hookman.plugin_config import ConflictStatus, PluginInfo
 
 
 class HooksSpecs:
@@ -90,13 +91,12 @@ class HookMan:
         plugin_file_zip.extractall(plugin_destination_folder)
 
     def remove_plugin(self, plugin_name: str):
-        for plugin in self.plugins_available():
+        for plugin in self.get_plugins_available():
             if plugin.name == plugin_name:
-                print(plugin.location.parent)
                 shutil.rmtree(plugin.location.parent)
                 break
 
-    def plugins_available(self) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(self) -> Optional[List[PluginInfo]]:
         """
         Return a list with all plugins that are available on the plugins_dirs.
         The list contains a PluginInfo object that contains information about the plugin
@@ -110,15 +110,12 @@ class HookMan:
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
         """
-        if not self.plugins_has_conflicts():
-            _hookman = __import__(self.specs.pyd_name)
-            hook_caller = _hookman.HookCaller()
-            for plugin in self.plugins_available():
-                self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
-        else:
-            raise ConflictBetweenPluginsError(
-                f"Could not get a Hook Caller due to existing conflict between installed plugins")
+        self.ensure_is_valid()
 
+        _hookman = __import__(self.specs.pyd_name)
+        hook_caller = _hookman.HookCaller()
+        for plugin in self.get_plugins_available():
+            self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
         return hook_caller
 
     def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller):
@@ -138,15 +135,13 @@ class HookMan:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
 
-
-    def plugins_has_conflicts(self) -> bool:
+    def ensure_is_valid(self):
         """
         Auxiliary methods that checks if the get_status has any conflict
         """
         if self.get_status():
-            return True
-        else:
-            return False
+            raise ConflictBetweenPluginsError(
+                f"Could not get a Hook Caller due to existing conflict between installed plugins")
 
     def get_status(self) -> List[Optional[ConflictStatus]]:
         """
@@ -155,18 +150,17 @@ class HookMan:
         Otherwise a empty list is returned.
         """
         list_of_conflicts = []
-        plugins_available = self.plugins_available()
+        plugins_available = self.get_plugins_available()
         if not plugins_available:
             return list_of_conflicts
 
-        hooks_status = {hook_name: [] for hook_name in plugins_available[0].hooks_available.keys()}
-
+        hooks_status = defaultdict(list)
         for plugin in plugins_available:
             for hook in plugin.hooks_implemented:
                 hooks_status[hook].append(plugin.name)
 
-        for key, value in hooks_status.items():
-            if len(value) > 1:
-                list_of_conflicts.append(ConflictStatus(plugins=value, hook=key))
+        for hook_name, plugins in hooks_status.items():
+            if len(plugins) > 1:
+                list_of_conflicts.append(ConflictStatus(plugins=plugins, hook=hook_name))
 
         return list_of_conflicts

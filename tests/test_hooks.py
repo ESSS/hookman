@@ -4,6 +4,7 @@ from hookman.hooks import HookMan, HooksSpecs, PluginInfo
 
 
 def test_hook_specs_without_arguments():
+
     def method_without_arguments() -> 'float':
         """
         test_method_without_arguments
@@ -15,6 +16,7 @@ def test_hook_specs_without_arguments():
 
 
 def test_hook_specs_with_missing_type_on_argument():
+
     def method_with_missing_type_on_argument(a: 'int', b) -> 'float':
         """
         fail_method_with_missing_type_on_argument
@@ -26,6 +28,7 @@ def test_hook_specs_with_missing_type_on_argument():
 
 
 def test_hook_specs_without_docs_arguments():
+
     def method_with_docs_missing(a: 'int') -> 'int':
         pass  # pragma: no cover
 
@@ -39,6 +42,7 @@ def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
     from hookman.exceptions import ConflictBetweenPluginsError
     with pytest.raises(ConflictBetweenPluginsError):
         hook_caller = hm.get_hook_caller()
+
 
 def test_get_hook_caller(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
@@ -62,7 +66,7 @@ def test_get_hook_caller_without_plugin(datadir, compiled_libs_folder, simple_pl
 def test_plugins_available(simple_plugin):
     plugin_dirs = [simple_plugin['path']]
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugin_dirs)
-    plugins = hm.plugins_available()
+    plugins = hm.get_plugins_available()
     assert len(plugins) == 1
     import attr
     assert list(attr.asdict(plugins[0]).keys()) == [
@@ -123,20 +127,6 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
 
-    assert len(hm.plugins_available()) == 2
+    assert len(hm.get_plugins_available()) == 2
     hm.remove_plugin('Simple Plugin 2')
-    assert len(hm.plugins_available()) == 1
-
-
-# def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
-#     plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
-#     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
-#     from hookman.exceptions import ConflictBetweenPluginsError
-#     with pytest.raises(ConflictBetweenPluginsError):
-#         hook_caller = hm.get_hook_caller()
-#
-#     # friction_factor = hook_caller.friction_factor()
-#     # env_temperature = hook_caller.env_temperature()
-#     # assert friction_factor is not None
-#     # assert env_temperature is None
-#     # assert friction_factor(1, 2) == 3
+    assert len(hm.get_plugins_available()) == 1

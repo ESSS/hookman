@@ -45,7 +45,7 @@ def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_fol
 
     simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
 
-    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': plugin_zip_file}
+    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
 
 
 @pytest.fixture
@@ -73,6 +73,6 @@ def simple_plugin_2(datadir, plugins_folder, compiled_libs_folder, plugins_zip_f
     plugin_specs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(plugin_specs)
 
-    plugin_zip_file = plugins_zip_folder / 'simple_plugin_2.zip'
+    simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
 
-    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': plugin_zip_file}
+    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}

@@ -12,10 +12,14 @@ dependencies:
     - pytest-mock
 
     # C++ compilation
-    - clangdev==6.0.0
     - pybind11
     - ninja=1.7.1
     - cmake
+    
+    {% if os.sys.platform != 'win32' %}
+    - clangdev==6.0.0
+    {% endif %}
+    
     {% if os.sys.platform == 'win32' %}
     - vs2015_runtime
     {% endif %}

@@ -109,10 +109,10 @@ class HookManGenerator:
                 ))
 
     def generate_plugin_template(self,
-            plugin_name: str ,
+            plugin_name: str,
             shared_lib_name: str,
             author_email: str,
-            author_name:str ,
+            author_name: str,
             dst_path: Path):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -176,6 +176,25 @@ class HookManGenerator:
         hook_caller_python.write_text(hook_caller_python_content)
 
         self._generate_cmake_files(dst_path)
+
+    def generate_plugin_package(self, package_name: str, artifacts_dir: Path, dst: Path = None):
+        """
+        Creates a .hmplugin with using the name provided on package_name argument,
+        with the entire content from the artifacts_dir.
+
+        In order to successfully creates a plugin, at least the following files should be
+        present on artifacts_dir folder:
+            - config.yml
+            - shared library (.ddl or .so)
+            - readme.md
+        """
+        if dst is None:
+            dst = Path(os.getcwd())
+
+        with ZipFile(dst / f"{package_name}.hmplugin", 'w') as zip_file:
+            for file in artifacts_dir.glob("**/*"):
+                zip_file.write(filename=file, arcname=file.relative_to(artifacts_dir))
+
 
     def _hook_specs_header_content(self) -> str:
         """
@@ -462,5 +481,3 @@ class HookManGenerator:
             shutil.copy2(src=shared_lib, dst=artifacts_dir)
         ''')
         return file_content
-
-

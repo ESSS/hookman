@@ -1,0 +1,5 @@
+plugin_name: 'Acme'
+plugin_version: '1'
+author: 'FOO'
+email: 'FOO@FOO.com'
+shared_lib: 'acme'

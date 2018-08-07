@@ -30,7 +30,7 @@ def main(specs_path, dst_path):
 
     hook_specs_path = Path(specs_path)
     hm_generator = HookManGenerator(hook_spec_file_path=hook_specs_path)
-    hm_generator.generate_files(Path(dst_path))
+    hm_generator.generate_project_files(Path(dst_path))
 
     return 0
 

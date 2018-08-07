@@ -97,7 +97,7 @@ def generate_files(ctx):
         # os.makedirs(dir_for_compilation)
 
         hm_generator = HookManGenerator(hook_spec_file_path=hook_spec_path)
-        hm_generator.generate_files(dst_path=dir_for_compilation)
+        hm_generator.generate_project_files(dst_path=dir_for_compilation)
 
         with open(dir_for_compilation / 'CMakeLists.txt', mode='w+') as file:
             file.write(dedent("""\
@@ -129,7 +129,6 @@ def generate_files(ctx):
                 ))
 
 
-
 @invoke.task
 def build(ctx):
     """
@@ -142,7 +141,7 @@ def build(ctx):
 
 def _create_zip_files(ctx):
     """
-    This functions can be just called when the generate_files and compile tasks have been already invoked
+    This functions can be just called when the generate_project_files and compile tasks have been already invoked
     """
     import shutil
     from pathlib import Path

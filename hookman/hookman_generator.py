@@ -106,7 +106,46 @@ class HookManGenerator:
                     function_name=f'{self.project_name}_{self.version}_{hook_spec.__name__.lower()}',
                 ))
 
-    def generate_files(self, dst_path: Path):
+    def generate_plugin_template(self,
+            plugin_name: str ,
+            shared_lib_name: str,
+            author_email: str,
+            author_name:str ,
+            dst_path: Path):
+        """
+        Generate a template with the necessary files and structure to create a plugin
+            - config.yml
+            - plugin.c
+            - hook_specs.h
+            - CMakeLists file
+            - README
+        """
+        plugin_folder = dst_path / plugin_name
+        if not plugin_folder.exists():
+            plugin_folder.mkdir(parents=True)
+
+        plugin_readme_file = Path(plugin_folder / 'README.md')
+        plugin_config_file = Path(plugin_folder / 'config.yaml')
+        plugin_source_code_file = Path(plugin_folder / 'plugin.c')
+        hook_specs_header_file = Path(plugin_folder / 'hook_specs.h')
+        plugin_cmake_file = Path(plugin_folder / 'CMakeLists.txt')
+        build_script_file = Path(plugin_folder / 'build.py')
+
+        plugin_readme_content = self._readme_content(plugin_name, author_email, author_name)
+        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name,)
+        plugin_source_code_content = self._plugin_source_content()
+        hook_specs_header_content = self._hook_specs_header_content()
+        plugin_cmake_content = self._plugin_cmake_file_content(shared_lib_name)
+        build_script_content = self._build_shared_lib_python_script_content(shared_lib_name)
+
+        plugin_readme_file.write_text(plugin_readme_content)
+        plugin_config_file.write_text(plugin_config_content)
+        plugin_source_code_file.write_text(plugin_source_code_content)
+        hook_specs_header_file.write_text(hook_specs_header_content)
+        plugin_cmake_file.write_text(plugin_cmake_content)
+        build_script_file.write_text(build_script_content)
+
+    def generate_project_files(self, dst_path: Path):
         """
         Generate the following files on the dst_path:
             - hook_specs.h
@@ -125,18 +164,13 @@ class HookManGenerator:
         hook_caller_hpp_content = self._hook_caller_hpp_content()
         hook_caller_python_content = self._hook_caller_python_content()
 
-        with open(hook_specs_h, mode='w') as file:
-            file.writelines(hook_specs_h_content)
-
-        with open(hook_caller_hpp, mode='w') as file:
-            file.writelines(hook_caller_hpp_content)
-
-        with open(hook_caller_python, mode='w') as file:
-            file.writelines(hook_caller_python_content)
+        hook_specs_h.write_text(hook_specs_h_content)
+        hook_caller_hpp.write_text(hook_caller_hpp_content)
+        hook_caller_python.write_text(hook_caller_python_content)
 
         self._generate_cmake_files(dst_path)
 
-    def _hook_specs_header_content(self) -> List[str]:
+    def _hook_specs_header_content(self) -> str:
         """
         Create a C header file with the content informed on the hook_specs
         """
@@ -165,9 +199,9 @@ class HookManGenerator:
         file_content += dedent(f"""
         #endif
         """)
-        return file_content
+        return ''.join(file_content)
 
-    def _hook_caller_hpp_content(self) -> List[str]:
+    def _hook_caller_hpp_content(self) -> str:
         """
         Create a .hpp file with the content informed on the hook_specs
         """
@@ -214,9 +248,9 @@ class HookManGenerator:
         file_content += list_with_private_members
         file_content += "};" + NEW_LINE + "}" + NEW_LINE
 
-        return file_content
+        return ''.join(file_content)
 
-    def _hook_caller_python_content(self) -> List[str]:
+    def _hook_caller_python_content(self) -> str:
         """
         Create a .cpp file to bind python and cpp code with PyBind11
         """
@@ -238,7 +272,7 @@ class HookManGenerator:
             for hook in self.hooks
         ]
         file_content += f'{2*INDENTATION};' + NEW_LINE + '}' + NEW_LINE
-        return file_content
+        return ''.join(file_content)
 
     def _generate_cmake_files(self, dst_path: Path):
         hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
@@ -272,3 +306,140 @@ class HookManGenerator:
 
             install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
             """))
+
+    def _plugin_config_file_content(
+            self,
+            plugin_name: str,
+            shared_lib_name: str,
+            author_email: str,
+            author_name: str,
+        ) -> str:
+        """
+        Return a string that represent the content of a valid configuration for a plugin
+        """
+        file_content = dedent(f"""\
+        plugin_name: '{plugin_name}'
+        plugin_version: '1'
+        author: '{author_name}'
+        email: '{author_email}'
+        shared_lib: '{shared_lib_name}'
+        """)
+        return file_content
+
+    def _readme_content(self, plugin_name: str, author_email: str, author_name: str) -> str:
+        file_content = dedent(f"""\
+         Plugin: '{plugin_name}'
+         Author: '{author_name}'
+         Email: '{author_email}'
+
+         This is a sample readme file with the supported syntax, the content of this file should be write in markdown.
+
+         Here's an overview of the syntax that you can use to write the content of this file:
+
+         Headers
+            # This is equivalent an <h1> tag on html
+            ## This equivalent an <h2> tag on html
+
+         Emphasis
+            *This text will be italic*
+            _This will also be italic_
+
+            **This text will be bold**
+            __This will also be bold__
+
+        Lists
+            Unordered
+                * Item 1
+                * Item 2
+                    * Item 2a
+                    * Item 2b
+            Ordered
+                1. Item 1
+                2. Item 2
+                3. Item 3
+                   3.1. Item 3a
+                   3.2. Item 3b
+
+        Images
+            Format: ![Alt Text](url)
+
+        Links
+            http://github.com - automatic!
+            [Display Name](http://<link>)
+
+        Blockquotes
+            > Blockquote
+            >> Nested blockquote
+
+        Inline code
+            ` some code `
+
+         """)
+        return file_content
+
+    def _plugin_source_content(self) -> str:
+        """
+        Create a C header file with the content informed on the hook_specs
+        """
+        file_content = []
+        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}{NEW_LINE}' for hook in self.hooks]
+
+        file_content += dedent(f"""\
+        #include "hook_specs.h"
+
+        INIT_HOOKS()
+
+        """)
+        file_content += plugin_hooks_macro
+        return ''.join(file_content)
+
+    def _plugin_cmake_file_content(self, shared_lib_name):
+        file_content = dedent(f'''\
+            cmake_minimum_required(VERSION 3.5.2)
+
+            set(PROJECT_NAME {shared_lib_name})
+            project ({shared_lib_name} LANGUAGES CXX C)
+
+            if(NOT WIN32)
+              set(CMAKE_C_COMPILER    clang)
+              set(CMAKE_CXX_COMPILER  clang++)
+              set(CMAKE_C_FLAGS       "-Wall -std=c99")
+              set(CMAKE_C_FLAGS_DEBUG "-g")
+            endif(NOT WIN32)
+
+            set(CMAKE_CXX_FLAGS       "-Wall -Werror=return-type -ftemplate-depth=1024")
+            set(CMAKE_CXX_LINK_FLAGS  "-lstdc++")
+            set(CMAKE_CXX_FLAGS_DEBUG "-g")
+
+
+            set(CMAKE_C_STANDARD 99)
+
+            add_library({shared_lib_name} SHARED plugin.c hook_specs.h)
+            install(TARGETS acme EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{CMAKE_CURRENT_SOURCE_DIR}})
+        ''')
+        return file_content
+
+    def _build_shared_lib_python_script_content(self, shared_lib_name):
+        file_content = dedent(f'''\
+            import os
+            import shutil
+            import subprocess
+            from pathlib import Path
+
+            current_dir = Path(os.getcwd())
+            build_dir = current_dir / "build"
+            shared_lib = build_dir / "Release/{shared_lib_name}.dll"
+
+            if build_dir.exists():
+                shutil.rmtree(build_dir)
+
+            build_dir.mkdir()
+
+            binary_directory_path = f"-B{{str(build_dir)}}"
+            home_directory_path = f"-H{{current_dir}}"
+
+            subprocess.run(["cmake", binary_directory_path, home_directory_path])
+            subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release"])
+            subprocess.run(["cp", str(shared_lib), str(current_dir)])
+        ''')
+        return file_content

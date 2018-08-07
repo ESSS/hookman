@@ -1,9 +1,11 @@
 import importlib
 import inspect
 import os
+import sys
 from pathlib import Path
 from textwrap import dedent
 from typing import List, NamedTuple
+from zipfile import ZipFile
 
 from hookman.hooks import HooksSpecs
 
@@ -121,11 +123,16 @@ class HookManGenerator:
             - README
         """
         plugin_folder = dst_path / plugin_name
+        package_folder = plugin_folder / 'package'
+
         if not plugin_folder.exists():
             plugin_folder.mkdir(parents=True)
 
-        plugin_readme_file = Path(plugin_folder / 'README.md')
-        plugin_config_file = Path(plugin_folder / 'config.yaml')
+        if not package_folder.exists():
+            package_folder.mkdir()
+
+        plugin_readme_file = Path(package_folder / 'README.md')
+        plugin_config_file = Path(package_folder / 'config.yaml')
         plugin_source_code_file = Path(plugin_folder / 'plugin.c')
         hook_specs_header_file = Path(plugin_folder / 'hook_specs.h')
         plugin_cmake_file = Path(plugin_folder / 'CMakeLists.txt')
@@ -420,15 +427,22 @@ class HookManGenerator:
         return file_content
 
     def _build_shared_lib_python_script_content(self, shared_lib_name):
+        if sys.platform == 'win32':
+            lib_name = f"{shared_lib_name}.dll"
+        else:
+            lib_name = f"lib{shared_lib_name}.so"
+
         file_content = dedent(f'''\
             import os
             import shutil
             import subprocess
             from pathlib import Path
-
+            
             current_dir = Path(os.getcwd())
+            artifacts_dir = current_dir / "artifacts"
+            package_dir = current_dir / "package"
             build_dir = current_dir / "build"
-            shared_lib = build_dir / "Release/{shared_lib_name}.dll"
+            shared_lib = build_dir / "Release/{lib_name}"
 
             if build_dir.exists():
                 shutil.rmtree(build_dir)
@@ -440,6 +454,13 @@ class HookManGenerator:
 
             subprocess.run(["cmake", binary_directory_path, home_directory_path])
             subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release"])
-            subprocess.run(["cp", str(shared_lib), str(current_dir)])
+            
+            if artifacts_dir.exists():
+                shutil.rmtree(artifacts_dir)
+            
+            shutil.copytree(src=package_dir, dst=artifacts_dir)
+            shutil.copy2(src=shared_lib, dst=artifacts_dir)
         ''')
         return file_content
+
+

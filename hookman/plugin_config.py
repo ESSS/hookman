@@ -91,11 +91,9 @@ class PluginInfo(object):
         })
         plugin_config_file_content = strictyaml.load(yaml_content, schema).data
         if sys.platform == 'win32':
-            plugin_config_file_content[
-                'shared_lib_name'] = f"{plugin_config_file_content['shared_lib']}.dll"
+            plugin_config_file_content['shared_lib_name'] = f"{plugin_config_file_content['shared_lib']}.dll"
         else:
-            plugin_config_file_content[
-                'shared_lib_name'] = f"lib{plugin_config_file_content['shared_lib']}.so"
+            plugin_config_file_content['shared_lib_name'] = f"lib{plugin_config_file_content['shared_lib']}.so"
         return plugin_config_file_content
 
     @classmethod

@@ -47,20 +47,25 @@ def test_generate_plugin_template(datadir):
     obtained_hook_specs_file = datadir / 'test_generate_plugin_template/Acme/hook_specs.h'
     expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
 
-    obtained_config_yaml = datadir / 'test_generate_plugin_template/Acme/config.yaml'
+    obtained_config_yaml = datadir / 'test_generate_plugin_template/Acme/package/config.yaml'
     expected_config_yaml = datadir / 'test_generate_plugin_template/expected_config.yaml'
 
     obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/plugin.c'
     expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
 
-    obtained_readme = datadir / 'test_generate_plugin_template/Acme/readme.md'
+    obtained_readme = datadir / 'test_generate_plugin_template/Acme/package/readme.md'
     expected_readme = datadir / 'test_generate_plugin_template/expected_readme.md'
 
     obtained_cmake_list = datadir / 'test_generate_plugin_template/Acme/CMakeLists.txt'
     expected_cmake_list = datadir / 'test_generate_plugin_template/expected_cmakelists.txt'
 
     obtained_build_script = datadir / 'test_generate_plugin_template/Acme/build.py'
-    expected_build_script = datadir / 'test_generate_plugin_template/expected_build.py'
+
+    import sys
+    if sys.platform == 'win32':
+        expected_build_script = datadir / 'test_generate_plugin_template/expected_build_win32.py'
+    else:
+        expected_build_script = datadir / 'test_generate_plugin_template/expected_build_linux.py'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
     assert obtained_config_yaml.read_text() == expected_config_yaml.read_text()

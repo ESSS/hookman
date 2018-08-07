@@ -33,7 +33,6 @@ def test_hook_man_generator(datadir):
 
 
 def test_generate_plugin_template(datadir):
-    print(datadir)
     plugin_dir = datadir / 'test_generate_plugin_template'
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
 

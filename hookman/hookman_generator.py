@@ -7,7 +7,10 @@ from textwrap import dedent
 from typing import List, NamedTuple
 from zipfile import ZipFile
 
+from hookman.exceptions import (
+    ArtifactsDirNotFoundError, AssetsDirNotFoundError, SharedLibraryNotFoundError)
 from hookman.hooks import HooksSpecs
+from hookman.plugin_config import PluginInfo
 
 INDENTATION = "    "
 NEW_LINE = "\n"
@@ -119,8 +122,8 @@ class HookManGenerator:
             - config.yml
             - plugin.c
             - hook_specs.h
-            - CMakeLists file
-            - README
+            - CMakeLists.txt
+            - README.md
         """
         plugin_folder = dst_path / plugin_name
         assets_folder = plugin_folder / 'assets'
@@ -135,30 +138,29 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
-        plugin_readme_file = Path(assets_folder / 'README.md')
-        plugin_config_file = Path(assets_folder / 'config.yaml')
-        plugin_source_code_file = Path(source_folder / 'plugin.c')
+        build_script_file = Path(plugin_folder / 'build.py')
         hook_specs_header_file = Path(source_folder / 'hook_specs.h')
         plugin_cmake_file = Path(plugin_folder / 'CMakeLists.txt')
+        plugin_config_file = Path(assets_folder / 'config.yaml')
+        plugin_readme_file = Path(assets_folder / 'README.md')
+        plugin_source_code_file = Path(source_folder / 'plugin.c')
         plugin_src_cmake_file = Path(source_folder / 'CMakeLists.txt')
 
-        build_script_file = Path(plugin_folder / 'build.py')
-
-        plugin_readme_content = self._readme_content(plugin_name, author_email, author_name)
-        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name)
-        plugin_source_code_content = self._plugin_source_content()
+        build_script_content = self._build_shared_lib_python_script_content(shared_lib_name)
         hook_specs_header_content = self._hook_specs_header_content()
         plugin_cmake_content = self._plugin_cmake_file_content(shared_lib_name)
+        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name)
+        plugin_readme_content = self._readme_content(plugin_name, author_email, author_name)
+        plugin_source_code_content = self._plugin_source_content()
         src_cmake_file_content = self._plugin_src_cmake_file_content(shared_lib_name)
-        build_script_content = self._build_shared_lib_python_script_content(shared_lib_name)
 
-        plugin_readme_file.write_text(plugin_readme_content)
-        plugin_config_file.write_text(plugin_config_content)
-        plugin_source_code_file.write_text(plugin_source_code_content)
+        build_script_file.write_text(build_script_content)
         hook_specs_header_file.write_text(hook_specs_header_content)
         plugin_cmake_file.write_text(plugin_cmake_content)
+        plugin_config_file.write_text(plugin_config_content)
+        plugin_readme_file.write_text(plugin_readme_content)
+        plugin_source_code_file.write_text(plugin_source_code_content)
         plugin_src_cmake_file.write_text(src_cmake_file_content)
-        build_script_file.write_text(build_script_content)
 
     def generate_project_files(self, dst_path: Path):
         """
@@ -185,23 +187,78 @@ class HookManGenerator:
 
         self._generate_cmake_files(dst_path)
 
-    def generate_plugin_package(self, package_name: str, artifacts_dir: Path, dst: Path=None):
+    def generate_plugin_package(self, package_name: str, plugin_dir: Path, dst: Path=None):
         """
-        Creates a .hmplugin with using the name provided on package_name argument,
-        with the entire content from the artifacts_dir.
+        Creates a .hmplugin file using the name provided on package_name argument.
+        The file `.hmplugin` will be created with the content from the folder assets and artifacts.
 
-        In order to successfully creates a plugin, at least the following files should be
-        present on artifacts_dir folder:
+        In order to successfully creates a plugin, at least the following files should be present:
             - config.yml
             - shared library (.ddl or .so)
             - readme.md
+
+        Per default, the package will be created inside the folder plugin_dir, however it's possible
+        to give another path filling the dst argument
         """
         if dst is None:
-            dst = Path(os.getcwd())
+            dst = plugin_dir
 
+        assets_dir = plugin_dir / "assets"
+        artifacts_dir = plugin_dir / "artifacts"
+
+        self._validate_package_folder(artifacts_dir, assets_dir)
+        self._validate_plugin_config_file(assets_dir / 'config.yaml', artifacts_dir)
+        shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
         with ZipFile(dst / f"{package_name}.hmplugin", 'w') as zip_file:
-            for file in artifacts_dir.glob("**/*"):
-                zip_file.write(filename=file, arcname=file.relative_to(artifacts_dir))
+            for file in assets_dir.rglob('*'):
+                zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
+
+            for file in artifacts_dir.rglob(shared_lib):
+                zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
+
+    def _validate_package_folder(self, artifacts_dir, assets_dir):
+        """
+        Method to ensure that the plugin folder has the following criteria:
+            - An "assets" folder should be present
+            - An "artifacts" folder should be present
+
+            - The assets folder needs to contain:
+                - Readme.md
+                - config.yaml
+
+            - The artifacts folder need to contain:
+                - At least one shared library (.dll or .so)
+
+            - The config.yaml should have the name of the main library in the "shared_lib" entry.
+        """
+        if not assets_dir.exists():
+            raise AssetsDirNotFoundError()
+
+        if not artifacts_dir.exists():
+            raise ArtifactsDirNotFoundError()
+
+        shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
+        if not any(artifacts_dir.rglob(shared_lib)):
+            raise FileNotFoundError(
+                f"Unable to locate a shared library ({shared_lib}) in {artifacts_dir}")
+
+        if not any(assets_dir.rglob('config.yaml')):
+            raise FileNotFoundError(f"Unable to locate the file config.yaml in {assets_dir}")
+
+        if not any(assets_dir.rglob('README.md')):
+            raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
+
+    def _validate_plugin_config_file(cls, plugin_config_file: Path, artifacts_dir: Path):
+        """
+        Check if the given plugin_file is valid,
+        currently the only check that this method do is to verify if the shared_lib is available
+        """
+        plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
+
+        if not any(artifacts_dir.rglob(plugin_file_content.shared_lib_name)):
+            raise SharedLibraryNotFoundError(
+                f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
+            )
 
     def _hook_specs_header_content(self) -> str:
         """

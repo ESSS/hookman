@@ -7,8 +7,9 @@ from zipfile import ZipFile
 import attr
 from attr import attrib
 
-from hookman.exceptions import PluginNotFoundError
+from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
+
 
 @attr.s(frozen=True, auto_attribs=True)
 class ConflictStatus(object):
@@ -18,13 +19,14 @@ class ConflictStatus(object):
     plugins : List[str]
     hook : str
 
+
 @attr.s(frozen=True)
 class PluginInfo(object):
     """
     Class that holds all information related to the plugin with some auxiliary methods
     """
     location = attrib(type=Path)
-    hooks_available = attrib(type=dict)
+    hooks_available = attrib(validator=attr.validators.optional(attr.validators.instance_of(dict)))
 
     author = attrib(type=str, init=False)
     description = attrib(type=str, default="Could not find a description", init=False)
@@ -44,12 +46,13 @@ class PluginInfo(object):
         object.__setattr__(self, "shared_lib_name", plugin_config_file_content['shared_lib_name'])
         object.__setattr__(self, "shared_lib_path", self.location.parent / self.shared_lib_name)
         object.__setattr__(self, "version", plugin_config_file_content['plugin_version'])
-        object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
+
+        if not self.hooks_available is None:
+            object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
 
         readme_file = self.location.parent / 'readme.md'
         if readme_file.exists():
             object.__setattr__(self, "description", readme_file.read_text())
-
 
     def _get_hooks_implemented(self) -> List[str]:
         """
@@ -62,7 +65,6 @@ class PluginInfo(object):
                 if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name)
             ]
         return hooks_implemented
-
 
     @classmethod
     def is_implemented_on_plugin(cls, plugin_dll: ctypes.CDLL, hook_name: str) -> bool:
@@ -108,10 +110,9 @@ class PluginInfo(object):
         plugin_file_content = PluginInfo._load_yaml_file(plugin_file_str)
 
         if plugin_file_content['shared_lib_name'] not in list_of_files:
-            raise PluginNotFoundError(
+            raise SharedLibraryNotFoundError(
                 f"{plugin_file_content['shared_lib_name']} could not be found "
                 f"inside the plugin file")
-
 
     @classmethod
     def get_function_address(cls, plugin_dll, hook_name):

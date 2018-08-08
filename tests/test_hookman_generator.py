@@ -44,20 +44,23 @@ def test_generate_plugin_template(datadir):
         dst_path=plugin_dir
     )
 
-    obtained_hook_specs_file = datadir / 'test_generate_plugin_template/Acme/hook_specs.h'
+    obtained_hook_specs_file = datadir / 'test_generate_plugin_template/Acme/src/hook_specs.h'
     expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
 
-    obtained_config_yaml = datadir / 'test_generate_plugin_template/Acme/package/config.yaml'
+    obtained_config_yaml = datadir / 'test_generate_plugin_template/Acme/assets/config.yaml'
     expected_config_yaml = datadir / 'test_generate_plugin_template/expected_config.yaml'
 
-    obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/plugin.c'
+    obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/src/plugin.c'
     expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
 
-    obtained_readme = datadir / 'test_generate_plugin_template/Acme/package/readme.md'
+    obtained_readme = datadir / 'test_generate_plugin_template/Acme/assets/readme.md'
     expected_readme = datadir / 'test_generate_plugin_template/expected_readme.md'
 
     obtained_cmake_list = datadir / 'test_generate_plugin_template/Acme/CMakeLists.txt'
     expected_cmake_list = datadir / 'test_generate_plugin_template/expected_cmakelists.txt'
+
+    obtained_cmake_list_src = datadir / 'test_generate_plugin_template/Acme/src/CMakeLists.txt'
+    expected_cmake_list_src = datadir / 'test_generate_plugin_template/expected_cmakelists_src.txt'
 
     obtained_build_script = datadir / 'test_generate_plugin_template/Acme/build.py'
 
@@ -73,6 +76,7 @@ def test_generate_plugin_template(datadir):
     assert obtained_readme.read_text() == expected_readme.read_text()
     assert obtained_cmake_list.read_text() == expected_cmake_list.read_text()
     assert obtained_build_script.read_text() == expected_build_script.read_text()
+    assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
 
 
 def test_generate_plugin_package(simple_plugin, datadir):

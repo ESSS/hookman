@@ -123,26 +123,33 @@ class HookManGenerator:
             - README
         """
         plugin_folder = dst_path / plugin_name
-        package_folder = plugin_folder / 'package'
+        assets_folder = plugin_folder / 'assets'
+        source_folder = plugin_folder / 'src'
 
         if not plugin_folder.exists():
             plugin_folder.mkdir(parents=True)
 
-        if not package_folder.exists():
-            package_folder.mkdir()
+        if not assets_folder.exists():
+            assets_folder.mkdir()
 
-        plugin_readme_file = Path(package_folder / 'README.md')
-        plugin_config_file = Path(package_folder / 'config.yaml')
-        plugin_source_code_file = Path(plugin_folder / 'plugin.c')
-        hook_specs_header_file = Path(plugin_folder / 'hook_specs.h')
+        if not source_folder.exists():
+            source_folder.mkdir()
+
+        plugin_readme_file = Path(assets_folder / 'README.md')
+        plugin_config_file = Path(assets_folder / 'config.yaml')
+        plugin_source_code_file = Path(source_folder / 'plugin.c')
+        hook_specs_header_file = Path(source_folder / 'hook_specs.h')
         plugin_cmake_file = Path(plugin_folder / 'CMakeLists.txt')
+        plugin_src_cmake_file = Path(source_folder / 'CMakeLists.txt')
+
         build_script_file = Path(plugin_folder / 'build.py')
 
         plugin_readme_content = self._readme_content(plugin_name, author_email, author_name)
-        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name,)
+        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name)
         plugin_source_code_content = self._plugin_source_content()
         hook_specs_header_content = self._hook_specs_header_content()
         plugin_cmake_content = self._plugin_cmake_file_content(shared_lib_name)
+        src_cmake_file_content = self._plugin_src_cmake_file_content(shared_lib_name)
         build_script_content = self._build_shared_lib_python_script_content(shared_lib_name)
 
         plugin_readme_file.write_text(plugin_readme_content)
@@ -150,6 +157,7 @@ class HookManGenerator:
         plugin_source_code_file.write_text(plugin_source_code_content)
         hook_specs_header_file.write_text(hook_specs_header_content)
         plugin_cmake_file.write_text(plugin_cmake_content)
+        plugin_src_cmake_file.write_text(src_cmake_file_content)
         build_script_file.write_text(build_script_content)
 
     def generate_project_files(self, dst_path: Path):
@@ -177,7 +185,7 @@ class HookManGenerator:
 
         self._generate_cmake_files(dst_path)
 
-    def generate_plugin_package(self, package_name: str, artifacts_dir: Path, dst: Path = None):
+    def generate_plugin_package(self, package_name: str, artifacts_dir: Path, dst: Path=None):
         """
         Creates a .hmplugin with using the name provided on package_name argument,
         with the entire content from the artifacts_dir.
@@ -194,7 +202,6 @@ class HookManGenerator:
         with ZipFile(dst / f"{package_name}.hmplugin", 'w') as zip_file:
             for file in artifacts_dir.glob("**/*"):
                 zip_file.write(filename=file, arcname=file.relative_to(artifacts_dir))
-
 
     def _hook_specs_header_content(self) -> str:
         """
@@ -425,6 +432,7 @@ class HookManGenerator:
 
             set(PROJECT_NAME {shared_lib_name})
             project ({shared_lib_name} LANGUAGES CXX C)
+            set(ARTIFACTS_DIR ${{CMAKE_CURRENT_SOURCE_DIR}}/artifacts)
 
             if(NOT WIN32)
               set(CMAKE_C_COMPILER    clang)
@@ -437,11 +445,15 @@ class HookManGenerator:
             set(CMAKE_CXX_LINK_FLAGS  "-lstdc++")
             set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
-
             set(CMAKE_C_STANDARD 99)
+            add_subdirectory(src)
+        ''')
+        return file_content
 
+    def _plugin_src_cmake_file_content(self, shared_lib_name):
+        file_content = dedent(f'''\
             add_library({shared_lib_name} SHARED plugin.c hook_specs.h)
-            install(TARGETS acme EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{CMAKE_CURRENT_SOURCE_DIR}})
+            install(TARGETS acme EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content
 
@@ -456,12 +468,14 @@ class HookManGenerator:
             import shutil
             import subprocess
             from pathlib import Path
-            
+
             current_dir = Path(os.getcwd())
+
             artifacts_dir = current_dir / "artifacts"
-            package_dir = current_dir / "package"
+            assets = current_dir / "assets"
             build_dir = current_dir / "build"
-            shared_lib = build_dir / "Release/{lib_name}"
+            package_dir = current_dir / "package"
+            shared_lib = artifacts_dir / "{lib_name}"
 
             if build_dir.exists():
                 shutil.rmtree(build_dir)
@@ -471,13 +485,16 @@ class HookManGenerator:
             binary_directory_path = f"-B{{str(build_dir)}}"
             home_directory_path = f"-H{{current_dir}}"
 
-            subprocess.run(["cmake", binary_directory_path, home_directory_path])
-            subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release"])
-            
             if artifacts_dir.exists():
                 shutil.rmtree(artifacts_dir)
-            
-            shutil.copytree(src=package_dir, dst=artifacts_dir)
-            shutil.copy2(src=shared_lib, dst=artifacts_dir)
+
+            subprocess.run(["cmake", binary_directory_path, home_directory_path])
+            subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
+
+            if package_dir.exists():
+                shutil.rmtree(package_dir)
+
+            shutil.copytree(src=assets, dst=package_dir)
+            shutil.copy2(src=shared_lib, dst=package_dir)
         ''')
         return file_content

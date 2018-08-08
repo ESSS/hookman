@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from hookman.hookman_generator import HookManGenerator
 
 
@@ -79,31 +78,101 @@ def test_generate_plugin_template(datadir):
     assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
 
 
-def test_generate_plugin_package(simple_plugin, datadir):
-    plugin_path = simple_plugin['path']
-    dst_plugin_dir = datadir / 'test_generate_plugin_package'
+def test_generate_plugin_package(simple_plugin, tmpdir):
     hg = HookManGenerator(hook_spec_file_path=simple_plugin['path'].parent / 'hook_specs.py')
+
+    hg.generate_plugin_template(
+        plugin_name='acme',
+        shared_lib_name='acme',
+        author_email='acme1',
+        author_name='acme2',
+        dst_path=Path(tmpdir)
+    )
+    plugin_dir = Path(tmpdir) / 'acme'
+
+    artifacts_dir = plugin_dir / 'artifacts'
+    artifacts_dir.mkdir()
+    test_dll = artifacts_dir / 'acme.dll'
+    test_dll.write_text('')
 
     hg.generate_plugin_package(
         package_name='acme',
-        artifacts_dir=plugin_path,
-        dst=dst_plugin_dir
+        plugin_dir=plugin_dir,
     )
 
-    compressed_plugin = dst_plugin_dir / 'acme.hmplugin'
+    compressed_plugin = plugin_dir / 'acme.hmplugin'
     assert compressed_plugin.exists()
 
     from zipfile import ZipFile
     plugin_file_zip = ZipFile(compressed_plugin)
     list_of_files = [file.filename for file in plugin_file_zip.filelist]
 
-    assert 'plugin.yaml' in list_of_files
-    assert 'readme.md' in list_of_files
+    assert 'assets/config.yaml' in list_of_files
+    assert 'assets/README.md' in list_of_files
+    assert 'artifacts/acme.dll' in list_of_files
 
+
+def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
     import sys
-    if sys.platform == 'win32':
-        shared_lib_name = 'simple_plugin.dll'
-    else:
-        shared_lib_name = 'libsimple_plugin.so'
+    from textwrap import dedent
+    from hookman.exceptions import AssetsDirNotFoundError, ArtifactsDirNotFoundError, SharedLibraryNotFoundError
+    hg = HookManGenerator(hook_spec_file_path=simple_plugin['path'].parent / 'hook_specs.py')
+    plugin_dir = Path(tmpdir) / 'acme'
+    plugin_dir.mkdir()
 
-    assert shared_lib_name in list_of_files
+    # -- Without Assets Folder
+    with pytest.raises(AssetsDirNotFoundError):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    asset_dir = plugin_dir / 'assets'
+    asset_dir.mkdir()
+
+    # -- Without Artifacts Folder
+    with pytest.raises(ArtifactsDirNotFoundError):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    artifacts_dir = plugin_dir / 'artifacts'
+    artifacts_dir.mkdir()
+
+    # -- Without a shared library binary
+    shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
+    string_to_match = f'Unable to locate a shared library \(\{shared_lib}\) in'
+    with pytest.raises(FileNotFoundError, match=string_to_match):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    lib_name = 'test.dll' if sys.platform == 'win32' else 'libtest.so'
+    shared_library_file = artifacts_dir / lib_name
+    shared_library_file.write_text('')
+
+    # -- Without Config file
+    with pytest.raises(FileNotFoundError, match=f'Unable to locate the file config.yaml in'):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    config_file = asset_dir / 'config.yaml'
+    config_file.write_text(dedent(f"""\
+            plugin_name: 'ACME'
+            plugin_version: '1'
+
+            author: 'acme_author'
+            email: 'acme_email'
+
+            shared_lib: 'acme'
+        """))
+    # -- Without Readme file
+    with pytest.raises(FileNotFoundError, match=f'Unable to locate the file README.md in'):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    readme_file = asset_dir / 'README.md'
+    readme_file.write_text('')
+
+    # # -- With a invalid shared_library name on config_file
+    acme_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
+    with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
+        hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+
+    acme_shared_library_file = artifacts_dir / acme_lib_name
+    acme_shared_library_file.write_text('')
+
+    hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
+    compressed_plugin_package = plugin_dir / 'acme.hmplugin'
+    assert compressed_plugin_package .exists()

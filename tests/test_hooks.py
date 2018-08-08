@@ -91,8 +91,8 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
     mocker.patch.object(PluginInfo, '_load_yaml_file', return_value=mocked_config_content)
 
     # Trying to install without a SHARED LIB inside the plugin
-    from hookman.exceptions import PluginNotFoundError
-    with pytest.raises(PluginNotFoundError, match=f"{mocked_config_content['shared_lib_name']} could not be found inside the plugin file"):
+    from hookman.exceptions import SharedLibraryNotFoundError
+    with pytest.raises(SharedLibraryNotFoundError, match=f"{mocked_config_content['shared_lib_name']} could not be found inside the plugin file"):
         hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
 
 

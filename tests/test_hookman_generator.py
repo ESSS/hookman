@@ -61,15 +61,15 @@ def test_generate_plugin_template(datadir):
     obtained_cmake_list_src = datadir / 'test_generate_plugin_template/Acme/src/CMakeLists.txt'
     expected_cmake_list_src = datadir / 'test_generate_plugin_template/expected_cmakelists_src.txt'
 
-    obtained_build_script = datadir / 'test_generate_plugin_template/Acme/build.py'
-    expected_build_script = datadir / 'test_generate_plugin_template/expected_build.py'
+    obtained_compile_script = datadir / 'test_generate_plugin_template/Acme/compile.py'
+    expected_compile_script = datadir / 'test_generate_plugin_template/expected_compile.py'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
     assert obtained_config_yaml.read_text() == expected_config_yaml.read_text()
     assert obtained_plugin_c.read_text() == expected_plugin_c.read_text()
     assert obtained_readme.read_text() == expected_readme.read_text()
     assert obtained_cmake_list.read_text() == expected_cmake_list.read_text()
-    assert obtained_build_script.read_text() == expected_build_script.read_text()
+    assert obtained_compile_script.read_text() == expected_compile_script.read_text()
     assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
 
 
@@ -176,7 +176,7 @@ def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
     else:
         acme_lib_name = 'libacme.so'
         hm_plugin_name = 'acme-linux64.hmplugin'
-    
+
     with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 

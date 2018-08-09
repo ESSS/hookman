@@ -52,7 +52,7 @@ def test_generate_plugin_template(datadir):
     obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/src/plugin.c'
     expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
 
-    obtained_readme = datadir / 'test_generate_plugin_template/Acme/assets/readme.md'
+    obtained_readme = datadir / 'test_generate_plugin_template/Acme/assets/README.md'
     expected_readme = datadir / 'test_generate_plugin_template/expected_readme.md'
 
     obtained_cmake_list = datadir / 'test_generate_plugin_template/Acme/CMakeLists.txt'
@@ -92,7 +92,9 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
 
     artifacts_dir = plugin_dir / 'artifacts'
     artifacts_dir.mkdir()
-    test_dll = artifacts_dir / 'acme.dll'
+    import sys
+    shared_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
+    test_dll = artifacts_dir / shared_lib_name
     test_dll.write_text('')
 
     hg.generate_plugin_package(
@@ -109,7 +111,7 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
 
     assert 'assets/config.yaml' in list_of_files
     assert 'assets/README.md' in list_of_files
-    assert 'artifacts/acme.dll' in list_of_files
+    assert f'artifacts/{shared_lib_name}' in list_of_files
 
 
 def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):

@@ -62,12 +62,7 @@ def test_generate_plugin_template(datadir):
     expected_cmake_list_src = datadir / 'test_generate_plugin_template/expected_cmakelists_src.txt'
 
     obtained_build_script = datadir / 'test_generate_plugin_template/Acme/build.py'
-
-    import sys
-    if sys.platform == 'win32':
-        expected_build_script = datadir / 'test_generate_plugin_template/expected_build_win32.py'
-    else:
-        expected_build_script = datadir / 'test_generate_plugin_template/expected_build_linux.py'
+    expected_build_script = datadir / 'test_generate_plugin_template/expected_build.py'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
     assert obtained_config_yaml.read_text() == expected_config_yaml.read_text()

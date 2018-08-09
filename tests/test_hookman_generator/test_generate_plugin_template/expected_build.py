@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import subprocess
 from pathlib import Path
@@ -9,7 +10,11 @@ artifacts_dir = current_dir / "artifacts"
 assets = current_dir / "assets"
 build_dir = current_dir / "build"
 package_dir = current_dir / "package"
-shared_lib = artifacts_dir / "acme.dll"
+
+if sys.platform == 'win32':
+    shared_lib = artifacts_dir / "acme.dll"
+else:
+    shared_lib = artifacts_dir / "libacme.so"
 
 if build_dir.exists():
     shutil.rmtree(build_dir)

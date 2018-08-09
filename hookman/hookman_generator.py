@@ -138,29 +138,13 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
-        build_script_file = Path(plugin_folder / 'build.py')
-        hook_specs_header_file = Path(source_folder / 'hook_specs.h')
-        plugin_cmake_file = Path(plugin_folder / 'CMakeLists.txt')
-        plugin_config_file = Path(assets_folder / 'config.yaml')
-        plugin_readme_file = Path(assets_folder / 'README.md')
-        plugin_source_code_file = Path(source_folder / 'plugin.c')
-        plugin_src_cmake_file = Path(source_folder / 'CMakeLists.txt')
-
-        build_script_content = self._build_shared_lib_python_script_content(shared_lib_name)
-        hook_specs_header_content = self._hook_specs_header_content()
-        plugin_cmake_content = self._plugin_cmake_file_content(shared_lib_name)
-        plugin_config_content = self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name)
-        plugin_readme_content = self._readme_content(plugin_name, author_email, author_name)
-        plugin_source_code_content = self._plugin_source_content()
-        src_cmake_file_content = self._plugin_src_cmake_file_content(shared_lib_name)
-
-        build_script_file.write_text(build_script_content)
-        hook_specs_header_file.write_text(hook_specs_header_content)
-        plugin_cmake_file.write_text(plugin_cmake_content)
-        plugin_config_file.write_text(plugin_config_content)
-        plugin_readme_file.write_text(plugin_readme_content)
-        plugin_source_code_file.write_text(plugin_source_code_content)
-        plugin_src_cmake_file.write_text(src_cmake_file_content)
+        Path(plugin_folder / 'build.py').write_text(self._build_shared_lib_python_script_content(shared_lib_name))
+        Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
+        Path(assets_folder / 'config.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
+        Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content())
+        Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
+        Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
     def generate_project_files(self, dst_path: Path):
         """
@@ -177,13 +161,9 @@ class HookManGenerator:
         os.makedirs(hook_caller_hpp.parent)
         os.makedirs(hook_caller_python.parent)
 
-        hook_specs_h_content = self._hook_specs_header_content()
-        hook_caller_hpp_content = self._hook_caller_hpp_content()
-        hook_caller_python_content = self._hook_caller_python_content()
-
-        hook_specs_h.write_text(hook_specs_h_content)
-        hook_caller_hpp.write_text(hook_caller_hpp_content)
-        hook_caller_python.write_text(hook_caller_python_content)
+        hook_specs_h.write_text(self._hook_specs_header_content())
+        hook_caller_hpp.write_text(self._hook_caller_hpp_content())
+        hook_caller_python.write_text(self._hook_caller_python_content())
 
         self._generate_cmake_files(dst_path)
 
@@ -242,10 +222,10 @@ class HookManGenerator:
             raise FileNotFoundError(
                 f"Unable to locate a shared library ({shared_lib}) in {artifacts_dir}")
 
-        if not any(assets_dir.rglob('config.yaml')):
+        if not assets_dir.joinpath('config.yaml').is_file():
             raise FileNotFoundError(f"Unable to locate the file config.yaml in {assets_dir}")
 
-        if not any(assets_dir.rglob('README.md')):
+        if not assets_dir.joinpath('README.md').is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
 
     def _validate_plugin_config_file(cls, plugin_config_file: Path, artifacts_dir: Path):
@@ -255,7 +235,7 @@ class HookManGenerator:
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
 
-        if not any(artifacts_dir.rglob(plugin_file_content.shared_lib_name)):
+        if not artifacts_dir.joinpath(plugin_file_content.shared_lib_name).is_file():
             raise SharedLibraryNotFoundError(
                 f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
             )

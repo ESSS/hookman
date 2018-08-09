@@ -398,53 +398,15 @@ class HookManGenerator:
 
     def _readme_content(self, plugin_name: str, author_email: str, author_name: str) -> str:
         file_content = dedent(f"""\
-         Plugin: '{plugin_name}'
-         Author: '{author_name}'
-         Email: '{author_email}'
+        Plugin: '{plugin_name}'
+        Author: '{author_name}'
+        Email: '{author_email}'
 
-         This is a sample readme file with the supported syntax, the content of this file should be write in markdown.
+        This is a sample readme file with the supported syntax, the content of this file should be write in markdown.
 
-         Here's an overview of the syntax that you can use to write the content of this file:
-
-         Headers
-            # This is equivalent an <h1> tag on html
-            ## This equivalent an <h2> tag on html
-
-         Emphasis
-            *This text will be italic*
-            _This will also be italic_
-
-            **This text will be bold**
-            __This will also be bold__
-
-        Lists
-            Unordered
-                * Item 1
-                * Item 2
-                    * Item 2a
-                    * Item 2b
-            Ordered
-                1. Item 1
-                2. Item 2
-                3. Item 3
-                   3.1. Item 3a
-                   3.2. Item 3b
-
-        Images
-            Format: ![Alt Text](url)
-
-        Links
-            http://github.com - automatic!
-            [Display Name](http://<link>)
-
-        Blockquotes
-            > Blockquote
-            >> Nested blockquote
-
-        Inline code
-            ` some code `
-
-         """)
+        You can find an overview of the valid tags that can be used to write the content of this file on the following link:
+        https://guides.github.com/features/mastering-markdown/#syntax
+        """)
         return file_content
 
     def _plugin_source_content(self) -> str:
@@ -495,13 +457,12 @@ class HookManGenerator:
         return file_content
 
     def _build_shared_lib_python_script_content(self, shared_lib_name):
-        if sys.platform == 'win32':
-            lib_name = f"{shared_lib_name}.dll"
-        else:
-            lib_name = f"lib{shared_lib_name}.so"
+        lib_name_win = f"{shared_lib_name}.dll"
+        lib_name_linux = f"lib{shared_lib_name}.so"
 
         file_content = dedent(f'''\
             import os
+            import sys
             import shutil
             import subprocess
             from pathlib import Path
@@ -512,7 +473,11 @@ class HookManGenerator:
             assets = current_dir / "assets"
             build_dir = current_dir / "build"
             package_dir = current_dir / "package"
-            shared_lib = artifacts_dir / "{lib_name}"
+            
+            if sys.platform == 'win32':
+                shared_lib = artifacts_dir / "{lib_name_win}"
+            else:
+                shared_lib = artifacts_dir / "{lib_name_linux}"
 
             if build_dir.exists():
                 shutil.rmtree(build_dir)

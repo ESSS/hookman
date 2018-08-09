@@ -188,8 +188,15 @@ class HookManGenerator:
 
         self._validate_package_folder(artifacts_dir, assets_dir)
         self._validate_plugin_config_file(assets_dir / 'config.yaml', artifacts_dir)
-        shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
-        with ZipFile(dst / f"{package_name}.hmplugin", 'w') as zip_file:
+
+        if sys.platform == 'win32':
+            shared_lib = '*.dll'
+            hmplugin_path = dst / f"{package_name}-win64.hmplugin"
+        else:
+            shared_lib = '*.so'
+            hmplugin_path = dst / f"{package_name}-linux64.hmplugin"
+
+        with ZipFile(hmplugin_path, 'w') as zip_file:
             for file in assets_dir.rglob('*'):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 

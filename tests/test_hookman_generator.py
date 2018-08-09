@@ -88,7 +88,14 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
     artifacts_dir = plugin_dir / 'artifacts'
     artifacts_dir.mkdir()
     import sys
-    shared_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
+
+    if sys.platform == 'win32':
+        shared_lib_name = 'acme.dll'
+        hm_plugin_name = 'acme-win64.hmplugin'
+    else:
+        shared_lib_name = 'libacme.so'
+        hm_plugin_name = 'acme-linux64.hmplugin'
+
     test_dll = artifacts_dir / shared_lib_name
     test_dll.write_text('')
 
@@ -97,7 +104,7 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
         plugin_dir=plugin_dir,
     )
 
-    compressed_plugin = plugin_dir / 'acme.hmplugin'
+    compressed_plugin = plugin_dir / hm_plugin_name
     assert compressed_plugin.exists()
 
     from zipfile import ZipFile
@@ -163,7 +170,13 @@ def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
     readme_file.write_text('')
 
     # # -- With a invalid shared_library name on config_file
-    acme_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
+    if sys.platform == 'win32':
+        acme_lib_name = 'acme.dll'
+        hm_plugin_name = 'acme-win64.hmplugin'
+    else:
+        acme_lib_name = 'libacme.so'
+        hm_plugin_name = 'acme-linux64.hmplugin'
+    
     with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
@@ -171,5 +184,5 @@ def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
     acme_shared_library_file.write_text('')
 
     hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
-    compressed_plugin_package = plugin_dir / 'acme.hmplugin'
-    assert compressed_plugin_package .exists()
+    compressed_plugin_package = plugin_dir / hm_plugin_name
+    assert compressed_plugin_package.exists()

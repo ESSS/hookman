@@ -138,7 +138,7 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
-        Path(plugin_folder / 'build.py').write_text(self._build_shared_lib_python_script_content(shared_lib_name))
+        Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(shared_lib_name))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
         Path(assets_folder / 'config.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
@@ -463,7 +463,7 @@ class HookManGenerator:
         ''')
         return file_content
 
-    def _build_shared_lib_python_script_content(self, shared_lib_name):
+    def _compile_shared_lib_python_script_content(self, shared_lib_name):
         lib_name_win = f"{shared_lib_name}.dll"
         lib_name_linux = f"lib{shared_lib_name}.so"
 

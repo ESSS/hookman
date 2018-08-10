@@ -94,7 +94,7 @@ class HookMan:
     def remove_plugin(self, plugin_name: str):
         for plugin in self.get_plugins_available():
             if plugin.name == plugin_name:
-                shutil.rmtree(plugin.yaml_location.parent)
+                shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
     def get_plugins_available(self) -> Optional[List[PluginInfo]]:

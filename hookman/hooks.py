@@ -80,7 +80,8 @@ class HookMan:
                                               f"the paths that were informed when the HookMan "
                                               f"object was initialized: {self.plugins_dirs}.")
 
-        plugin_name = Path(plugin_file_zip.filename).resolve().stem
+        plugin_name = Path(plugin_file_zip.filename).stem.replace('-linux64','').replace('-win64','')
+
         plugins_dirs = [x for x in dst_path.iterdir() if x.is_dir()]
 
         if plugin_name in [x.name for x in plugins_dirs]:
@@ -93,7 +94,7 @@ class HookMan:
     def remove_plugin(self, plugin_name: str):
         for plugin in self.get_plugins_available():
             if plugin.name == plugin_name:
-                shutil.rmtree(plugin.location.parent)
+                shutil.rmtree(plugin.yaml_location.parent)
                 break
 
     def get_plugins_available(self) -> Optional[List[PluginInfo]]:

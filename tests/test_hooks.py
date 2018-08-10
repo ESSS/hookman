@@ -54,7 +54,7 @@ def test_get_hook_caller(simple_plugin):
     assert friction_factor(1, 2) == 3
 
 
-def test_get_hook_caller_without_plugin(datadir, compiled_libs_folder, simple_plugin):
+def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'some_non_existing_folder'])
     hook_caller = hm.get_hook_caller()
     friction_factor = hook_caller.friction_factor()
@@ -70,7 +70,7 @@ def test_plugins_available(simple_plugin):
     assert len(plugins) == 1
     import attr
     assert list(attr.asdict(plugins[0]).keys()) == [
-        'location',
+        'yaml_location',
         'hooks_available',
 
         'author',
@@ -106,14 +106,14 @@ def test_install_with_invalid_dst_path(simple_plugin):
 
 
 def test_install_plugin_duplicate(simple_plugin):
-    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path'].parent])
     import os
     os.makedirs(simple_plugin['path'] / 'simple_plugin')
 
     # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
     from hookman.exceptions import PluginAlreadyInstalledError
     with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
-        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
+        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'].parent)
 
 
 def test_install_plugin(datadir, simple_plugin):

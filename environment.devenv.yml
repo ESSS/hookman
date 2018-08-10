@@ -15,11 +15,11 @@ dependencies:
     - pybind11
     - ninja=1.7.1
     - cmake
-    
+
     {% if os.sys.platform != 'win32' %}
     - clangdev==6.0.0
     {% endif %}
-    
+
     {% if os.sys.platform == 'win32' %}
     - vs2015_runtime
     {% endif %}
@@ -29,8 +29,8 @@ dependencies:
 environment:
   PYTHONPATH:
     - {{ os.path.join(root) }}
-    - {{ root }}/build/libs
+    - {{ root }}/build/artifacts
   LD_LIBRARY_PATH:
-    - {{ root }}/build/libs
+    - {{ root }}/build/artifacts
   PATH:
-    - {{ root }}/build/libs
+    - {{ root }}/build/artifacts

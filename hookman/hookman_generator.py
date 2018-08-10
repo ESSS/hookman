@@ -381,7 +381,7 @@ class HookManGenerator:
                     {self.pyd_name}_interface
             )
 
-            install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{LIBS_DIR}})
+            install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
             """))
 
     def _plugin_config_file_content(

@@ -73,8 +73,8 @@ def test_generate_plugin_template(datadir):
     assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
 
 
-def test_generate_plugin_package(simple_plugin, tmpdir):
-    hg = HookManGenerator(hook_spec_file_path=simple_plugin['path'].parent / 'hook_specs.py')
+def test_generate_plugin_package(simple_plugin, acme_hook_specs_file, tmpdir):
+    hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
 
     hg.generate_plugin_template(
         plugin_name='acme',
@@ -116,11 +116,11 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
     assert f'artifacts/{shared_lib_name}' in list_of_files
 
 
-def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
+def test_generate_plugin_package_with_missing_folders(simple_plugin, acme_hook_specs_file, tmpdir):
     import sys
     from textwrap import dedent
     from hookman.exceptions import AssetsDirNotFoundError, ArtifactsDirNotFoundError, SharedLibraryNotFoundError
-    hg = HookManGenerator(hook_spec_file_path=simple_plugin['path'].parent / 'hook_specs.py')
+    hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_dir = Path(tmpdir) / 'acme'
     plugin_dir.mkdir()
 

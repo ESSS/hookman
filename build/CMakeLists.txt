@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.5.2)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
+set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/artifacts)
 set(PROJECT_NAME hookman)
+set(ARTIFACTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/artifacts)
 
 if(NOT WIN32)
   set(CMAKE_C_COMPILER    clang)

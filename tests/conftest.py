@@ -4,75 +4,59 @@ import pytest
 
 
 @pytest.fixture
-def compiled_libs_folder():
-    return Path(__file__).parents[1] / 'build/libs'
-
-
-@pytest.fixture
 def plugins_zip_folder():
     return Path(__file__).parents[1] / 'build/plugin_zip'
 
 
 @pytest.fixture
 def plugins_folder():
-    return Path(__file__).parents[1] / 'tests/plugins'
+    return Path(__file__).parents[1] / 'build/build_directory_for_tests/acme/plugin'
 
 
 @pytest.fixture
-def simple_plugin(datadir, plugins_folder, compiled_libs_folder, plugins_zip_folder):
-    import os
-    from shutil import copytree
-
-    # Use the simple plugin available at plugins folder for this test
-    plugin_dir = datadir / 'simple_plugin/'
-    copytree(src=plugins_folder / 'acme/simple_plugin', dst=plugin_dir)
-
-    # Get the compiled lib
-    if os.sys.platform == 'win32':
-        plugin_dll = compiled_libs_folder / 'simple_plugin.dll'
-    else:
-        plugin_dll = compiled_libs_folder / 'libsimple_plugin.so'
-
-    from shutil import copy
-    copy(src=plugin_dll, dst=plugin_dir)
-
-    # Load the hook_specs.py (inside the test folder) into plugin_specs
-    hook_specs = plugins_folder / 'acme/hook_specs.py'
-    import importlib
-    spec = importlib.util.spec_from_file_location('hook_specs', hook_specs)
-    plugin_specs = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(plugin_specs)
-
-    simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
-
-    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
+def acme_hook_specs_file():
+    return Path(__file__).parents[1] / 'tests/plugins/acme/hook_specs.py'
 
 
 @pytest.fixture
-def simple_plugin_2(datadir, plugins_folder, compiled_libs_folder, plugins_zip_folder):
-    import os
-    from shutil import copytree
-
-    # Use the simple plugin available at plugins folder for this test
-    plugin_dir = datadir / 'simple_plugin_2/'
-    copytree(src=plugins_folder / 'acme/simple_plugin_2', dst=plugin_dir)
-
-    # Get the compiled lib
-    if os.sys.platform == 'win32':
-        plugin_dll = compiled_libs_folder / 'simple_plugin_2.dll'
-    else:
-        plugin_dll = compiled_libs_folder / 'libsimple_plugin_2.so'
-
-    from shutil import copy
-    copy(src=plugin_dll, dst=plugin_dir)
+def acme_hook_specs(acme_hook_specs_file):
 
     # Load the hook_specs.py (inside the test folder) into plugin_specs
-    hook_specs = plugins_folder / 'acme/hook_specs.py'
     import importlib
-    spec = importlib.util.spec_from_file_location('hook_specs', hook_specs)
+    spec = importlib.util.spec_from_file_location('hook_specs', acme_hook_specs_file)
     plugin_specs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(plugin_specs)
 
-    simple_plugin_zip_file = plugins_zip_folder / 'simple_plugin.hmplugin'
+    return plugin_specs.specs
 
-    return {'path': plugin_dir, 'specs': plugin_specs.specs, 'zip': simple_plugin_zip_file}
+
+@pytest.fixture
+def simple_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
+    plugin_dir = datadir / 'plugins/simple_plugin/'
+
+    from shutil import copytree
+    copytree(src=plugins_folder / 'simple_plugin', dst=plugin_dir)
+
+    import sys
+    if sys.platform == 'win32':
+        plugin_zip_name = plugins_zip_folder / "simple_plugin-win64.hmplugin"
+    else:
+        plugin_zip_name = plugins_zip_folder / "simple_plugin-linux64.hmplugin"
+
+    return {'path': plugin_dir, 'specs': acme_hook_specs, 'zip': plugin_zip_name}
+
+
+@pytest.fixture
+def simple_plugin_2(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
+    plugin_dir = datadir / 'plugins/simple_plugin_2/'
+
+    from shutil import copytree
+    copytree(src=plugins_folder / 'simple_plugin_2', dst=plugin_dir)
+
+    import sys
+    if sys.platform == 'win32':
+        plugin_zip_name = plugins_zip_folder / "simple_plugin_2-win64.hmplugin"
+    else:
+        plugin_zip_name = plugins_zip_folder / "simple_plugin_2-linux64.hmplugin"
+
+    return {'path': plugin_dir, 'specs': acme_hook_specs, 'zip': plugin_zip_name}

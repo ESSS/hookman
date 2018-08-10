@@ -140,7 +140,7 @@ class HookManGenerator:
 
         Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(shared_lib_name))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
-        Path(assets_folder / 'config.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
+        Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content())
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
@@ -173,7 +173,7 @@ class HookManGenerator:
         The file `.hmplugin` will be created with the content from the folder assets and artifacts.
 
         In order to successfully creates a plugin, at least the following files should be present:
-            - config.yml
+            - plugin.yml
             - shared library (.ddl or .so)
             - readme.md
 
@@ -187,7 +187,7 @@ class HookManGenerator:
         artifacts_dir = plugin_dir / "artifacts"
 
         self._validate_package_folder(artifacts_dir, assets_dir)
-        self._validate_plugin_config_file(assets_dir / 'config.yaml', artifacts_dir)
+        self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
 
         if sys.platform == 'win32':
             shared_lib = '*.dll'
@@ -211,12 +211,12 @@ class HookManGenerator:
 
             - The assets folder needs to contain:
                 - Readme.md
-                - config.yaml
+                - plugin.yaml
 
             - The artifacts folder need to contain:
                 - At least one shared library (.dll or .so)
 
-            - The config.yaml should have the name of the main library in the "shared_lib" entry.
+            - The plugin.yaml should have the name of the main library in the "shared_lib" entry.
         """
         if not assets_dir.exists():
             raise AssetsDirNotFoundError()
@@ -229,8 +229,8 @@ class HookManGenerator:
             raise FileNotFoundError(
                 f"Unable to locate a shared library ({shared_lib}) in {artifacts_dir}")
 
-        if not assets_dir.joinpath('config.yaml').is_file():
-            raise FileNotFoundError(f"Unable to locate the file config.yaml in {assets_dir}")
+        if not assets_dir.joinpath('plugin.yaml').is_file():
+            raise FileNotFoundError(f"Unable to locate the file plugin.yaml in {assets_dir}")
 
         if not assets_dir.joinpath('README.md').is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")

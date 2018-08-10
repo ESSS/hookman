@@ -46,8 +46,8 @@ def test_generate_plugin_template(datadir):
     obtained_hook_specs_file = datadir / 'test_generate_plugin_template/Acme/src/hook_specs.h'
     expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
 
-    obtained_config_yaml = datadir / 'test_generate_plugin_template/Acme/assets/config.yaml'
-    expected_config_yaml = datadir / 'test_generate_plugin_template/expected_config.yaml'
+    obtained_plugin_yaml = datadir / 'test_generate_plugin_template/Acme/assets/plugin.yaml'
+    expected_plugin_yaml = datadir / 'test_generate_plugin_template/expected_plugin.yaml'
 
     obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/src/plugin.c'
     expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
@@ -65,7 +65,7 @@ def test_generate_plugin_template(datadir):
     expected_compile_script = datadir / 'test_generate_plugin_template/expected_compile.py'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
-    assert obtained_config_yaml.read_text() == expected_config_yaml.read_text()
+    assert obtained_plugin_yaml.read_text() == expected_plugin_yaml.read_text()
     assert obtained_plugin_c.read_text() == expected_plugin_c.read_text()
     assert obtained_readme.read_text() == expected_readme.read_text()
     assert obtained_cmake_list.read_text() == expected_cmake_list.read_text()
@@ -111,7 +111,7 @@ def test_generate_plugin_package(simple_plugin, tmpdir):
     plugin_file_zip = ZipFile(compressed_plugin)
     list_of_files = [file.filename for file in plugin_file_zip.filelist]
 
-    assert 'assets/config.yaml' in list_of_files
+    assert 'assets/plugin.yaml' in list_of_files
     assert 'assets/README.md' in list_of_files
     assert f'artifacts/{shared_lib_name}' in list_of_files
 
@@ -149,10 +149,10 @@ def test_generate_plugin_package_with_missing_folders(simple_plugin, tmpdir):
     shared_library_file.write_text('')
 
     # -- Without Config file
-    with pytest.raises(FileNotFoundError, match=f'Unable to locate the file config.yaml in'):
+    with pytest.raises(FileNotFoundError, match=f'Unable to locate the file plugin.yaml in'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
-    config_file = asset_dir / 'config.yaml'
+    config_file = asset_dir / 'plugin.yaml'
     config_file.write_text(dedent(f"""\
             plugin_name: 'ACME'
             plugin_version: '1'

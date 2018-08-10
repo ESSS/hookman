@@ -110,3 +110,4 @@ environment.yml
 /build/plugin_zip
 
 /build/build_directory_for_tests/
+/build/artifacts/

@@ -1,3 +1,4 @@
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -22,10 +23,6 @@ def generate_build_files(ctx):
     """
     Task to generate the files necessaries to compile the tests
     """
-    import os
-    from pathlib import Path
-    import shutil
-    from hookman.hookman_generator import HookManGenerator
 
     project_dir = Path(__file__).parent
 
@@ -79,10 +76,6 @@ def compile_build_files(ctx):
     """
     A task to compile all dlls and pyd necessary for the tests
     """
-    import os
-    import shutil
-    from pathlib import Path
-
     project_dir = Path(__file__).parent
 
     build_dir = project_dir / 'build'
@@ -96,8 +89,6 @@ def compile_build_files(ctx):
 
     os.makedirs(artifacts_dir)
     os.makedirs(ninja_dir)
-
-    import sys
 
     call_cmake = f'cmake -DCMAKE_BUILD_TYPE=Release -G Ninja "{build_dir}" -DHEAVY_COMPILATION_PARALLEL_JOBS=8'
     call_ninja = 'ninja -j 8'

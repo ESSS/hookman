@@ -142,7 +142,7 @@ def _package_plugins(ctx):
             if sys.platform == 'win32':
                 shutil.copy2(src=artifacts_dir / f'{plugin.name}.dll', dst=plugin / 'artifacts')
             else:
-                shutil.copy2(src=artifacts_dir / f'lib{plugin}.so', dst=plugin / 'artifacts')
+                shutil.copy2(src=artifacts_dir / f'lib{plugin.name}.so', dst=plugin / 'artifacts')
 
             hm_generator.generate_plugin_package(
                 package_name=plugin.name,

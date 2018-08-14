@@ -1,10 +1,11 @@
 import importlib
 import inspect
 import os
+import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import List, NamedTuple
+from typing import NamedTuple
 from zipfile import ZipFile
 
 from hookman.exceptions import (
@@ -87,12 +88,20 @@ class HookManGenerator:
         self.pyd_name = hook_specs.pyd_name
         self.version = f'v{hook_specs.version}'
 
-        def format_arguments(text_list: List[str]) -> str:
-            """
-            Format the REPR from the args list ("['v1', 'v2']") to an acceptable format ("v1, v2")
-            """
-            text = str(text_list)
-            return text.replace('[', '').replace(']', '').replace('\'', '')
+        def get_arg_with_type(arg):
+            arg_type = hook_types[arg]
+            array_type_pattern = (
+                r'(?P<array_type>.+)'  # `double ` in `double [ 2 ]`
+                r'(?:\s*\[\s*'  # `[` and possible spaces
+                    r'(?P<array_size>\d*)'  # `2` in `double [ 2 ]` or empty in `int[]`
+                r'\s*\]\s*)$'  # `]` with possible spaces and end of string
+            )
+            m = re.match(array_type_pattern, arg_type)
+            if m is not None:
+                array_type = m.group('array_type').strip()
+                array_size = m.group('array_size')
+                return f"{array_type} {arg}[{array_size}]"
+            return f"{arg_type.strip()} {arg}"
 
         self.hooks = []
         for hook_spec in hook_specs.hooks:
@@ -104,10 +113,9 @@ class HookManGenerator:
                     name=hook_spec.__name__.lower(),
                     macro_name=hook_spec.__name__.upper(),
                     r_type=hook_arg_spec.annotations['return'],
-                    args=format_arguments(hook_arguments),
-                    args_type=format_arguments([f"{hook_types[arg]}" for arg in hook_arguments]),
-                    args_with_type=format_arguments(
-                        [f"{hook_types[arg]} {arg}" for arg in hook_arguments]),
+                    args=', '.join(hook_arguments),
+                    args_type=', '.join([f"{hook_types[arg]}" for arg in hook_arguments]),
+                    args_with_type=', '.join(get_arg_with_type(arg) for arg in hook_arguments),
                     function_name=f'{self.project_name}_{self.version}_{hook_spec.__name__.lower()}',
                 ))
 

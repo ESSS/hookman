@@ -9,6 +9,6 @@
 #endif
 
 #define INIT_HOOKS() HOOKMAN_API_EXP char* HOOKMAN_FUNC_EXP acme_version_api() {return "v1";}
-#define HOOK_FRICTION_FACTOR(v1, v2) HOOKMAN_API_EXP int HOOKMAN_FUNC_EXP acme_v1_friction_factor(int v1, int v2)
+#define HOOK_FRICTION_FACTOR(v1, v2) HOOKMAN_API_EXP int HOOKMAN_FUNC_EXP acme_v1_friction_factor(int v1, double v2[2])
 
 #endif

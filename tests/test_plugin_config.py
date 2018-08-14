@@ -4,7 +4,7 @@ from hookman.plugin_config import PluginInfo
 
 
 def test_load_config_content(datadir, mocker):
-    mocker.patch.object(PluginInfo,'_get_hooks_implemented', return_value=['a'])
+    mocker.patch.object(PluginInfo, '_get_hooks_implemented', return_value=['a'])
     hooks_available = {'friction_factor': 'acme_v1_friction_factor', 'env_temperature': 'acme_v1_env_temperature'}
     plugin_yaml_file = datadir / 'assets/plugin.yaml'
 
@@ -27,4 +27,3 @@ def test_get_shared_libs_path(datadir, mocker):
     expected_path = datadir / 'artifacts/name_of_the_shared_lib.dll'
     plugin_config = PluginInfo(datadir / 'assets/plugin.yaml', hooks_available=None)
     assert plugin_config.shared_lib_path == expected_path
-

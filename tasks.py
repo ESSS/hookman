@@ -63,13 +63,13 @@ def generate_build_files(ctx):
             shutil.copytree(src=plugin, dst=plugin_dir_build)
             (plugin_dir_build / 'src/hook_specs.h').write_text(hm_generator._hook_specs_header_content())
 
-
         # Create the CMakeFile on root of the project to include others CMake files.
         main_cmakelist = project_dir_for_build / 'CMakeLists.txt'
         main_cmakelist_content = []
         main_cmakelist_content.append('add_subdirectory(cpp)\nadd_subdirectory(binding)\n')
         main_cmakelist_content += [f'add_subdirectory(plugin/{plugin.name}/src)\n' for plugin in plugins_dirs]
         main_cmakelist.write_text(''.join(main_cmakelist_content))
+
 
 @invoke.task
 def compile_build_files(ctx):
@@ -117,6 +117,7 @@ def compile_build_files(ctx):
         else:
             ctx.run(command=call_cmake + '&&' + call_ninja + '&&' + call_install)
 
+
 def _package_plugins(ctx):
     """
     This functions can be just called when the generate_project_files and compile tasks have been already invoked
@@ -135,7 +136,7 @@ def _package_plugins(ctx):
 
     for project in plugins_projects:
         plugins_dirs = [x for x in (project / 'plugin').iterdir() if x.is_dir() and (x / 'assets').exists()]
-        hm_generator = HookManGenerator(hook_spec_file_path=project_dir/f"tests/plugins/{project.name}/hook_specs.py")
+        hm_generator = HookManGenerator(hook_spec_file_path=project_dir / f"tests/plugins/{project.name}/hook_specs.py")
 
         for plugin in plugins_dirs:
             (plugin / 'artifacts').mkdir()
@@ -149,4 +150,3 @@ def _package_plugins(ctx):
                 plugin_dir=plugin,
                 dst=plugins_zip
             )
-

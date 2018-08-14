@@ -80,7 +80,7 @@ class HookMan:
                                               f"the paths that were informed when the HookMan "
                                               f"object was initialized: {self.plugins_dirs}.")
 
-        plugin_name = Path(plugin_file_zip.filename).stem.replace('-linux64','').replace('-win64','')
+        plugin_name = Path(plugin_file_zip.filename).stem.replace('-linux64', '').replace('-win64', '')
 
         plugins_dirs = [x for x in dst_path.iterdir() if x.is_dir()]
 

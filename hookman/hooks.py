@@ -23,8 +23,12 @@ class HooksSpecs:
         A list with the hooks available for the project, each hook is represented by a python function
     """
 
-    def __init__(self, *, project_name: str, version: str, pyd_name: str,
-            hooks: List[Callable]) -> None:
+    def __init__(self, *,
+            project_name: str,
+            version: str,
+            pyd_name: str,
+            hooks: List[Callable]
+        ) -> None:
         for hook in hooks:
             self._check_hook_arguments(hook)
         self.project_name = project_name

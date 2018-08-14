@@ -468,6 +468,7 @@ class HookManGenerator:
     def _plugin_src_cmake_file_content(self, shared_lib_name):
         file_content = dedent(f'''\
             add_library({shared_lib_name} SHARED plugin.c hook_specs.h)
+            install(TARGETS {shared_lib_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content
 

@@ -8,8 +8,9 @@ from textwrap import dedent
 from typing import NamedTuple
 from zipfile import ZipFile
 
-from hookman.exceptions import (
-    ArtifactsDirNotFoundError, AssetsDirNotFoundError, SharedLibraryNotFoundError)
+from hookman.exceptions import (ArtifactsDirNotFoundError,
+                                AssetsDirNotFoundError,
+                                SharedLibraryNotFoundError)
 from hookman.hooks import HooksSpecs
 from hookman.plugin_config import PluginInfo
 
@@ -455,7 +456,7 @@ class HookManGenerator:
               set(CMAKE_C_FLAGS_DEBUG "-g")
             endif(NOT WIN32)
 
-            set(CMAKE_CXX_FLAGS       "-Wall -Werror=return-type -ftemplate-depth=1024")
+            set(CMAKE_CXX_FLAGS       "-Wall")
             set(CMAKE_CXX_LINK_FLAGS  "-lstdc++")
             set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
@@ -467,7 +468,6 @@ class HookManGenerator:
     def _plugin_src_cmake_file_content(self, shared_lib_name):
         file_content = dedent(f'''\
             add_library({shared_lib_name} SHARED plugin.c hook_specs.h)
-            install(TARGETS acme EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content
 
@@ -488,7 +488,7 @@ class HookManGenerator:
             assets = current_dir / "assets"
             build_dir = current_dir / "build"
             package_dir = current_dir / "package"
-            
+
             if sys.platform == 'win32':
                 shared_lib = artifacts_dir / "{lib_name_win}"
             else:

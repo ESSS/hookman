@@ -1,7 +1,7 @@
 from hookman.hooks import HooksSpecs
 
 
-def friction_factor(v1: 'int', v2: 'int') -> 'int':
+def friction_factor(v1: 'int', v2: 'double[2]') -> 'int':
     """
     Docs for Friction Factor
     """

@@ -128,7 +128,7 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
 
     assert len(hm.get_plugins_available()) == 2
-    assert len(list((datadir/'plugins').iterdir())) == 2
+    assert len(list((datadir / 'plugins').iterdir())) == 2
     hm.remove_plugin('Simple Plugin 2')
     assert len(hm.get_plugins_available()) == 1
     assert len(list((datadir / 'plugins').iterdir())) == 1

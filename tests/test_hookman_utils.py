@@ -8,4 +8,3 @@ def test_find_config_files(datadir):
 
     config_files = find_config_files([datadir / 'non_existing_folder'])
     assert len(config_files) == 0
-

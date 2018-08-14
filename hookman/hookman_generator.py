@@ -8,9 +8,8 @@ from textwrap import dedent
 from typing import NamedTuple
 from zipfile import ZipFile
 
-from hookman.exceptions import (ArtifactsDirNotFoundError,
-                                AssetsDirNotFoundError,
-                                SharedLibraryNotFoundError)
+from hookman.exceptions import (
+    ArtifactsDirNotFoundError, AssetsDirNotFoundError, SharedLibraryNotFoundError)
 from hookman.hooks import HooksSpecs
 from hookman.plugin_config import PluginInfo
 
@@ -478,9 +477,9 @@ class HookManGenerator:
 
         file_content = dedent(f'''\
             import os
-            import sys
             import shutil
             import subprocess
+            import sys
             from pathlib import Path
 
             current_dir = Path(os.getcwd())

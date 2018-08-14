@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from hookman.hookman_generator import HookManGenerator
 
 

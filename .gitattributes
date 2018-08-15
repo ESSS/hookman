@@ -36,6 +36,9 @@
 # Documentation
 *.css    text
 *.html   text
+*.rst    text
+*.in     text
+LICENSE  text
 Doxyfile text
 # Binary files
 *.png     binary

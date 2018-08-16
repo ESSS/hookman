@@ -437,7 +437,6 @@ class HookManGenerator:
             cmake_minimum_required(VERSION 3.5.2)
 
             set(PROJECT_NAME {shared_lib_name})
-            project ({shared_lib_name} LANGUAGES CXX C)
             set(ARTIFACTS_DIR ${{CMAKE_CURRENT_SOURCE_DIR}}/artifacts)
 
             if(NOT WIN32)
@@ -447,11 +446,12 @@ class HookManGenerator:
               set(CMAKE_C_FLAGS_DEBUG "-g")
             endif(NOT WIN32)
 
-            set(CMAKE_CXX_FLAGS       "-Wall")
             set(CMAKE_CXX_LINK_FLAGS  "-lstdc++")
             set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
             set(CMAKE_C_STANDARD 99)
+            
+            project ({shared_lib_name} LANGUAGES CXX C)
             add_subdirectory(src)
         ''')
         return file_content

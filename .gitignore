@@ -111,3 +111,6 @@ environment.yml
 
 /build/build_directory_for_tests/
 /build/artifacts/
+/docs/source/_templates/
+/docs/source/_static/
+/docs/build/

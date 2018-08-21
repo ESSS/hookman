@@ -1,7 +1,7 @@
 
 
-``HookMan`` is a python package that enable applications to have plugins/extensions written in C/C++,
-to improve the behaviour of the application.
+``HookMan`` is a python package that provides to applications a plugin management system, 
+enabling plugins/extensions written in C/C++ to interact with the application.
 
 
 It was conceived to facilitate the application development, allowing hooks to be exposed in a

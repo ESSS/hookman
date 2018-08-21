@@ -15,6 +15,8 @@ HookMan
     :members:
 
 
+.. _hook-specs-api-section:
+
 HooksSpecs
 ----------
 
@@ -27,6 +29,8 @@ PluginInfo
 .. autoclass:: hookman.plugin_config.PluginInfo()
     :members:
 
+
+.. _hookman-generator-api-section:
 
 HookManGenerator
 ----------------

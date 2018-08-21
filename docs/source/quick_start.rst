@@ -3,12 +3,12 @@
 Quick Start
 ===========
 
-As mentioned before, ``HookMan`` is a python application that uses plugins written in C/C++.
+As previously mentioned, ``HookMan`` is a python application that uses plugins written in C/C++.
 
-In order to use this project in your application, it's necessary to create a configuration object named ``HooksSpecs``. 
+In order to integrate this project in your application, it's necessary to create a configuration object named :ref:`hook-specs-api-section`. 
 This object provides pieces of information related to which hooks are available and which arguments are expected to be sent or received.
 
-The block code below exemplifies a valid HooksSpecs configuration:
+The block code below exemplifies a valid :ref:`hook-specs-api-section` configuration:
 
 
 .. code-block:: python
@@ -29,7 +29,7 @@ The block code below exemplifies a valid HooksSpecs configuration:
         ]
     )
 
-With the HookSpecs defined, it's possible to generate the project files, necessary for the application as well as plugins templates.
+With the :ref:`hook-specs-api-section` defined, it's possible to generate the necessary files to interact between the application and the plugins implementation.
 
 .. code-block:: python
 
@@ -38,22 +38,22 @@ With the HookSpecs defined, it's possible to generate the project files, necessa
     hook_gen.generate_project_files(dst_path=<dst_dir>)
 
 
-The command above will create the following files:
+The output from the command above will be the following files:
 
 - HookCaller.hpp
 - HookCallerPython.cpp
 - CMakeLists.txt
 
 These files contain all the code necessary to make the project ``PyBind11_`` integrates with your application, and the CMakeLists file contains a boilerplate
-to generate an ``pyd`` file.
+to compile and generate an ``pyd`` file.
 
 .. important::
 
     Noticed that the macro ``PYBIND11_MODULE`` (on ``HookCallerPython.cpp``) defines the module name that should be used to import these bindings, 
-    and this name is used on the ``HookSpecs`` object with the field "pyd_name".
+    and this name is used on the :ref:`hook-specs-api-section` object with the field "pyd_name".
 
 
-With the files generated, and compiled. It's possible now to get an instance of the ``HookCaller`` object from that holds all information related with the hooks implementation.
+With the files generated, and compiled. It's possible now to get an instance of the ``HookCaller`` object that holds all information related with the hooks implementation.
 
 .. code-block:: python
 

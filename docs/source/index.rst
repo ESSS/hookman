@@ -9,7 +9,7 @@ HookMan documentation!
 
 This documentation covers HookMan usage & API documentation. 
 
-For basic info on what HookMan is read the section above, for public changelog and how the project is maintend, please check the `GitHub page`_
+For information about HookMan,  read the section above. For public changelog and how the project is maintend, please check the `GitHub page`_
 
 What is HookMan?
 ================
@@ -19,7 +19,7 @@ What is HookMan?
 What's next?
 ============
 
-To get a quick and running application you can read the :ref:`quick-start-section` section.
+To get quick and running with ``HookMan`` you can read the :ref:`quick-start-section` section.
 
 .. toctree::
     :maxdepth: 2

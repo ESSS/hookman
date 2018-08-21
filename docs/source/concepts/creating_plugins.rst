@@ -1,6 +1,6 @@
 .. _creating-plugin-section:
 
-Creating Plugins
+Creating plugins
 ================
 
 

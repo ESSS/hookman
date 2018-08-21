@@ -1,6 +1,6 @@
 .. _creating-hook-specs-section:
 
-Creating Hook Specs
+Creating HookSpecs
 ===================
 
 In order to inform to ``HookMan`` which Hooks are available in your application, it's necessary to create a :ref:`hook-specs-api-section` object.

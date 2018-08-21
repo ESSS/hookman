@@ -1,5 +1,5 @@
-Creating an SDK for your application
-====================================
+Creating an SDK
+===============
 
 In progress
 

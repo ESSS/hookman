@@ -1,5 +1,5 @@
-Integration with your application
-=================================
+Application utilities
+=====================
 
 ``HookMan`` offers a few utilities to help with the task to manage and handle plugins used by the application.
 

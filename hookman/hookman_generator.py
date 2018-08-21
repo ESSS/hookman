@@ -10,7 +10,7 @@ from zipfile import ZipFile
 
 from hookman.exceptions import (
     ArtifactsDirNotFoundError, AssetsDirNotFoundError, SharedLibraryNotFoundError)
-from hookman.hooks import HooksSpecs
+from hookman.hooks import HookSpecs
 from hookman.plugin_config import PluginInfo
 
 INDENTATION = "    "
@@ -61,9 +61,9 @@ class HookManGenerator:
         else:
             raise FileNotFoundError(f"File not found: {hook_spec_file_path}")
 
-    def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HooksSpecs:
+    def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HookSpecs:
         """
-        Returns the "HooksSpecs" object that defines the hook specification provide from the project.
+        Returns the "HookSpecs" object that defines the hook specification provide from the project.
         The file is considered valid if the importlib can access the object called "specs"
 
         :param hook_spec_file_path: Path to the location of the file
@@ -79,7 +79,7 @@ class HookManGenerator:
 
         return module
 
-    def _populate_local_variables(self, hook_specs: HooksSpecs):
+    def _populate_local_variables(self, hook_specs: HookSpecs):
         """
         Populate the self.hooks property with the given hook specification.
         See the docstring from the Hook type for more details about the self.hooks

@@ -1,4 +1,4 @@
-from hookman.hooks import HooksSpecs
+from hookman.hooks import HookSpecs
 
 
 def friction_factor(v1: 'int', v2: 'int') -> 'int':
@@ -13,7 +13,7 @@ def env_temperature(v3: 'float', v4: 'float') -> 'float':
     """
 
 
-specs = HooksSpecs(
+specs = HookSpecs(
     project_name='ACME',
     version='1',
     pyd_name='_simple',

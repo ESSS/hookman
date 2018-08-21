@@ -33,6 +33,9 @@ setup(
             'hookman=hookman.cli:main',
         ],
     },
+    extras_require={
+        'docs': [ 'sphinx >= 1.4', 'sphinx_rtd_theme', 'sphinx-autodoc-typehints']
+        },
     install_requires=requirements,
     license="MIT license",
     long_description=readme + '\n\n' + history,

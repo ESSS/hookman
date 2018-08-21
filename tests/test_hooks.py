@@ -1,6 +1,6 @@
 import pytest
 
-from hookman.hooks import HookMan, HooksSpecs, PluginInfo
+from hookman.hooks import HookMan, HookSpecs, PluginInfo
 
 
 def test_hook_specs_without_arguments():
@@ -12,7 +12,7 @@ def test_hook_specs_without_arguments():
 
     # A hook must have parameters
     with pytest.raises(TypeError, match="It's not possible to create a hook without argument"):
-        specs = HooksSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_without_arguments])
+        specs = HookSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_without_arguments])
 
 
 def test_hook_specs_with_missing_type_on_argument():
@@ -24,7 +24,7 @@ def test_hook_specs_with_missing_type_on_argument():
 
     # A arguments of the hook must inform the type
     with pytest.raises(TypeError, match="All hooks arguments must have the type informed"):
-        specs = HooksSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_with_missing_type_on_argument])
+        specs = HookSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_with_missing_type_on_argument])
 
 
 def test_hook_specs_without_docs_arguments():
@@ -33,7 +33,7 @@ def test_hook_specs_without_docs_arguments():
         pass  # pragma: no cover
 
     with pytest.raises(TypeError, match="All hooks must have documentation"):
-        specs = HooksSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_with_docs_missing])
+        specs = HookSpecs(project_name='acme', version='1', pyd_name='_acme', hooks=[method_with_docs_missing])
 
 
 def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):

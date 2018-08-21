@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=================================
-HookMan documentation!
-=================================
+=======
+HookMan 
+=======
 
-This documentation covers HookMan usage & API documentation. 
+This documentation covers HookMan usage & API. 
 
-For information about HookMan,  read the section above. For public changelog and how the project is maintend, please check the `GitHub page`_
+For information about HookMan,  read the section above. For public changelog and how the project is maintained, please check the `GitHub page`_
 
 What is HookMan?
 ================

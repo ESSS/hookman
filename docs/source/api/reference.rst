@@ -17,10 +17,10 @@ HookMan
 
 .. _hook-specs-api-section:
 
-HooksSpecs
+HookSpecs
 ----------
 
-.. autoclass:: hookman.hooks.HooksSpecs()
+.. autoclass:: hookman.hooks.HookSpecs()
     :members:
 
 .. _plugin-info-api-section:
@@ -46,3 +46,5 @@ Exception
 
 .. automodule:: hookman.exceptions
     :members:
+
+d

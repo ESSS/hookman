@@ -1,7 +1,7 @@
 Creating an SDK for your application
 ====================================
 
-TODO
+In progress
 
 For more details look the `Alfasim SDK project`_ that uses the ``HookMan``.
 

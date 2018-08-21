@@ -51,7 +51,6 @@ Dig deeper into specific topics:
     :maxdepth: 2
     :glob:
     
-    concepts/usage_in_cpp_applications
     concepts/creating_an_sdk
     api/*
 

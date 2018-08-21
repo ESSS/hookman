@@ -1,27 +1,58 @@
 Integration with your application
 =================================
 
-Install Plugin:
-Extract the content of the zip file into the same directory informed on the __init__ from Hookman
+``HookMan`` offers a few utilities to help with the task to manage and handle plugins used by the application.
 
-Plugins available:
-Return a list with all plugins that are available on the plugins_dirs.
-The list contains a OrderedDict with the content of the config file:
-- plugin_name
-- plugin_version
+
+Install Plugin
+---------------
+
+The method ``Install Plugin`` requires two arguments:
+
+1) The Path for the ``.hmplugin`` 
+2) The destination to where the plugin should be placed.
+
+This methods do the following checks:
+
+- The destination Path should be one of the paths informed during the initialization of HookMan (plugins_dirs field).
+- The plugins_dirs cannot have two plugins with the same name.
+
+
+Plugins Available
+------------------
+
+With the method ``Plugins Available`` it's possible to check which Plugins are present on ``plugins_dirs``
+
+This method returns a list of :ref:`plugin-info-api-section` with all plugins that are available on the plugins_dirs.
+
+Basically the :ref:`plugin-info-api-section` contains an OrderedDict with the content of the config file with additional members.
+
 - author
-- email
-- shared_lib
 - description
+- email
+- hooks_implemented
+- name
+- shared_lib_name
+- shared_lib_path
+- version
 
-Remove Plugin:
-Remove completey the plugin from plugin_dirs, by giving the plugins name
+Remove Plugin
+--------------
+
+This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
 
 
-This pull request implements the method GetStatus which will evaluate the plugins already installed and checks if there isn't conflict between them.
+GetStatus
+---------
 
-Notice that this method just checks if more than on plugin implements the same hook.
+With this method is possible to check if the plugins have conflicts between them.
 
-If a conflict is found, a ConflictStatus object will be returned, this object contains the name of the hook that has multiple implementations and the name of these plugins.
+If a conflict is found a list of ConflictStatus object will be returned, otherwise an empty list is returned.
+
+.. Note:
+    The ``get_status`` method currently just checks if more than on plugin implements the same hook.
+    
+
+
 
 

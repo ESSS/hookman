@@ -23,6 +23,8 @@ HooksSpecs
 .. autoclass:: hookman.hooks.HooksSpecs()
     :members:
 
+.. _plugin-info-api-section:
+
 PluginInfo
 ----------
 

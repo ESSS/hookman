@@ -47,4 +47,3 @@ Exception
 .. automodule:: hookman.exceptions
     :members:
 
-d

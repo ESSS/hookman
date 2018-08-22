@@ -114,3 +114,4 @@ environment.yml
 /docs/source/_templates/
 /docs/source/_static/
 /docs/build/
+/_build/

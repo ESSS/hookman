@@ -12,7 +12,7 @@ from hookman.exceptions import (
 from hookman.plugin_config import ConflictStatus, PluginInfo
 
 
-class HooksSpecs:
+class HookSpecs:
     """
     A class that holds the specification of the hooks, currently the following specification are available:
     - Project Name:
@@ -64,7 +64,7 @@ class HookMan:
     Main class of HookMan, this class holds all the information related to the plugins
     """
 
-    def __init__(self, *, specs: HooksSpecs, plugin_dirs: List[Path]):
+    def __init__(self, *, specs: HookSpecs, plugin_dirs: List[Path]):
         self.specs = specs
         self.plugins_dirs = plugin_dirs
         self.hooks_available = {
@@ -74,7 +74,16 @@ class HookMan:
 
     def install_plugin(self, plugin_file_path: Path, dst_path: Path):
         """
-        Extract the content of the zip file into plugin_dirs
+        Extract the content of the zip file into dst_path.
+
+        The following checks will be executed to validate the consistency of the inputs:
+
+            1. The destination Path should be one of the paths informed during the initialization of HookMan (plugins_dirs field).
+
+            2. The plugins_dirs cannot have two plugins with the same name.
+
+        :plugin_file_path: The Path for the ``.hmplugin``
+        :dst_path: The destination to where the plugin should be placed.
         """
         plugin_file_zip = ZipFile(plugin_file_path)
         PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
@@ -96,6 +105,11 @@ class HookMan:
         plugin_file_zip.extractall(plugin_destination_folder)
 
     def remove_plugin(self, plugin_name: str):
+        """
+        This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
+
+        :plugin_name: Name of the plugin to be removed
+        """
         for plugin in self.get_plugins_available():
             if plugin.name == plugin_name:
                 shutil.rmtree(plugin.yaml_location.parents[1])
@@ -103,9 +117,9 @@ class HookMan:
 
     def get_plugins_available(self) -> Optional[List[PluginInfo]]:
         """
-        Return a list with all plugins that are available on the plugins_dirs.
-        The list contains a PluginInfo object that contains information about the plugin
-        (configuration available at the YAML file and computed values )
+        Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
+
+        The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
         return [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
@@ -153,6 +167,9 @@ class HookMan:
         Check if the plugins has conflicts between then.
         If a conflict is found a list of ConflictStatus object will be returned.
         Otherwise a empty list is returned.
+
+        .. :
+            The ``get_status`` method currently just checks if more than on plugin implements the same hook.
         """
         list_of_conflicts = []
         plugins_available = self.get_plugins_available()

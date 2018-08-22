@@ -40,6 +40,7 @@ release = ''
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx_autodoc_typehints'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -81,7 +82,20 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "logo": "hook.png",
+    "logo_name": True,
+    "logo_text_align": "center",
+    "description": "Plugin Management System",
+    'github_user': 'ESSS',
+    'github_repo': 'hookman',
+    "github_banner": True,
+    "travis_button": True,
+    "codecov_button": True,
+    "analytics_id": "UA-124333783-1",
+    "link": "#3782BE",
+    "link_hover": "#3782BE",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -96,7 +110,9 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+html_sidebars = {
+    "**": ["about.html", "navigation.html", "searchbox.html", "donate.html"]
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

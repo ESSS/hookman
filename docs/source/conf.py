@@ -83,7 +83,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    "logo": "hook.png",
+    "logo": "logo.svg",
     "logo_name": True,
     "logo_text_align": "center",
     "description": "Plugin Management System",

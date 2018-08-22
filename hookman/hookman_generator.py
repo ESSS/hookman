@@ -9,7 +9,7 @@ from typing import NamedTuple
 from zipfile import ZipFile
 
 from hookman.exceptions import (
-    ArtifactsDirNotFoundError, AssetsDirNotFoundError, SharedLibraryNotFoundError)
+    ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError, SharedLibraryNotFoundError)
 from hookman.hooks import HookSpecs
 from hookman.plugin_config import PluginInfo
 
@@ -127,13 +127,21 @@ class HookManGenerator:
             dst_path: Path):
         """
         Generate a template with the necessary files and structure to create a plugin
+
+        A folder with the same name as the shared_lib_name argument will be created, with the following files:
             - config.yml
             - plugin.c
             - hook_specs.h
             - CMakeLists.txt
             - README.md
         """
-        plugin_folder = dst_path / plugin_name
+        if not shared_lib_name.isidentifier():
+            raise HookmanError("""
+            The shared libray name should be a valid identifier, with letters A through Z, underscore _
+            and, except for the first character, the digits 0 through 9
+            """)
+
+        plugin_folder = dst_path / shared_lib_name
         assets_folder = plugin_folder / 'assets'
         source_folder = plugin_folder / 'src'
 
@@ -458,7 +466,7 @@ class HookManGenerator:
             set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
             set(CMAKE_C_STANDARD 99)
-            
+
             project ({shared_lib_name} LANGUAGES CXX C)
             add_subdirectory(src)
         ''')

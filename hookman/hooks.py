@@ -75,13 +75,13 @@ class HookMan:
     def install_plugin(self, plugin_file_path: Path, dst_path: Path):
         """
         Extract the content of the zip file into dst_path.
-        
+
         The following checks will be executed to validate the consistency of the inputs:
 
             1. The destination Path should be one of the paths informed during the initialization of HookMan (plugins_dirs field).
 
             2. The plugins_dirs cannot have two plugins with the same name.
-        
+
         :plugin_file_path: The Path for the ``.hmplugin``
         :dst_path: The destination to where the plugin should be placed.
         """

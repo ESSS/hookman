@@ -74,7 +74,39 @@ def test_generate_plugin_template(datadir):
     assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
 
 
-def test_generate_plugin_package(simple_plugin, acme_hook_specs_file, tmpdir):
+def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, tmpdir):
+    hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
+
+    from hookman.exceptions import HookmanError
+    with pytest.raises(HookmanError):
+        hg.generate_plugin_template(
+            plugin_name='acme',
+            shared_lib_name='acm#e',
+            author_email='acme1',
+            author_name='acme2',
+            dst_path=Path(tmpdir)
+        )
+
+    with pytest.raises(HookmanError):
+        hg.generate_plugin_template(
+            plugin_name='acme',
+            shared_lib_name='acm e',
+            author_email='acme1',
+            author_name='acme2',
+            dst_path=Path(tmpdir)
+        )
+
+    with pytest.raises(HookmanError):
+        hg.generate_plugin_template(
+            plugin_name='1acme',
+            shared_lib_name='acm e',
+            author_email='acme1',
+            author_name='acme2',
+            dst_path=Path(tmpdir)
+        )
+
+
+def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
 
     hg.generate_plugin_template(
@@ -117,7 +149,7 @@ def test_generate_plugin_package(simple_plugin, acme_hook_specs_file, tmpdir):
     assert f'artifacts/{shared_lib_name}' in list_of_files
 
 
-def test_generate_plugin_package_with_missing_folders(simple_plugin, acme_hook_specs_file, tmpdir):
+def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir):
     import sys
     from textwrap import dedent
     from hookman.exceptions import AssetsDirNotFoundError, ArtifactsDirNotFoundError, SharedLibraryNotFoundError

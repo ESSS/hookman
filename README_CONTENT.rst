@@ -30,6 +30,9 @@ With ``HookMan`` your application can have access to the hooks implemented on pl
     assert friction_factor is not None
     assert env_temperature is None
 
+    # Executing the hook, wherever it is implemented either in plugin A or B.
+    ff_result = friction_factor(1, 2.5)
+    env_tmp_result = env_temperature(35.5, 45.5)
 
 How does it work?
 -----------------
@@ -45,7 +48,7 @@ All plugins informed to your application will be validated by HookMan (to check 
 and an object holding a reference to the ``Hooks`` will be passed to the application.
 
 
-The ``HookMan`` project uses the library PyBind11_ to interact between Python and C/C++,
+The ``HookMan`` project uses the library pybind11_ to interact between Python and C/C++,
 allowing a straightforward usage for who is calling the function (either in Python or in C++).
 
 
@@ -57,7 +60,7 @@ Defining some terminologies:
 - ``User``        ⇨  The person who installed the application.
 
 
-.. _PyBind11:   https://github.com/pybind/pybind11
+.. _pybind11:   https://github.com/pybind/pybind11
 .. _pluggy:     https://github.com/pytest-dev/pluggy
 .. _pytest:     https://github.com/pytest-dev/pytest
 .. _tox:        https://github.com/tox-dev/tox

@@ -2,11 +2,16 @@
 History
 =======
 
+0.1.3 (2018-08-23)
+------------------
+
+- First Release on PyPI.
+
 
 0.1.2 (2018-08-23)
 ------------------
 
-- First Release on PyPI.
+- Never released, deployment error.
 
 
 0.1.1 (2018-08-23)

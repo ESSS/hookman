@@ -44,25 +44,26 @@ def test_generate_plugin_template(datadir):
         dst_path=plugin_dir
     )
 
-    obtained_hook_specs_file = datadir / 'test_generate_plugin_template/Acme/src/hook_specs.h'
+    obtained_hook_specs_file = datadir / 'test_generate_plugin_template/acme/src/hook_specs.h'
+    expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
     expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
 
-    obtained_plugin_yaml = datadir / 'test_generate_plugin_template/Acme/assets/plugin.yaml'
+    obtained_plugin_yaml = datadir / 'test_generate_plugin_template/acme/assets/plugin.yaml'
     expected_plugin_yaml = datadir / 'test_generate_plugin_template/expected_plugin.yaml'
 
-    obtained_plugin_c = datadir / 'test_generate_plugin_template/Acme/src/plugin.c'
+    obtained_plugin_c = datadir / 'test_generate_plugin_template/acme/src/plugin.c'
     expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
 
-    obtained_readme = datadir / 'test_generate_plugin_template/Acme/assets/README.md'
+    obtained_readme = datadir / 'test_generate_plugin_template/acme/assets/README.md'
     expected_readme = datadir / 'test_generate_plugin_template/expected_readme.md'
 
-    obtained_cmake_list = datadir / 'test_generate_plugin_template/Acme/CMakeLists.txt'
+    obtained_cmake_list = datadir / 'test_generate_plugin_template/acme/CMakeLists.txt'
     expected_cmake_list = datadir / 'test_generate_plugin_template/expected_cmakelists.txt'
 
-    obtained_cmake_list_src = datadir / 'test_generate_plugin_template/Acme/src/CMakeLists.txt'
+    obtained_cmake_list_src = datadir / 'test_generate_plugin_template/acme/src/CMakeLists.txt'
     expected_cmake_list_src = datadir / 'test_generate_plugin_template/expected_cmakelists_src.txt'
 
-    obtained_compile_script = datadir / 'test_generate_plugin_template/Acme/compile.py'
+    obtained_compile_script = datadir / 'test_generate_plugin_template/acme/compile.py'
     expected_compile_script = datadir / 'test_generate_plugin_template/expected_compile.py'
 
     assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()

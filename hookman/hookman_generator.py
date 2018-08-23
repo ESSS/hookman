@@ -136,10 +136,7 @@ class HookManGenerator:
             - README.md
         """
         if not shared_lib_name.isidentifier():
-            raise HookmanError("""
-            The shared libray name should be a valid identifier, with letters A through Z, underscore _
-            and, except for the first character, the digits 0 through 9
-            """)
+            raise HookmanError("The shared libray name must be a valid identifier.")
 
         plugin_folder = dst_path / shared_lib_name
         assets_folder = plugin_folder / 'assets'

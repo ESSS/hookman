@@ -20,7 +20,7 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export PYBIND_PATH="$HOME/miniconda/share/cmake/pybind11"
-  - conda install --channel conda-forge pybind11 -y
+  - conda install --channel conda-forge pybind11 -y --quiet
 
 
 script: tox
@@ -39,3 +39,6 @@ deploy:
 branches:
   only:
     - master
+    #    Use a regex for the tags in branches.only:
+    #    Source: https://github.com/travis-ci/travis-ci/issues/3897
+    - /v\d+\.\d+[a-z]/

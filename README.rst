@@ -17,14 +17,14 @@ For information about HookMan,  read the section above. For public changelog and
 What is HookMan?
 ================
 
-``HookMan`` is a python package that provides a plugin management system to applications, 
-specially those who are written (in totally or partially) in C++. 
+``HookMan`` is a python package that provides a plugin management system to applications,
+specially those who are written (in totally or partially) in C++.
 
-It enables external contributors to implement plugins which act as extensions written in C/C++ 
+It enables external contributors to implement plugins which act as extensions written in C/C++
 that interact with the application through well-defined *hooks*.
 
-This system was largely inspired by `pluggy`_, 
-the plugin system which powers `pytest`_, `tox`_, and `devpi`_, but with the intent to be called 
+This system was largely inspired by `pluggy`_,
+the plugin system which powers `pytest`_, `tox`_, and `devpi`_, but with the intent to be called
 from a C++ application rather than from Python.
 
 It was conceived to facilitate the application development, allowing hooks to be exposed in a
@@ -34,7 +34,7 @@ With ``HookMan`` your application can have access to the hooks implemented on pl
 
 .. code-block:: python
 
-    # Initializing a class 
+    # Initializing a class
     hm = HookMan(specs=acme_specs, plugin_dirs=['path1','path2'])
 
     hook_caller = hm.get_hook_caller()
@@ -77,11 +77,6 @@ Defining some terminologies:
 - ``User``        ⇨  The person who installed the application.
 
 
-.. _pybind11:   https://github.com/pybind/pybind11
-.. _pluggy:     https://github.com/pytest-dev/pluggy
-.. _pytest:     https://github.com/pytest-dev/pytest
-.. _tox:        https://github.com/tox-dev/tox
-.. _devpi:       https://github.com/devpi/devpi
 
 
 `Read the docs to learn more!`_
@@ -92,13 +87,17 @@ Defining some terminologies:
 
 Credits
 -------
-Thanks for Pluggy_,  which is a similar project (plugin system) and source for many ideas.
+Thanks for pluggy_,  which is a similar project (plugin system) and source for many ideas.
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
 
-.. _`read the docs to learn more!` : https://hookman.readthedocs.io.
-
-.. _Pluggy: https://github.com/pytest-dev/pluggy
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+.. _`GitHub page` :                   https://github.com/ESSS/hookman
+.. _`read the docs to learn more!` :  https://hookman.readthedocs.io.
+.. _Cookiecutter:                     https://github.com/audreyr/cookiecutter
+.. _devpi:                            https://github.com/devpi/devpi
+.. _pluggy:                           https://github.com/pytest-dev/pluggy
+.. _pybind11:                         https://github.com/pybind/pybind11
+.. _pytest:                           https://github.com/pytest-dev/pytest
+.. _tox:                              https://github.com/tox-dev/tox

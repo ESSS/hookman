@@ -25,16 +25,12 @@ install:
 
 script: tox
 
-# Assuming you have installed the travis-ci CLI tool, after you
-# create the Github repo and add it to Travis, run the
-# following command to finish PyPI deployment setup:
-# $ travis encrypt --add deploy.password
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
   user: esss
   password:
-    secure: PLEASE_REPLACE_ME
+    secure: U1LXcIkHPY7/8mYNX2ZM/KybtLbNKi9rxhMrw7PNgDPI8nH+2rpRPFTuoy8vlW4oxTJmq+TQorPfL7Gfnp5JbqSY17QiL9SS2DYqPtJecu7RHlb5DFOC8yl3xToZViBgOvdK2FbV0PkEySW2cJLNsQI2Xv/sVD5nLJPNyBwymCve4T8YZ4H6iGgg5cjXI/lAVnAniCnGFb1ppMixqgyJ6VtCNjP80/ZmJz+LSqCkq66QCDbpAaJn5CtZQfH5KeYy0nepeQL5mpm7q5I8uaxX7+AyhNwGjqjPmexmLLWOmLLVankOVxoUpjK6lLMWzwSzWYE14tVZHs3Ew5AaGLGFOx+RtHTeIWWRwwvGCRUr4tHl224Inha175i7ajRnidCiKaO7HqKcVn7sJ7gJnU1cGKsEB/HR+9h4IHAl/zCEl0pG6ocMiz6sjR6oAOyPL2pwjFan9n2hisSnm1hyCJcMKop2hedhguDlQGmuKlhR9CXaVLXqL0/im4m81zo5NFmI3ZN09PYdHjYZwwupZEFTgAiC0Dpqmlcte43GAWpVx96hWtdnrNoTgQOToIQ9485kgF3Q8ttr0IyeMMUI/2o7lnjfMoTE4Lfqe9fGYQUHTNjdwBvluCkAGbAR8Q4IPR13/lWu0p94V4FD3ENJn9nKgVfPCGVeV9ld28pjoDQkhDY=
   on:
     tags: true
     repo: esss/hookman
@@ -42,4 +38,4 @@ deploy:
 
 branches:
   only:
-    - "master"
+    - master

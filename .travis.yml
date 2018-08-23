@@ -20,7 +20,7 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export PYBIND_PATH="$HOME/miniconda/share/cmake/pybind11"
-  - conda install --channel conda-forge pybind11 -y
+  - conda install --channel conda-forge pybind11 -y --quiet
 
 
 script: tox
@@ -39,3 +39,11 @@ deploy:
 branches:
   only:
     - master
+    #    Use a regex for the tags in branches.only:
+    #    Source: https://github.com/travis-ci/travis-ci/issues/3897
+
+    #    The regex below catches expression that begins with "v" and groups of digits with dots
+    #        Ex. v1.0.0; V1.5.3; V2.0
+    #    Also support additional labels for pre-release
+    #        Ex. V1.0.0-rc1; V2.0.0-beta
+    - v(\d+\.)*\d+-.*

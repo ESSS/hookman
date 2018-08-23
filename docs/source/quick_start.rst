@@ -105,7 +105,7 @@ The example below shows how to execute the method in a python module.
 Executing in C++
 --------------------
 
-As mentioned on the `pybind11 functional documentation`_, the C++11 standard brought the generic polymorphic function wrapper std::function<> 
+As mentioned on the `pybind11 functional documentation`_, the C++11 standard brought the generic polymorphic function wrapper ``std::function<>`` 
 , which enable powerful new ways of working with functions.
 
 
@@ -131,7 +131,7 @@ on one of the plugins directly to C++.
     }
 
 The example below shows how to create an object ``hook_caller``, 
-and pass a function implemented on one of the plugins directly to C++ a fucntion.
+and pass a function implemented on one of the plugins directly to C++ a function.
 
 .. code-block:: python
 

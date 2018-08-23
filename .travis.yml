@@ -46,4 +46,6 @@ branches:
     #        Ex. v1.0.0; V1.5.3; V2.0
     #    Also support additional labels for pre-release
     #        Ex. V1.0.0-rc1; V2.0.0-beta
-    - v(\d+\.)*\d+-.*
+    #
+    #    Noticed the slash character at the beginning and the end, this is required from Travis
+    - /v(\d+\.)*\d+-.*/

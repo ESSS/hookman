@@ -3,18 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=======
-HookMan 
-=======
 
-This documentation covers HookMan usage & API. 
-
-For information about HookMan,  read the section above. For public changelog and how the project is maintained, please check the `GitHub page`_
-
-What is HookMan?
-================
-
-.. include:: ../../README_CONTENT.rst
+.. include:: ../../README.rst
 
 What's next?
 ============
@@ -24,7 +14,7 @@ To get quick and running with ``HookMan`` you can read the :ref:`quick-start-sec
 .. toctree::
     :maxdepth: 2
     :glob:
-    
+
     quick_start
 
 After reading the quick start section, check out these additional resources to help better understand the project flow:
@@ -32,7 +22,7 @@ After reading the quick start section, check out these additional resources to h
 .. toctree::
     :maxdepth: 2
     :glob:
-    
+
     concepts/creating_hook_specs
     concepts/creating_plugins
 
@@ -41,7 +31,7 @@ In order to integrate the ``HookMan`` project in your application, by listing av
 .. toctree::
     :maxdepth: 2
     :glob:
-    
+
     concepts/application_usage
 
 
@@ -50,7 +40,7 @@ Dig deeper into specific topics:
 .. toctree::
     :maxdepth: 2
     :glob:
-    
+
     concepts/creating_an_sdk
     api/*
 

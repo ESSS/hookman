@@ -1,7 +1,5 @@
-bumpversion
 wheel
 coverage
-twine
 pytest
 pytest-cov
 pytest-mock

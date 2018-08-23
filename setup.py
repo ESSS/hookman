@@ -13,10 +13,6 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['Click>=6.0', 'strictyaml', 'invoke', 'attrs']
 
-setup_requirements = ['pytest-runner', ]
-
-test_requirements = ['pytest', ]
-
 setup(
     author="ESSS",
     author_email='foss@esss.co',
@@ -43,10 +39,8 @@ setup(
     keywords='hookman',
     name='python-hookman',
     packages=find_packages(include=['hookman']),
-    setup_requires=setup_requirements,
-    test_suite='tests',
-    tests_require=test_requirements,
     url='https://github.com/esss/hookman',
-    version='0.1.0',
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     zip_safe=False,
 )

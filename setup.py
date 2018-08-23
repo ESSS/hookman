@@ -27,7 +27,7 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python :: 3.6',
     ],
-    description="A hook manager in python that enables cpp applications call dlls in C/C++",
+    description="HookMan is a python package that provides a plugin management system to applications, specially those who are written (in totally or partially) in C++.",
     entry_points={
         'console_scripts': [
             'hookman=hookman.cli:main',
@@ -41,7 +41,7 @@ setup(
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='hookman',
-    name='hookman',
+    name='python-hookman',
     packages=find_packages(include=['hookman']),
     setup_requires=setup_requirements,
     test_suite='tests',

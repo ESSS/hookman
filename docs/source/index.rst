@@ -47,4 +47,4 @@ Dig deeper into specific topics:
 
 
 
-.. _`GitHub page` : https://github.com/ESSS/hookman.
+

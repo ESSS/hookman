@@ -3,7 +3,7 @@ Application utilities
 
 ``HookMan`` offers a few utilities to help with the task to manage and handle plugins used by the application.
 
-With the ``HookMan`` you can:
+With ``HookMan`` you can:
 
 - **Install Plugins**: 
     Install a plugun by informing the path to where the ``hm.plugin`` is located.
@@ -14,7 +14,7 @@ With the ``HookMan`` you can:
 - **Get the status of all plugins**: 
     Check if there are conflicts between them.
 
-The method that list all plugins available return a list of ``PluginInfoo``, for more details about the :ref:`plugin-info-api-section`, read the API section.
+The method that list all plugins available return a list of ``PluginInfo``, for more details read the :ref:`plugin-info-api-section` API section.
 
 
 

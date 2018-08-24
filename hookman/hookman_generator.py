@@ -21,27 +21,36 @@ class Hook(NamedTuple):
     """
     Class to assist on the process to generate the files
 
-    name: Name of the Hook
-    macro_name: Name of the Hook in Upper Case
-    r_type: Type of the return from the hook
-
     args: The name of each argument
         Ex.: v1, v2, v3
+
     args_type: The type of each argument
         Ex.: int, float, int
+
     args_with_type: The name of the argument with the type
         Ex.: int v1, float v2, int v3
 
+    documentation: The docstring content from the hook definition
+
     function_name: Full name of the hook function
         Ex.: project_name_version_hook_name -> alfasim_v4_friction_factory
+
+    macro_name: Name of the Hook in Upper Case
+
+    name: Name of the Hook
+
+    r_type: Type of the return from the hook
+
+
     """
-    name: str
-    macro_name: str
-    r_type: str
     args: str
     args_type: str
     args_with_type: str
+    documentation: str
     function_name: str
+    macro_name: str
+    name: str
+    r_type: str
 
 
 class HookManGenerator:
@@ -105,18 +114,20 @@ class HookManGenerator:
 
         self.hooks = []
         for hook_spec in hook_specs.hooks:
+            hook_documentation = inspect.getdoc(hook_spec)
             hook_arg_spec = inspect.getfullargspec(hook_spec)
             hook_arguments = hook_arg_spec.args
             hook_types = hook_arg_spec.annotations
             self.hooks.append(
                 Hook(
-                    name=hook_spec.__name__.lower(),
-                    macro_name=hook_spec.__name__.upper(),
-                    r_type=hook_arg_spec.annotations['return'],
                     args=', '.join(hook_arguments),
                     args_type=', '.join([f"{hook_types[arg]}" for arg in hook_arguments]),
                     args_with_type=', '.join(get_arg_with_type(arg) for arg in hook_arguments),
+                    documentation=hook_documentation,
                     function_name=f'{self.project_name}_{self.version}_{hook_spec.__name__.lower()}',
+                    macro_name=hook_spec.__name__.upper(),
+                    name=hook_spec.__name__.lower(),
+                    r_type=hook_arg_spec.annotations['return'],
                 ))
 
     def generate_plugin_template(self,
@@ -136,7 +147,7 @@ class HookManGenerator:
             - README.md
         """
         if not shared_lib_name.isidentifier():
-            raise HookmanError("The shared libray name must be a valid identifier.")
+            raise HookmanError("The shared library name must be a valid identifier.")
 
         plugin_folder = dst_path / shared_lib_name
         assets_folder = plugin_folder / 'assets'
@@ -264,14 +275,18 @@ class HookManGenerator:
         """
         Create a C header file with the content informed on the hook_specs
         """
-        file_content = []
-        list_with_hook_specs_arguments = []
+        file_content = ''
+        list_with_hook_specs_with_documentation = ''
 
         for hook in self.hooks:
-            line = f'#define HOOK_{hook.macro_name}({hook.args}) HOOKMAN_API_EXP {hook.r_type} HOOKMAN_FUNC_EXP {hook.function_name}({hook.args_with_type})' + NEW_LINE
-            list_with_hook_specs_arguments.append(line)
+            hook_specs_content = '\n/*!\n'
+            hook_specs_content += hook.documentation
+            hook_specs_content += dedent(f"""
+            */
+            #define HOOK_{hook.macro_name}({hook.args}) HOOKMAN_API_EXP {hook.r_type} HOOKMAN_FUNC_EXP {hook.function_name}({hook.args_with_type})
+            """)
+            list_with_hook_specs_with_documentation += hook_specs_content
 
-        from textwrap import dedent
         file_content += dedent(f"""\
         #ifndef {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         #define {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
@@ -285,11 +300,11 @@ class HookManGenerator:
 
         #define INIT_HOOKS() HOOKMAN_API_EXP char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
         """)
-        file_content += list_with_hook_specs_arguments
+        file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""
         #endif
         """)
-        return ''.join(file_content)
+        return file_content
 
     def _hook_caller_hpp_content(self) -> str:
         """

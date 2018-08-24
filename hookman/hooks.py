@@ -137,16 +137,16 @@ class HookMan:
 
         return plugin_available
 
-    def get_hook_caller(self):
+    def get_hook_caller(self, ignored_plugins: List[str]=None):
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
         """
-        self.ensure_is_valid()
+        self.ensure_is_valid(ignored_plugins)
 
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
-        for plugin in self.get_plugins_available():
+        for plugin in self.get_plugins_available(ignored_plugins):
             self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
         return hook_caller
 
@@ -167,11 +167,11 @@ class HookMan:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
 
-    def ensure_is_valid(self):
+    def ensure_is_valid(self, ignored_plugins: List[str]=None):
         """
         Auxiliary methods that checks if the get_status has any conflict
         """
-        if self.get_status():
+        if self.get_status(ignored_plugins):
             raise ConflictBetweenPluginsError(
                 f"Could not get a Hook Caller due to existing conflict between installed plugins")
 

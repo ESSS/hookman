@@ -61,7 +61,11 @@ def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_
     assert len(hm.get_plugins_available()) == 2
     assert len(list((datadir / 'plugins').iterdir())) == 2
 
-    # hook_caller = hm.get_hook_caller(ignore_plugin=['Simple Plugin 2'])
+    hook_caller = hm.get_hook_caller(ignored_plugins=['Simple Plugin 2'])
+    env_temperature = hook_caller.env_temperature()
+
+    # Plugin2 implements the Hook env_temperature
+    assert env_temperature is None
 
 
 def test_get_hook_caller_without_plugin(datadir, simple_plugin):

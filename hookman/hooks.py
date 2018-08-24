@@ -115,14 +115,27 @@ class HookMan:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
-    def get_plugins_available(self) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(self, ignored_plugins: List[str]=None) -> Optional[List[PluginInfo]]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
+
+        Optionally you can pass a list of plugins that should be ignored.
 
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        return [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
+        plugin_available = []
+
+        if ignored_plugins is None:
+            ignored_plugins = []
+
+        for plugin_file in plugin_config_files:
+            plugin_info = PluginInfo(plugin_file, self.hooks_available)
+
+            if plugin_info.name not in ignored_plugins:
+                plugin_available.append(plugin_info)
+
+        return plugin_available
 
     def get_hook_caller(self):
         """
@@ -162,17 +175,19 @@ class HookMan:
             raise ConflictBetweenPluginsError(
                 f"Could not get a Hook Caller due to existing conflict between installed plugins")
 
-    def get_status(self) -> List[Optional[ConflictStatus]]:
+    def get_status(self, ignored_plugins: List[str]=None) -> List[Optional[ConflictStatus]]:
         """
         Check if the plugins has conflicts between then.
         If a conflict is found a list of ConflictStatus object will be returned.
         Otherwise a empty list is returned.
 
+        Optionally you can pass a list of plugins that should be ignored.
+
         .. :
             The ``get_status`` method currently just checks if more than on plugin implements the same hook.
         """
         list_of_conflicts = []
-        plugins_available = self.get_plugins_available()
+        plugins_available = self.get_plugins_available(ignored_plugins)
         if not plugins_available:
             return list_of_conflicts
 

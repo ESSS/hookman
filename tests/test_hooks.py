@@ -54,6 +54,20 @@ def test_get_hook_caller(simple_plugin):
     assert friction_factor(1, 2) == 3
 
 
+def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2):
+    plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
+
+    assert len(hm.get_plugins_available()) == 2
+    assert len(list((datadir / 'plugins').iterdir())) == 2
+
+    hook_caller = hm.get_hook_caller(ignored_plugins=['Simple Plugin 2'])
+    env_temperature = hook_caller.env_temperature()
+
+    # Plugin2 implements the Hook env_temperature
+    assert env_temperature is None
+
+
 def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'some_non_existing_folder'])
     hook_caller = hm.get_hook_caller()
@@ -63,11 +77,11 @@ def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     assert env_temperature is None
 
 
-def test_plugins_available(simple_plugin):
-    plugin_dirs = [simple_plugin['path']]
+def test_plugins_available(simple_plugin, simple_plugin_2):
+    plugin_dirs = [simple_plugin['path'], simple_plugin_2['path']]
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugin_dirs)
     plugins = hm.get_plugins_available()
-    assert len(plugins) == 1
+    assert len(plugins) == 2
     import attr
     assert list(attr.asdict(plugins[0]).keys()) == [
         'yaml_location',
@@ -82,6 +96,9 @@ def test_plugins_available(simple_plugin):
         'shared_lib_path',
         'version',
     ]
+
+    plugins = hm.get_plugins_available(ignored_plugins=['Simple Plugin 2'])
+    assert len(plugins) == 1
 
 
 def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
@@ -132,3 +149,18 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     hm.remove_plugin('Simple Plugin 2')
     assert len(hm.get_plugins_available()) == 1
     assert len(list((datadir / 'plugins').iterdir())) == 1
+
+
+def test_get_status(datadir, simple_plugin, simple_plugin_2):
+    plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
+    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
+    assert len(hm.get_plugins_available()) == 2
+
+    plugin_status = hm.get_status()
+
+    assert plugin_status[0].plugins == ['Simple Plugin', 'Simple Plugin 2']
+    assert plugin_status[0].hook == 'friction_factor'
+
+    plugin_status = hm.get_status(ignored_plugins=['Simple Plugin 2'])
+
+    assert not plugin_status

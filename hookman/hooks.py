@@ -3,7 +3,7 @@ import inspect
 import shutil
 from collections import defaultdict
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Sequence
 from zipfile import ZipFile
 
 from hookman import hookman_utils
@@ -115,25 +115,29 @@ class HookMan:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
-    def get_plugins_available(self) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(self, ignored_plugins: Sequence[str]=()) -> Optional[List[PluginInfo]]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
+
+        Optionally you can pass a list of plugins that should be ignored.
 
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        return [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
 
-    def get_hook_caller(self):
+        plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
+        return [plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
+
+    def get_hook_caller(self, ignored_plugins: Sequence[str]=()):
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
         """
-        self.ensure_is_valid()
+        self.ensure_is_valid(ignored_plugins)
 
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
-        for plugin in self.get_plugins_available():
+        for plugin in self.get_plugins_available(ignored_plugins):
             self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
         return hook_caller
 
@@ -154,25 +158,27 @@ class HookMan:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
 
-    def ensure_is_valid(self):
+    def ensure_is_valid(self, ignored_plugins: Sequence[str]=()):
         """
         Auxiliary methods that checks if the get_status has any conflict
         """
-        if self.get_status():
+        if self.get_status(ignored_plugins):
             raise ConflictBetweenPluginsError(
                 f"Could not get a Hook Caller due to existing conflict between installed plugins")
 
-    def get_status(self) -> List[Optional[ConflictStatus]]:
+    def get_status(self, ignored_plugins: Sequence[str]=()) -> List[Optional[ConflictStatus]]:
         """
         Check if the plugins has conflicts between then.
         If a conflict is found a list of ConflictStatus object will be returned.
         Otherwise a empty list is returned.
 
+        Optionally you can pass a list of plugins that should be ignored.
+
         .. :
             The ``get_status`` method currently just checks if more than on plugin implements the same hook.
         """
         list_of_conflicts = []
-        plugins_available = self.get_plugins_available()
+        plugins_available = self.get_plugins_available(ignored_plugins)
         if not plugins_available:
             return list_of_conflicts
 

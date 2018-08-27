@@ -124,15 +124,10 @@ class HookMan:
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-        plugin_available = []
 
-        for plugin_file in plugin_config_files:
-            plugin_info = PluginInfo(plugin_file, self.hooks_available)
+        plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
+        return [ plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
 
-            if plugin_info.name not in ignored_plugins:
-                plugin_available.append(plugin_info)
-
-        return plugin_available
 
     def get_hook_caller(self, ignored_plugins: Sequence[str]=()):
         """

@@ -126,8 +126,7 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
 
         plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
-        return [ plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
-
+        return [plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
 
     def get_hook_caller(self, ignored_plugins: Sequence[str]=()):
         """

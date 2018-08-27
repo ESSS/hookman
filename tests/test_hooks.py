@@ -158,7 +158,8 @@ def test_get_status(datadir, simple_plugin, simple_plugin_2):
 
     plugin_status = hm.get_status()
 
-    assert plugin_status
+    assert plugin_status[0].plugins == ['Simple Plugin', 'Simple Plugin 2']
+    assert plugin_status[0].hook == 'friction_factor'
 
     plugin_status = hm.get_status(ignored_plugins=['Simple Plugin 2'])
 

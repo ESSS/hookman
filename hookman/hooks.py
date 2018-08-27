@@ -3,7 +3,7 @@ import inspect
 import shutil
 from collections import defaultdict
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Sequence
 from zipfile import ZipFile
 
 from hookman import hookman_utils
@@ -115,7 +115,7 @@ class HookMan:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
-    def get_plugins_available(self, ignored_plugins: List[str]=None) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(self, ignored_plugins: Sequence[str]=()) -> Optional[List[PluginInfo]]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
 
@@ -126,9 +126,6 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
         plugin_available = []
 
-        if ignored_plugins is None:
-            ignored_plugins = []
-
         for plugin_file in plugin_config_files:
             plugin_info = PluginInfo(plugin_file, self.hooks_available)
 
@@ -137,7 +134,7 @@ class HookMan:
 
         return plugin_available
 
-    def get_hook_caller(self, ignored_plugins: List[str]=None):
+    def get_hook_caller(self, ignored_plugins: Sequence[str]=()):
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
@@ -167,7 +164,7 @@ class HookMan:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
 
-    def ensure_is_valid(self, ignored_plugins: List[str]=None):
+    def ensure_is_valid(self, ignored_plugins: Sequence[str]=()):
         """
         Auxiliary methods that checks if the get_status has any conflict
         """
@@ -175,7 +172,7 @@ class HookMan:
             raise ConflictBetweenPluginsError(
                 f"Could not get a Hook Caller due to existing conflict between installed plugins")
 
-    def get_status(self, ignored_plugins: List[str]=None) -> List[Optional[ConflictStatus]]:
+    def get_status(self, ignored_plugins: Sequence[str]=()) -> List[Optional[ConflictStatus]]:
         """
         Check if the plugins has conflicts between then.
         If a conflict is found a list of ConflictStatus object will be returned.

@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/esss/hookman/issues.
+Report bugs at https://github.com/ESSS/hookman/issues.
 
 If you are reporting a bug, please include:
 
@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/esss/hookman/issues.
+The best way to send feedback is to file an issue at https://github.com/ESSS/hookman/issues.
 
 If you are proposing a feature:
 
@@ -80,7 +80,7 @@ Ready to contribute? Here's how to set up `hookman` for local development.
    tests, including testing other Python versions with tox::
 
     $ flake8 hookman tests
-    $ python setup.py test or py.test
+    $ pytest
     $ tox
 
    To get flake8 and tox, just pip install them into your virtualenv.
@@ -103,7 +103,7 @@ Before you submit a pull request, check that it meets these guidelines:
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
 3. The pull request should work for Python 2.7, 3.4, 3.5 and 3.6, and for PyPy. Check
-   https://travis-ci.org/esss/hookman/pull_requests
+   https://travis-ci.org/ESSS/hookman/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -111,7 +111,7 @@ Tips
 
 To run a subset of tests::
 
-$ py.test tests.test_hookman
+$ pytest tests.test_hookman
 
 
 Deploying
@@ -121,7 +121,7 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
-$ bumpversion patch # possible: major / minor / patch
+$ git tag vX.Y.Z (where the X.Y.Z numbers should follow the semantic versioning, for more details read https://semver.org/)
 $ git push
 $ git push --tags
 

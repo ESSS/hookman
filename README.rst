@@ -2,8 +2,17 @@
 Hookman
 =======
 
-.. image:: https://img.shields.io/travis/esss/hookman.svg
-        :target: https://travis-ci.org/esss/hookman
+.. image:: https://img.shields.io/pypi/v/python-hookman.svg
+    :target: https://pypi.python.org/pypi/python-hookman
+
+.. image:: https://img.shields.io/travis/ESSS/hookman.svg
+        :target: https://travis-ci.org/ESSS/hookman
+
+.. image:: https://ci.appveyor.com/api/projects/status/github/ESSS/hookman?branch=master
+    :target: https://ci.appveyor.com/project/ESSS/hookman/?branch=master&svg=true
+
+.. image:: https://codecov.io/gh/ESSS/hookman/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/ESSS/hookman
 
 .. image:: https://readthedocs.org/projects/hookman/badge/?version=latest
         :target: https://hookman.readthedocs.io/en/latest/?badge=latest

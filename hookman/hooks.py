@@ -148,11 +148,11 @@ class HookMan:
         """
         plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
 
-        hooks_to_bind = {
-            f'set_{hook_name}_function': PluginInfo.get_function_address(plugin_dll, full_hook_name)
-            for hook_name, full_hook_name in self.hooks_available.items()
-            if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name)
-        }
+        hooks_to_bind = {}
+        for hook_name, full_hook_name in self.hooks_available.items():
+            if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name):
+                func_address = PluginInfo.get_function_address(plugin_dll, full_hook_name)
+                hooks_to_bind[f'set_{hook_name}_function'] = func_address
 
         for hook in hooks_to_bind:
             cpp_func = getattr(hook_caller, hook)

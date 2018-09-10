@@ -15,7 +15,8 @@ addons:
       - ninja-build
 
 install:
-  - pip install -U pip tox-travis codecov
+  - pip install -U pip
+  - pip install -U tox-travis
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -23,7 +24,7 @@ install:
   - conda install --channel conda-forge pybind11 -y --quiet
 
 
-script: tox
+script: tox py
 
 deploy:
   provider: pypi

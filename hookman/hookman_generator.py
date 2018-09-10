@@ -298,7 +298,7 @@ class HookManGenerator:
             #define HOOKMAN_FUNC_EXP
         #endif
 
-        #define INIT_HOOKS() HOOKMAN_API_EXP char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
+        #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""

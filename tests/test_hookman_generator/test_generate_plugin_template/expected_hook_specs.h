@@ -8,7 +8,7 @@
     #define HOOKMAN_FUNC_EXP
 #endif
 
-#define INIT_HOOKS() HOOKMAN_API_EXP char* HOOKMAN_FUNC_EXP acme_version_api() {return "v1";}
+#define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP acme_version_api() {return "v1";}
 
 /*!
 Docs for Friction Factor

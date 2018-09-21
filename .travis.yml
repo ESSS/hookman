@@ -23,7 +23,7 @@ install:
   - $HOME/miniconda/bin/conda install --channel conda-forge pybind11 -y --quiet
 
 
-script: tox -e py
+script: tox
 
 deploy:
   provider: pypi

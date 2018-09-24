@@ -121,11 +121,14 @@ class HookMan:
 
         Optionally you can pass a list of plugins that should be ignored.
 
+        If ignored_plugins is None, all plugins are ignored and an empty list is returned.
+
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
-
         plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
+        if ignored_plugins is None:
+            return []
         return [plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
 
     def get_hook_caller(self, ignored_plugins: Sequence[str]=()):

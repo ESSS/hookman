@@ -103,7 +103,7 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
 .. _`GitHub page` :                   https://github.com/ESSS/hookman
-.. _`read the docs to learn more!` :  https://hookman.readthedocs.io.
+.. _`read the docs to learn more!` :  https://hookman.readthedocs.io
 .. _Cookiecutter:                     https://github.com/audreyr/cookiecutter
 .. _devpi:                            https://github.com/devpi/devpi
 .. _pluggy:                           https://github.com/pytest-dev/pluggy

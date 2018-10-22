@@ -28,9 +28,9 @@ In order to call this method it's necessary to pass the following arguments:
     Name of the plugin to be displayed
 - **shared_lib_name**: 
     The filename of the compiled plugin
-- **author_email**: 
-    Name of the plugin author to be displayed
 - **author_name**: 
+    Name of the plugin author to be displayed
+- **author_email**: 
     Email of the plugin author to be displayed
 - **dst_path**: 
     A path to where the template generated should be placed, if not informed the current directory will be used.

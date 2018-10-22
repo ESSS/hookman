@@ -12,7 +12,7 @@ A plugin consists of a ``ZipFile`` with the extension ``.hmplugin`` that has the
     \---<plugin_name>
         |
         +---assets
-        |       config.yaml
+        |       plugin.yaml
         |       README.md
         |
         \---artifacts
@@ -46,7 +46,7 @@ The generated template has the following structure:
         |   CMakeLists.txt
         |
         +---assets
-        |       config.yaml
+        |       plugin.yaml
         |       README.md
         |
         \---src
@@ -57,7 +57,7 @@ The generated template has the following structure:
 
 Where:
 
-- **config.yml**:
+- **plugin.yaml**:
     File with necessary information about the plugin to the application using this plugin
 - **plugin.c**	
     The source file of the plugin
@@ -67,7 +67,7 @@ Where:
     CMake file with the minimum configuration necessary to build a shared library across different platforms
 - **README**	
     Readme file with the description of the Plugin, to be used by the application.
-- **build.py**	
+- **compile.py**	
     Script file to generate the shared library, this command will create a folder name artifacts.
 
 

@@ -6,7 +6,7 @@ Application utilities
 With ``HookMan`` you can:
 
 - **Install Plugins**: 
-    Install a plugun by informing the path to where the ``hm.plugin`` is located.
+    Install a plugun by informing the path to where the ``.hmplugin`` is located.
 - **Remove a Plugin**: 
     Remove the plugin by informing the name of the plugin.
 - **List all plugins availables**: 

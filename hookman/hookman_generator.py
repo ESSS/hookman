@@ -143,10 +143,10 @@ class HookManGenerator:
             <plugin_folder>
                 - CMakeLists.txt
                 - compile.py
-                <assets>
+                assets/
                     - plugin.yaml
                     - README.md
-                <source_folder>    
+                src/
                     - hook_specs.h
                     - plugin.c
                     - CMakeLists.txt

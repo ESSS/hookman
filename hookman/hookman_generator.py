@@ -140,11 +140,16 @@ class HookManGenerator:
         Generate a template with the necessary files and structure to create a plugin
 
         A folder with the same name as the shared_lib_name argument will be created, with the following files:
-            - config.yml
-            - plugin.c
-            - hook_specs.h
-            - CMakeLists.txt
-            - README.md
+            <plugin_folder>
+                - CMakeLists.txt
+                - compile.py
+                <assets>
+                    - plugin.yaml
+                    - README.md
+                <source_folder>    
+                    - hook_specs.h
+                    - plugin.c
+                    - CMakeLists.txt
         """
         if not shared_lib_name.isidentifier():
             raise HookmanError("The shared library name must be a valid identifier.")

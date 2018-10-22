@@ -31,7 +31,7 @@ This object has the following fields:
 - **Version**:
     Current version of the spec, when a new hook is created or modified this version should be incremented
 - **pyd_name**:
-    Name of the module exported by ``PyBind11``on ``HookCallerPython.cpp`` file.
+    Name of the module exported by ``PyBind11`` on ``HookCallerPython.cpp`` file.
 - **Hooks**:
     A list with the hooks available for the project, each hook is represented by a python function.
 

@@ -8,7 +8,8 @@ def test_command_line_interface(datadir):
     runner = CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 2
-    assert result.output == 'Usage: main [OPTIONS] SPECS_PATH\n\nError: Missing argument "specs_path".\n'
+    assert result.output == 'Usage: main [OPTIONS] SPECS_PATH\nTry "main --help" for help.' \
+                            '\n\nError: Missing argument "SPECS_PATH".\n'
 
     hook_spec_file = str(datadir / 'hook_specs.py')
     result = runner.invoke(cli.main, [hook_spec_file, '--dst-path', datadir])

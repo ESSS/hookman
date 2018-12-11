@@ -171,7 +171,7 @@ class HookManGenerator:
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
         Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
-        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content())
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
@@ -272,7 +272,7 @@ class HookManGenerator:
                 f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
             )
 
-    def _hook_specs_header_content(self) -> str:
+    def _hook_specs_header_content(self, shared_lib_name) -> str:
         """
         Create a C header file with the content informed on the hook_specs
         """
@@ -300,6 +300,7 @@ class HookManGenerator:
         #endif
 
         #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
+        #define PLUGIN_NAME() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""

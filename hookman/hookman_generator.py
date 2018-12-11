@@ -178,19 +178,15 @@ class HookManGenerator:
     def generate_project_files(self, dst_path: Path):
         """
         Generate the following files on the dst_path:
-            - hook_specs.h
-            - HookCaller.hpp
-            - HookCallerPython.cpp
+        - HookCaller.hpp
+        - HookCallerPython.cpp
         """
-        hook_specs_h = Path(dst_path / 'plugin' / 'hook_specs.h')
         hook_caller_hpp = Path(dst_path / 'cpp' / 'HookCaller.hpp')
         hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
 
-        os.makedirs(hook_specs_h.parent)
         os.makedirs(hook_caller_hpp.parent)
         os.makedirs(hook_caller_python.parent)
 
-        hook_specs_h.write_text(self._hook_specs_header_content())
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
         hook_caller_python.write_text(self._hook_caller_python_content())
 

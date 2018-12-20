@@ -210,6 +210,7 @@ class HookManGenerator:
 
         assets_dir = plugin_dir / "assets"
         artifacts_dir = plugin_dir / "artifacts"
+        python_dir = plugin_dir / "src" / "python"
 
         self._validate_package_folder(artifacts_dir, assets_dir)
         self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
@@ -227,6 +228,10 @@ class HookManGenerator:
 
             for file in artifacts_dir.rglob(shared_lib):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
+
+            for file in python_dir.rglob('*'):
+                dst_filename = Path('artifacts' / file.relative_to(plugin_dir / 'src/python'))
+                zip_file.write(filename=file, arcname=dst_filename)
 
     def _validate_package_folder(self, artifacts_dir, assets_dir):
         """
@@ -300,7 +305,8 @@ class HookManGenerator:
         #endif
 
         #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
-        #define PLUGIN_NAME() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
+        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
+
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""

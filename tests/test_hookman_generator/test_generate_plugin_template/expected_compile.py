@@ -28,8 +28,8 @@ build_generator = "Visual Studio 14 2015 Win64" if sys.platform == "win32" else 
 if artifacts_dir.exists():
     shutil.rmtree(artifacts_dir)
 
-subprocess.run(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
-subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
+subprocess.check_call(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
+subprocess.check_call(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
 
 if package_dir.exists():
     shutil.rmtree(package_dir)

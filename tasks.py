@@ -61,7 +61,7 @@ def generate_build_files(ctx):
         for plugin in plugins_dirs:
             plugin_dir_build = project_dir_for_build / f'plugin/{plugin.name}'
             shutil.copytree(src=plugin, dst=plugin_dir_build)
-            (plugin_dir_build / 'src/hook_specs.h').write_text(hm_generator._hook_specs_header_content())
+            (plugin_dir_build / 'src/hook_specs.h').write_text(hm_generator._hook_specs_header_content(plugin.stem))
 
         # Create the CMakeFile on root of the project to include others CMake files.
         main_cmakelist = project_dir_for_build / 'CMakeLists.txt'

@@ -18,16 +18,12 @@ def test_hook_man_generator(datadir):
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
     hg.generate_project_files(dst_path=datadir)
 
-    obtained_hook_specs_file = datadir / 'plugin' / 'hook_specs.h'
-    expected_hook_specs_file = datadir / 'expected_hook_specs.h'
-
     obtained_hook_caller_file = datadir / 'cpp' / 'HookCaller.hpp'
     expected_hook_caller_file = datadir / 'ExpectedHookCaller.hpp'
 
     obtained_hook_caller_python_file = datadir / 'binding' / 'HookCallerPython.cpp'
     expected_hook_caller_python_file = datadir / 'ExpectedHookCallerPython.cpp'
 
-    assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
     assert obtained_hook_caller_file.read_text() == expected_hook_caller_file.read_text()
     assert obtained_hook_caller_python_file.read_text() == expected_hook_caller_python_file.read_text()
 
@@ -45,7 +41,6 @@ def test_generate_plugin_template(datadir):
     )
 
     obtained_hook_specs_file = datadir / 'test_generate_plugin_template/acme/src/hook_specs.h'
-    expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
     expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
 
     obtained_plugin_yaml = datadir / 'test_generate_plugin_template/acme/assets/plugin.yaml'
@@ -174,7 +169,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     # -- Without a shared library binary
     shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
-    string_to_match = f'Unable to locate a shared library \(\{shared_lib}\) in'
+    string_to_match = fr'Unable to locate a shared library \(\{shared_lib}\) in'
     with pytest.raises(FileNotFoundError, match=string_to_match):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 

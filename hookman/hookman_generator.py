@@ -171,26 +171,22 @@ class HookManGenerator:
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
         Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
-        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content())
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
     def generate_project_files(self, dst_path: Path):
         """
         Generate the following files on the dst_path:
-            - hook_specs.h
-            - HookCaller.hpp
-            - HookCallerPython.cpp
+        - HookCaller.hpp
+        - HookCallerPython.cpp
         """
-        hook_specs_h = Path(dst_path / 'plugin' / 'hook_specs.h')
         hook_caller_hpp = Path(dst_path / 'cpp' / 'HookCaller.hpp')
         hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
 
-        os.makedirs(hook_specs_h.parent)
         os.makedirs(hook_caller_hpp.parent)
         os.makedirs(hook_caller_python.parent)
 
-        hook_specs_h.write_text(self._hook_specs_header_content())
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
         hook_caller_python.write_text(self._hook_caller_python_content())
 
@@ -214,6 +210,7 @@ class HookManGenerator:
 
         assets_dir = plugin_dir / "assets"
         artifacts_dir = plugin_dir / "artifacts"
+        python_dir = plugin_dir / "src" / "python"
 
         self._validate_package_folder(artifacts_dir, assets_dir)
         self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
@@ -231,6 +228,10 @@ class HookManGenerator:
 
             for file in artifacts_dir.rglob(shared_lib):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
+
+            for file in python_dir.rglob('*'):
+                dst_filename = Path('artifacts' / file.relative_to(plugin_dir / 'src/python'))
+                zip_file.write(filename=file, arcname=dst_filename)
 
     def _validate_package_folder(self, artifacts_dir, assets_dir):
         """
@@ -276,7 +277,7 @@ class HookManGenerator:
                 f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
             )
 
-    def _hook_specs_header_content(self) -> str:
+    def _hook_specs_header_content(self, shared_lib_name) -> str:
         """
         Create a C header file with the content informed on the hook_specs
         """
@@ -304,6 +305,8 @@ class HookManGenerator:
         #endif
 
         #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
+        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
+
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""
@@ -531,8 +534,8 @@ class HookManGenerator:
             if artifacts_dir.exists():
                 shutil.rmtree(artifacts_dir)
 
-            subprocess.run(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
-            subprocess.run(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
+            subprocess.check_call(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
+            subprocess.check_call(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
 
             if package_dir.exists():
                 shutil.rmtree(package_dir)

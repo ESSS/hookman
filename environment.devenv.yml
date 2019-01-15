@@ -10,11 +10,12 @@ dependencies:
     - pytest-cov
     - pytest-datadir
     - pytest-mock
+    - pytest-regressions
 
     # C++ compilation
     - pybind11
     - ninja=1.7.1
-    - cmake
+    - cmake >=3.5.2
 
     {% if os.sys.platform != 'win32' %}
     - clangdev==6.0.0
@@ -28,7 +29,7 @@ dependencies:
 
 environment:
   PYTHONPATH:
-    - {{ os.path.join(root) }}
+    - {{ root }}
     - {{ root }}/build/artifacts
   LD_LIBRARY_PATH:
     - {{ root }}/build/artifacts

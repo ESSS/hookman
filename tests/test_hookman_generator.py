@@ -5,7 +5,7 @@ import pytest
 from hookman.hookman_generator import HookManGenerator
 
 
-def test_hook_man_generator(datadir):
+def test_hook_man_generator(datadir, file_regression):
     # Pass a folder
     with pytest.raises(FileNotFoundError, match=f"File not found: *"):
         HookManGenerator(hook_spec_file_path=datadir)
@@ -19,16 +19,12 @@ def test_hook_man_generator(datadir):
     hg.generate_project_files(dst_path=datadir)
 
     obtained_hook_caller_file = datadir / 'cpp' / 'HookCaller.hpp'
-    expected_hook_caller_file = datadir / 'ExpectedHookCaller.hpp'
-
     obtained_hook_caller_python_file = datadir / 'binding' / 'HookCallerPython.cpp'
-    expected_hook_caller_python_file = datadir / 'ExpectedHookCallerPython.cpp'
-
-    assert obtained_hook_caller_file.read_text() == expected_hook_caller_file.read_text()
-    assert obtained_hook_caller_python_file.read_text() == expected_hook_caller_python_file.read_text()
+    file_regression.check(obtained_hook_caller_file.read_text(), basename='HookCaller', extension='.hpp')
+    file_regression.check(obtained_hook_caller_python_file.read_text(), basename='HookCallerPython', extension='.cpp')
 
 
-def test_generate_plugin_template(datadir):
+def test_generate_plugin_template(datadir, file_regression):
     plugin_dir = datadir / 'test_generate_plugin_template'
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
 
@@ -41,33 +37,25 @@ def test_generate_plugin_template(datadir):
     )
 
     obtained_hook_specs_file = datadir / 'test_generate_plugin_template/acme/src/hook_specs.h'
-    expected_hook_specs_file = datadir / 'test_generate_plugin_template/expected_hook_specs.h'
+    file_regression.check(obtained_hook_specs_file.read_text(), basename='generate_hook_specs', extension='.h')
 
     obtained_plugin_yaml = datadir / 'test_generate_plugin_template/acme/assets/plugin.yaml'
-    expected_plugin_yaml = datadir / 'test_generate_plugin_template/expected_plugin.yaml'
+    file_regression.check(obtained_plugin_yaml.read_text(), basename='generate_plugin', extension='.yaml')
 
     obtained_plugin_c = datadir / 'test_generate_plugin_template/acme/src/plugin.c'
-    expected_plugin_c = datadir / 'test_generate_plugin_template/expected_plugin.c'
+    file_regression.check(obtained_plugin_c.read_text(), basename='generate_plugin', extension='.c')
 
     obtained_readme = datadir / 'test_generate_plugin_template/acme/assets/README.md'
-    expected_readme = datadir / 'test_generate_plugin_template/expected_readme.md'
+    file_regression.check(obtained_readme.read_text(), basename='generate_README', extension='.md')
 
     obtained_cmake_list = datadir / 'test_generate_plugin_template/acme/CMakeLists.txt'
-    expected_cmake_list = datadir / 'test_generate_plugin_template/expected_cmakelists.txt'
+    file_regression.check(obtained_cmake_list.read_text(), basename='generate_CMakeLists', extension='.txt')
 
     obtained_cmake_list_src = datadir / 'test_generate_plugin_template/acme/src/CMakeLists.txt'
-    expected_cmake_list_src = datadir / 'test_generate_plugin_template/expected_cmakelists_src.txt'
+    file_regression.check(obtained_cmake_list_src.read_text(), basename='generate_src_CMakeLists', extension='.txt')
 
     obtained_compile_script = datadir / 'test_generate_plugin_template/acme/compile.py'
-    expected_compile_script = datadir / 'test_generate_plugin_template/expected_compile.py'
-
-    assert obtained_hook_specs_file.read_text() == expected_hook_specs_file.read_text()
-    assert obtained_plugin_yaml.read_text() == expected_plugin_yaml.read_text()
-    assert obtained_plugin_c.read_text() == expected_plugin_c.read_text()
-    assert obtained_readme.read_text() == expected_readme.read_text()
-    assert obtained_cmake_list.read_text() == expected_cmake_list.read_text()
-    assert obtained_compile_script.read_text() == expected_compile_script.read_text()
-    assert obtained_cmake_list_src.read_text() == expected_cmake_list_src.read_text()
+    file_regression.check(obtained_compile_script.read_text(), basename='generate_compile', extension='.py')
 
 
 def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, tmpdir):

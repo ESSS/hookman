@@ -1,8 +1,9 @@
-wheel
 coverage
+pybind11
 pytest
 pytest-cov
-pytest-mock
-pytest-runner
 pytest-datadir
-pybind11
+pytest-mock
+pytest-regressions
+pytest-runner
+wheel

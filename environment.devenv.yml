@@ -10,6 +10,7 @@ dependencies:
     - pytest-cov
     - pytest-datadir
     - pytest-mock
+    - pytest-regressions
 
     # C++ compilation
     - pybind11

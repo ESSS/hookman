@@ -8,7 +8,7 @@ In order to inform to ``HookMan`` which Hooks are available in your application,
 
 .. code-block:: python
 
- from hookman.hooks import HookSpecs
+    from hookman.hooks import HookSpecs
 
     def env_temperature(arg1: 'float', arg2: 'float') -> 'float':
         """

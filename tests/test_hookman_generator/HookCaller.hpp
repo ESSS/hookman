@@ -18,13 +18,21 @@ public:
     std::vector<std::function<int(int, double[2])>> friction_factor_impls() {
         return this->_friction_factor_impls;
     }
+    std::vector<std::function<int(int, double[2])>> friction_factor_2_impls() {
+        return this->_friction_factor_2_impls;
+    }
 
     void append_friction_factor_impl(uintptr_t pointer) {
         this->_friction_factor_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
     }
 
+    void append_friction_factor_2_impl(uintptr_t pointer) {
+        this->_friction_factor_2_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
+    }
+
 private:
     std::vector<std::function<int(int, double[2])>> _friction_factor_impls;
+    std::vector<std::function<int(int, double[2])>> _friction_factor_2_impls;
 };
 
 }  // namespace hookman

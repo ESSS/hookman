@@ -386,15 +386,17 @@ class HookManGenerator:
             "namespace py = pybind11;",
             "",
         ]
-        for hook in self.hooks:
-            content_lines.append(f"PYBIND11_MAKE_OPAQUE(std::vector<std::function<{hook.r_type}({hook.args_type})>>);")
+        signatures = set((x.r_type, x.args_type) for x in self.hooks)
+        for r_type, args_type in sorted(signatures):
+            content_lines.append(f"PYBIND11_MAKE_OPAQUE(std::vector<std::function<{r_type}({args_type})>>);")
         content_lines.append("")
 
         content_lines.append(f"PYBIND11_MODULE({self.pyd_name}, m) {{")
 
-        for hook in self.hooks:
-            vector_type = f"std::vector<std::function<{hook.r_type}({hook.args_type})>>"
-            content_lines.append(f'{INDENTATION}py::bind_vector<{vector_type}>(m, "vector_{hook.name}");')
+        for index, (r_type, args_type) in enumerate(sorted(signatures)):
+            name = f'vector_hook_impl_type_{index}'
+            vector_type = f"std::vector<std::function<{r_type}({args_type})>>"
+            content_lines.append(f'{INDENTATION}py::bind_vector<{vector_type}>(m, "{name}");')
         content_lines.append("")
 
         content_lines += [

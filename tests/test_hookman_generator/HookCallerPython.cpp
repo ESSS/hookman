@@ -8,11 +8,13 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<std::function<int(int, double[2])>>);
 
 PYBIND11_MODULE(_test_hook_man_generator, m) {
-    py::bind_vector<std::vector<std::function<int(int, double[2])>>>(m, "vector_friction_factor");
+    py::bind_vector<std::vector<std::function<int(int, double[2])>>>(m, "vector_hook_impl_type_0");
 
     py::class_<hookman::HookCaller>(m, "HookCaller")
         .def(py::init<>())
         .def("friction_factor_impls", &hookman::HookCaller::friction_factor_impls)
         .def("append_friction_factor_impl", &hookman::HookCaller::append_friction_factor_impl)
+        .def("friction_factor_2_impls", &hookman::HookCaller::friction_factor_2_impls)
+        .def("append_friction_factor_2_impl", &hookman::HookCaller::append_friction_factor_2_impl)
     ;
 }

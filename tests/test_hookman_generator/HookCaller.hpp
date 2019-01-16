@@ -1,4 +1,10 @@
+#ifndef _H_HOOKMAN_HOOK_CALLER
+#define _H_HOOKMAN_HOOK_CALLER
+
 #include <functional>
+
+#include <custom_include1>
+#include <custom_include2>
 
 namespace hookman {
 
@@ -19,4 +25,6 @@ public:
 private:
     std::function<int(int, double[2])> _friction_factor;
 };
-}
+
+}  // namespace hookman
+#endif // _H_HOOKMAN_HOOK_CALLER

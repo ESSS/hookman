@@ -2,6 +2,13 @@
 History
 =======
 
+0.2.0 (unreleased)
+------------------
+
+- ``HookSpecs`` now accepts an ``extra_includes`` argument, which can be used to add custom ``#include`` directives
+  to the generated ``HookCaller.hpp`` file.
+
+
 0.1.7 (2018-08-23)
 ------------------
 

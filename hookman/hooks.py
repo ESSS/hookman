@@ -27,7 +27,8 @@ class HookSpecs:
             project_name: str,
             version: str,
             pyd_name: str,
-            hooks: List[Callable]
+            hooks: List[Callable],
+            extra_includes: List[str] = (),
         ) -> None:
         for hook in hooks:
             self._check_hook_arguments(hook)
@@ -35,6 +36,7 @@ class HookSpecs:
         self.version = version
         self.pyd_name = pyd_name
         self.hooks = hooks
+        self.extra_includes = list(extra_includes)
 
     def _check_hook_arguments(self, hook: Callable):
         """

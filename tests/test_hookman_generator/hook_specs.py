@@ -17,5 +17,6 @@ specs = HookSpecs(
     pyd_name='_test_hook_man_generator',
     hooks=[
         friction_factor,
-    ]
+    ],
+    extra_includes=['custom_include1', 'custom_include2'],
 )

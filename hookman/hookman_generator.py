@@ -112,6 +112,7 @@ class HookManGenerator:
                 return f"{array_type} {arg}[{array_size}]"
             return f"{arg_type.strip()} {arg}"
 
+        self.extra_includes = hook_specs.extra_includes
         self.hooks = []
         for hook_spec in hook_specs.hooks:
             hook_documentation = inspect.getdoc(hook_spec)
@@ -318,50 +319,58 @@ class HookManGenerator:
         """
         Create a .hpp file with the content informed on the hook_specs
         """
-        file_content = []
+        content_lines = []
         list_with_hook_calls = []
         list_with_set_functions = []
         list_with_private_members = []
-        from textwrap import dedent
 
-        file_content += dedent(f"""\
-        #include <functional>
-
-        namespace hookman {{
-
-        template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {{
-        {INDENTATION}return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));
-        }}
-
-        class HookCaller {{
-        public:
-        """)
-
-        list_with_hook_calls += [
-            f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> {hook.name}() {{' + NEW_LINE +
-            f'{INDENTATION*2}return this->_{hook.name};' + NEW_LINE +
-            f'{INDENTATION}}}' + NEW_LINE
-            for hook in self.hooks
+        content_lines += [
+            "#ifndef _H_HOOKMAN_HOOK_CALLER",
+            "#define _H_HOOKMAN_HOOK_CALLER",
+            "",
+            "#include <functional>",
+            "",
         ]
-        list_with_private_members += [
-            f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> _{hook.name};' + NEW_LINE
-            for hook in self.hooks
+        content_lines += (f'#include <{x}>' for x in self.extra_includes)
+        content_lines += [
+            "",
+            "namespace hookman {",
+            "",
+            "template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {",
+            f"{INDENTATION}return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
+            "}",
+            "",    
+            "class HookCaller {",
+            "public:",
         ]
 
-        list_with_set_functions += [
-            f'{1*INDENTATION}void set_{hook.name}_function(uintptr_t pointer) {{' + NEW_LINE +
-            f'{2*INDENTATION}this->_{hook.name} = from_c_pointer<{hook.r_type}({hook.args_type})>(pointer);' + NEW_LINE +
-            f'{1*INDENTATION}}}' + 2 * NEW_LINE
-            for hook in self.hooks
-        ]
-        file_content += list_with_hook_calls
-        file_content += NEW_LINE
-        file_content += list_with_set_functions
-        file_content += "private:" + NEW_LINE
-        file_content += list_with_private_members
-        file_content += "};" + NEW_LINE + "}" + NEW_LINE
+        for hook in self.hooks:
+            list_with_hook_calls += [
+                f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> {hook.name}() {{',
+                f'{INDENTATION*2}return this->_{hook.name};',
+                f'{INDENTATION}}}',
+            ]
+            list_with_private_members += [
+                f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> _{hook.name};'
+            ]
 
-        return ''.join(file_content)
+            list_with_set_functions += [
+                f'{1*INDENTATION}void set_{hook.name}_function(uintptr_t pointer) {{',
+                f'{2*INDENTATION}this->_{hook.name} = from_c_pointer<{hook.r_type}({hook.args_type})>(pointer);',
+                f'{1*INDENTATION}}}',
+                "",
+            ]
+        content_lines += list_with_hook_calls
+        content_lines.append("")
+        content_lines += list_with_set_functions
+        content_lines.append("private:")
+        content_lines += list_with_private_members
+        content_lines.append("};")
+        content_lines.append("")
+        content_lines.append("}  // namespace hookman")
+        content_lines.append("#endif // _H_HOOKMAN_HOOK_CALLER")
+
+        return NEW_LINE.join(content_lines)
 
     def _hook_caller_python_content(self) -> str:
         """

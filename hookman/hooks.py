@@ -1,15 +1,13 @@
 import ctypes
 import inspect
 import shutil
-from collections import defaultdict
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence
 from zipfile import ZipFile
 
 from hookman import hookman_utils
-from hookman.exceptions import (
-    ConflictBetweenPluginsError, InvalidDestinationPathError, PluginAlreadyInstalledError)
-from hookman.plugin_config import ConflictStatus, PluginInfo
+from hookman.exceptions import InvalidDestinationPathError, PluginAlreadyInstalledError
+from hookman.plugin_config import PluginInfo
 
 
 class HookSpecs:
@@ -135,8 +133,6 @@ class HookMan:
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
         """
-        self.ensure_is_valid(ignored_plugins)
-
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
         for plugin in self.get_plugins_available(ignored_plugins):
@@ -154,43 +150,8 @@ class HookMan:
         for hook_name, full_hook_name in self.hooks_available.items():
             if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name):
                 func_address = PluginInfo.get_function_address(plugin_dll, full_hook_name)
-                hooks_to_bind[f'set_{hook_name}_function'] = func_address
+                hooks_to_bind[f'append_{hook_name}_impl'] = func_address
 
         for hook in hooks_to_bind:
             cpp_func = getattr(hook_caller, hook)
             cpp_func(hooks_to_bind[hook])
-
-    def ensure_is_valid(self, ignored_plugins: Sequence[str]=()):
-        """
-        Auxiliary methods that checks if the get_status has any conflict
-        """
-        if self.get_status(ignored_plugins):
-            raise ConflictBetweenPluginsError(
-                f"Could not get a Hook Caller due to existing conflict between installed plugins")
-
-    def get_status(self, ignored_plugins: Sequence[str]=()) -> List[Optional[ConflictStatus]]:
-        """
-        Check if the plugins has conflicts between then.
-        If a conflict is found a list of ConflictStatus object will be returned.
-        Otherwise a empty list is returned.
-
-        Optionally you can pass a list of plugins that should be ignored.
-
-        .. :
-            The ``get_status`` method currently just checks if more than on plugin implements the same hook.
-        """
-        list_of_conflicts = []
-        plugins_available = self.get_plugins_available(ignored_plugins)
-        if not plugins_available:
-            return list_of_conflicts
-
-        hooks_status = defaultdict(list)
-        for plugin in plugins_available:
-            for hook in plugin.hooks_implemented:
-                hooks_status[hook].append(plugin.name)
-
-        for hook_name, plugins in hooks_status.items():
-            if len(plugins) > 1:
-                list_of_conflicts.append(ConflictStatus(plugins=plugins, hook=hook_name))
-
-        return list_of_conflicts

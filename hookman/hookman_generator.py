@@ -329,6 +329,7 @@ class HookManGenerator:
             "#define _H_HOOKMAN_HOOK_CALLER",
             "",
             "#include <functional>",
+            "#include <vector>",
             "",
         ]
         content_lines += (f'#include <{x}>' for x in self.extra_includes)
@@ -346,17 +347,17 @@ class HookManGenerator:
 
         for hook in self.hooks:
             list_with_hook_calls += [
-                f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> {hook.name}() {{',
-                f'{INDENTATION*2}return this->_{hook.name};',
+                f'{INDENTATION}std::vector<std::function<{hook.r_type}({hook.args_type})>> {hook.name}_impls() {{',
+                f'{INDENTATION*2}return this->_{hook.name}_impls;',
                 f'{INDENTATION}}}',
             ]
             list_with_private_members += [
-                f'{INDENTATION}std::function<{hook.r_type}({hook.args_type})> _{hook.name};'
+                f'{INDENTATION}std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;'
             ]
 
             list_with_set_functions += [
-                f'{1*INDENTATION}void set_{hook.name}_function(uintptr_t pointer) {{',
-                f'{2*INDENTATION}this->_{hook.name} = from_c_pointer<{hook.r_type}({hook.args_type})>(pointer);',
+                f'{1*INDENTATION}void append_{hook.name}_impl(uintptr_t pointer) {{',
+                f'{2*INDENTATION}this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));',
                 f'{1*INDENTATION}}}',
                 "",
             ]
@@ -376,25 +377,38 @@ class HookManGenerator:
         """
         Create a .cpp file to bind python and cpp code with PyBind11
         """
-        file_content = []
-        file_content += dedent(f"""\
-            #include <pybind11/pybind11.h>
-            #include <pybind11/functional.h>
-            #include <HookCaller.hpp>
-
-            namespace py = pybind11;
-
-            PYBIND11_MODULE({self.pyd_name}, m) {{
-                py::class_<hookman::HookCaller>(m, "HookCaller")
-                    .def(py::init<>())
-        """)
-        file_content += [
-            f'{2*INDENTATION}.def("{hook.name}", &hookman::HookCaller::{hook.name})' + NEW_LINE +
-            f'{2*INDENTATION}.def("set_{hook.name}_function", &hookman::HookCaller::set_{hook.name}_function)' + NEW_LINE
-            for hook in self.hooks
+        content_lines = [
+            "#include <pybind11/functional.h>",
+            "#include <pybind11/pybind11.h>",
+            "#include <pybind11/stl_bind.h>",
+            "#include <HookCaller.hpp>",
+            "",
+            "namespace py = pybind11;",
+            "",
         ]
-        file_content += f'{2*INDENTATION};' + NEW_LINE + '}' + NEW_LINE
-        return ''.join(file_content)
+        for hook in self.hooks:
+            content_lines.append(f"PYBIND11_MAKE_OPAQUE(std::vector<std::function<{hook.r_type}({hook.args_type})>>);")
+        content_lines.append("")
+
+        content_lines.append(f"PYBIND11_MODULE({self.pyd_name}, m) {{")
+
+        for hook in self.hooks:
+            vector_type = f"std::vector<std::function<{hook.r_type}({hook.args_type})>>"
+            content_lines.append(f'{INDENTATION}py::bind_vector<{vector_type}>(m, "vector_{hook.name}");')
+        content_lines.append("")
+
+        content_lines += [
+            f'{INDENTATION}py::class_<hookman::HookCaller>(m, "HookCaller")',
+            f"{INDENTATION * 2}.def(py::init<>())",
+        ]
+        for hook in self.hooks:
+            content_lines += [
+                f'{2*INDENTATION}.def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
+                f'{2*INDENTATION}.def("append_{hook.name}_impl", &hookman::HookCaller::append_{hook.name}_impl)',
+            ]
+        content_lines.append(f'{INDENTATION};')
+        content_lines.append('}')
+        return NEW_LINE.join(content_lines)
 
     def _generate_cmake_files(self, dst_path: Path):
         hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')

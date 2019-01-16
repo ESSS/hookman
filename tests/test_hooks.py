@@ -39,19 +39,19 @@ def test_hook_specs_without_docs_arguments():
 def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
     plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
-    from hookman.exceptions import ConflictBetweenPluginsError
-    with pytest.raises(ConflictBetweenPluginsError):
-        hook_caller = hm.get_hook_caller()
+    hc = hm.get_hook_caller()
+    assert len(hc.friction_factor_impls()) == 2
+    assert len(hc.env_temperature_impls()) == 1
 
 
 def test_get_hook_caller(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
     hook_caller = hm.get_hook_caller()
-    friction_factor = hook_caller.friction_factor()
-    env_temperature = hook_caller.env_temperature()
-    assert friction_factor is not None
-    assert env_temperature is None
-    assert friction_factor(1, 2) == 3
+    friction_factors = hook_caller.friction_factor_impls()
+    env_temperatures = hook_caller.env_temperature_impls()
+    assert len(friction_factors) == 1
+    assert len(env_temperatures) == 0
+    assert friction_factors[0](1, 2) == 3
 
 
 def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2):
@@ -62,19 +62,19 @@ def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_
     assert len(list((datadir / 'plugins').iterdir())) == 2
 
     hook_caller = hm.get_hook_caller(ignored_plugins=['Simple Plugin 2'])
-    env_temperature = hook_caller.env_temperature()
+    env_temperatures = hook_caller.env_temperature_impls()
 
     # Plugin2 implements the Hook env_temperature
-    assert env_temperature is None
+    assert len(env_temperatures) == 0
 
 
 def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[datadir / 'some_non_existing_folder'])
     hook_caller = hm.get_hook_caller()
-    friction_factor = hook_caller.friction_factor()
-    env_temperature = hook_caller.env_temperature()
-    assert friction_factor is None
-    assert env_temperature is None
+    friction_factors = hook_caller.friction_factor_impls()
+    env_temperatures = hook_caller.env_temperature_impls()
+    assert len(friction_factors) == 0
+    assert len(env_temperatures) == 0
 
 
 def test_plugins_available(simple_plugin, simple_plugin_2):
@@ -149,18 +149,3 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     hm.remove_plugin('Simple Plugin 2')
     assert len(hm.get_plugins_available()) == 1
     assert len(list((datadir / 'plugins').iterdir())) == 1
-
-
-def test_get_status(datadir, simple_plugin, simple_plugin_2):
-    plugins_dirs = [simple_plugin['path'], simple_plugin_2['path']]
-    hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=plugins_dirs)
-    assert len(hm.get_plugins_available()) == 2
-
-    plugin_status = hm.get_status()
-
-    assert plugin_status[0].plugins == ['Simple Plugin', 'Simple Plugin 2']
-    assert plugin_status[0].hook == 'friction_factor'
-
-    plugin_status = hm.get_status(ignored_plugins=['Simple Plugin 2'])
-
-    assert not plugin_status

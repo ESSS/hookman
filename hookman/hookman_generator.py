@@ -370,6 +370,7 @@ class HookManGenerator:
         content_lines.append("")
         content_lines.append("}  // namespace hookman")
         content_lines.append("#endif // _H_HOOKMAN_HOOK_CALLER")
+        content_lines.append('')
 
         return NEW_LINE.join(content_lines)
 
@@ -410,6 +411,7 @@ class HookManGenerator:
             ]
         content_lines.append(f'{INDENTATION};')
         content_lines.append('}')
+        content_lines.append('')
         return NEW_LINE.join(content_lines)
 
     def _generate_cmake_files(self, dst_path: Path):

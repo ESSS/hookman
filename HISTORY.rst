@@ -2,6 +2,22 @@
 History
 =======
 
+0.2.0 (unreleased)
+------------------
+
+- ``HookSpecs`` now accepts an ``extra_includes`` argument, which can be used to add custom ``#include`` directives
+  to the generated ``HookCaller.hpp`` file.
+
+- ``HookCaller`` now contains a ``std::vector`` of functions bound to plugin implementations. This allows multiple
+  plugins to implement the same hook; how the results of each call is to behave is responsibility of the caller.
+
+  Because of this, the following classes/methods have been removed because they are no longer relevant:
+
+  * ``ConflictBetweenPluginsError``
+  * ``ConflictStatus``
+  * ``HookMan.ensure_is_valid``
+  * ``HookMan.get_status``
+
 0.1.7 (2018-08-23)
 ------------------
 

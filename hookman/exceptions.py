@@ -25,12 +25,6 @@ class PluginAlreadyInstalledError(HookmanError):
     """
 
 
-class ConflictBetweenPluginsError(HookmanError):
-    """
-    Exception raised when one or more plugins implements the same hook.
-    """
-
-
 class AssetsDirNotFoundError(HookmanError):
     """
     Exception raised when the assets folder it's not found on the root of the plugin folder

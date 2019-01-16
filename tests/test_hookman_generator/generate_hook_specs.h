@@ -21,4 +21,15 @@ Docs for Friction Factor
 */
 #define HOOK_FRICTION_FACTOR(v1, v2) HOOKMAN_API_EXP int HOOKMAN_FUNC_EXP acme_v1_friction_factor(int v1, double v2[2])
 
+/*!
+Docs for Friction Factor 2
+    Input:
+        Testing indentation
+    Return:
+            Integer
+
+Same signature as 'friction_factor' for testing.
+*/
+#define HOOK_FRICTION_FACTOR_2(v1, v2) HOOKMAN_API_EXP int HOOKMAN_FUNC_EXP acme_v1_friction_factor_2(int v1, double v2[2])
+
 #endif

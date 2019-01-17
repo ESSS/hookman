@@ -13,9 +13,6 @@ from hookman.exceptions import (
 from hookman.hooks import HookSpecs
 from hookman.plugin_config import PluginInfo
 
-INDENT = "    "
-NEW_LINE = "\n"
-
 
 class Hook(NamedTuple):
     """
@@ -336,9 +333,9 @@ class HookManGenerator:
             "#include <iostream>",
             "",
             "#ifdef _WIN32",
-            f"{INDENT}#include <windows.h>",
+            f"    #include <windows.h>",
             "#else",
-            f"{INDENT}#include <dlfcn.h>",
+            f"    #include <dlfcn.h>",
             "#endif",
             "",
         ]
@@ -348,7 +345,7 @@ class HookManGenerator:
             "namespace hookman {",
             "",
             "template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {",
-            f"{INDENT}return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
+            f"    return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
             "}",
             "",    
             "class HookCaller {",
@@ -357,18 +354,18 @@ class HookManGenerator:
 
         for hook in self.hooks:
             list_with_hook_calls += [
-                f'{INDENT}std::vector<std::function<{hook.r_type}({hook.args_type})>> {hook.name}_impls() {{',
-                f'{INDENT * 2}return this->_{hook.name}_impls;',
-                f'{INDENT}}}',
+                f'    std::vector<std::function<{hook.r_type}({hook.args_type})>> {hook.name}_impls() {{',
+                f'        return this->_{hook.name}_impls;',
+                f'    }}',
             ]
             list_with_private_members += [
-                f'{INDENT}std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;'
+                f'    std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;'
             ]
 
             list_with_set_functions += [
-                f'{INDENT}void append_{hook.name}_impl(uintptr_t pointer) {{',
-                f'{INDENT * 2}this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));',
-                f'{INDENT}}}',
+                f'    void append_{hook.name}_impl(uintptr_t pointer) {{',
+                f'        this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));',
+                f'    }}',
                 "",
             ]
         content_lines += list_with_hook_calls
@@ -384,7 +381,7 @@ class HookManGenerator:
         content_lines.append("#endif // _H_HOOKMAN_HOOK_CALLER")
         content_lines.append('')
 
-        return NEW_LINE.join(content_lines)
+        return "\n".join(content_lines)
 
     def _hook_caller_python_content(self) -> str:
         """
@@ -409,23 +406,23 @@ class HookManGenerator:
         for index, (r_type, args_type) in enumerate(sorted(signatures)):
             name = f'vector_hook_impl_type_{index}'
             vector_type = f"std::vector<std::function<{r_type}({args_type})>>"
-            content_lines.append(f'{INDENT}py::bind_vector<{vector_type}>(m, "{name}");')
+            content_lines.append(f'    py::bind_vector<{vector_type}>(m, "{name}");')
         content_lines.append("")
 
         content_lines += [
-            f'{INDENT}py::class_<hookman::HookCaller>(m, "HookCaller")',
-            f"{INDENT * 2}.def(py::init<>())",
-            f'{INDENT * 2}.def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
+            f'    py::class_<hookman::HookCaller>(m, "HookCaller")',
+            f"        .def(py::init<>())",
+            f'        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
         ]
         for hook in self.hooks:
             content_lines += [
-                f'{INDENT * 2}.def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
-                f'{INDENT * 2}.def("append_{hook.name}_impl", &hookman::HookCaller::append_{hook.name}_impl)',
+                f'        .def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
+                f'        .def("append_{hook.name}_impl", &hookman::HookCaller::append_{hook.name}_impl)',
             ]
-        content_lines.append(f'{INDENT};')
+        content_lines.append(f'    ;')
         content_lines.append('}')
         content_lines.append('')
-        return NEW_LINE.join(content_lines)
+        return "\n".join(content_lines)
 
     def _generate_cmake_files(self, dst_path: Path):
         hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
@@ -497,7 +494,7 @@ class HookManGenerator:
         Create a C header file with the content informed on the hook_specs
         """
         file_content = []
-        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}{NEW_LINE}' for hook in self.hooks]
+        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}\n' for hook in self.hooks]
 
         file_content += dedent(f"""\
         #include "hook_specs.h"
@@ -601,7 +598,7 @@ def _generate_load_function(hooks):
     result += [
         "",
         "#else",
-        f'{INDENT}#error "unknown platform"',
+        f'    #error "unknown platform"',
         "#endif",
         "",
     ]
@@ -612,59 +609,59 @@ def _generate_windows_body(hooks):
     # generate destructor to free the library handles opened by load_from_library()
     result = [
         "public:",
-        f"{INDENT}~HookCaller() {{",
-        f"{INDENT * 2}for (auto handle : this->handles) {{",
-        f"{INDENT * 3}FreeLibrary(handle);",
-        f"{INDENT * 2}}}",
-        f"{INDENT}}}",
+        f"    ~HookCaller() {{",
+        f"        for (auto handle : this->handles) {{",
+        f"            FreeLibrary(handle);",
+        f"        }}",
+        f"    }}",
     ]
 
     # generate load_from_library()
     result += [
-        f"{INDENT}void load_impls_from_library(const std::string utf8_filename) {{",
-        f'{INDENT * 2}std::wstring w_filename = utf8_to_wstring(utf8_filename);',
-        f'{INDENT * 2}auto handle = LoadLibraryW(w_filename.c_str());',
-        f'{INDENT * 2}if (handle == NULL) {{',
-        f'{INDENT * 3}throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
-        f'{INDENT * 2}}}',
-        f'{INDENT * 2}this->handles.push_back(handle);',
+        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f'        std::wstring w_filename = utf8_to_wstring(utf8_filename);',
+        f'        auto handle = LoadLibraryW(w_filename.c_str());',
+        f'        if (handle == NULL) {{',
+        f'            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
+        f'        }}',
+        f'        this->handles.push_back(handle);',
         "",
     ]
 
     for index, hook in enumerate(hooks):
         result += [
-            f'{INDENT * 2}auto p{index} = GetProcAddress(handle, "{hook.function_name}");',
-            f'{INDENT * 2}if (p{index} != nullptr) {{',
-            f'{INDENT * 3}this->append_{hook.name}_impl((uintptr_t)(p{index}));',
-            f'{INDENT * 2}}}',
+            f'        auto p{index} = GetProcAddress(handle, "{hook.function_name}");',
+            f'        if (p{index} != nullptr) {{',
+            f'            this->append_{hook.name}_impl((uintptr_t)(p{index}));',
+            f'        }}',
             "",
         ]
-    result.append(INDENT + "}")
+    result.append("    }")
 
     result += [
         "",
         "",
         "private:",
-        f"{INDENT}std::wstring utf8_to_wstring(const std::string &s) {{",
-        f"{INDENT * 2}int required_size = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, nullptr, 0);",
-        f"{INDENT * 2}auto buffer = std::make_unique<WCHAR[]>(required_size);",
-        f"{INDENT * 2}int err = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, buffer.get(), required_size);",
-        f"{INDENT * 2}if (err == 0) {{",
-        f"{INDENT * 3}// error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value",
-        f"{INDENT * 3}switch (GetLastError()) {{",
-        f"{INDENT * 4}case ERROR_INSUFFICIENT_BUFFER: throw std::runtime_error(\"utf8_to_wstring: ERROR_INSUFFICIENT_BUFFER\");",
-        f"{INDENT * 4}case ERROR_INVALID_FLAGS: throw std::runtime_error(\"utf8_to_wstring: ERROR_INVALID_FLAGS\");",
-        f"{INDENT * 4}case ERROR_INVALID_PARAMETER: throw std::runtime_error(\"utf8_to_wstring: ERROR_INVALID_PARAMETER\");",
-        f"{INDENT * 4}case ERROR_NO_UNICODE_TRANSLATION: throw std::runtime_error(\"utf8_to_wstring: ERROR_NO_UNICODE_TRANSLATION\");",
-        f"{INDENT * 4}default: throw std::runtime_error(\"Undefined error: \" + std::to_string(GetLastError()));",
-        f"{INDENT * 3}}}",
-        f"{INDENT * 2}}}",
-        f"{INDENT * 2}return std::wstring(buffer.get(), required_size);",
-        f"{INDENT}}}",
+        f"    std::wstring utf8_to_wstring(const std::string &s) {{",
+        f"        int required_size = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, nullptr, 0);",
+        f"        auto buffer = std::make_unique<WCHAR[]>(required_size);",
+        f"        int err = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, buffer.get(), required_size);",
+        f"        if (err == 0) {{",
+        f"            // error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value",
+        f"            switch (GetLastError()) {{",
+        f"                case ERROR_INSUFFICIENT_BUFFER: throw std::runtime_error(\"utf8_to_wstring: ERROR_INSUFFICIENT_BUFFER\");",
+        f"                case ERROR_INVALID_FLAGS: throw std::runtime_error(\"utf8_to_wstring: ERROR_INVALID_FLAGS\");",
+        f"                case ERROR_INVALID_PARAMETER: throw std::runtime_error(\"utf8_to_wstring: ERROR_INVALID_PARAMETER\");",
+        f"                case ERROR_NO_UNICODE_TRANSLATION: throw std::runtime_error(\"utf8_to_wstring: ERROR_NO_UNICODE_TRANSLATION\");",
+        f"                default: throw std::runtime_error(\"Undefined error: \" + std::to_string(GetLastError()));",
+        f"            }}",
+        f"        }}",
+        f"        return std::wstring(buffer.get(), required_size);",
+        f"    }}",
         f"",
         f"",
         f"private:",
-        f"{INDENT}std::vector<HMODULE> handles;",
+        f"    std::vector<HMODULE> handles;",
     ]
     return result
 
@@ -672,7 +669,7 @@ def _generate_windows_body(hooks):
 def _generate_linux_body(hooks):
     result = [
         "public:",
-        f"{INDENT}void load_impls_from_library(const std::string utf8_filename) {{",
-        f"{INDENT}}}",
+        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f"    }}",
     ]
     return result

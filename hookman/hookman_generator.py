@@ -347,7 +347,7 @@ class HookManGenerator:
             "template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {",
             f"    return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
             "}",
-            "",    
+            "",
             "class HookCaller {",
             "public:",
         ]
@@ -606,6 +606,12 @@ def _generate_load_function(hooks):
 
 
 def _generate_windows_body(hooks):
+    """Generate Windows specific functions.
+
+    At the moment it implements load_impls_from_library, class destructor, and an utility function
+    to convert from utf8 to wide-strings so we can use the wide family of windows
+    functions that accept unicode.
+    """
     # generate destructor to free the library handles opened by load_from_library()
     result = [
         "public:",
@@ -667,6 +673,12 @@ def _generate_windows_body(hooks):
 
 
 def _generate_linux_body(hooks):
+    """
+    Generate linux specific functions.
+
+    At the moment it implements load_impls_from_library and the class destructor
+    to cleanup handles.
+    """
     # generate destructor to free the library handles opened by load_from_library()
     result = [
         f"private:",

@@ -326,11 +326,9 @@ class HookManGenerator:
             "#define _H_HOOKMAN_HOOK_CALLER",
             "",
             "#include <functional>",
-            "#include <memory>",
             "#include <stdexcept>",
             "#include <string>",
             "#include <vector>",
-            "#include <iostream>",
             "",
             "#ifdef _WIN32",
             f"    #include <windows.h>",
@@ -624,7 +622,7 @@ def _generate_windows_body(hooks):
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f"    void load_impls_from_library(const std::string& utf8_filename) {{",
         f'        std::wstring w_filename = utf8_to_wstring(utf8_filename);',
         f'        auto handle = LoadLibraryW(w_filename.c_str());',
         f'        if (handle == NULL) {{',
@@ -648,11 +646,15 @@ def _generate_windows_body(hooks):
         "",
         "",
         "private:",
-        f"    std::wstring utf8_to_wstring(const std::string &s) {{",
+        f"    std::wstring utf8_to_wstring(const std::string& s) {{",
         f"        int flags = 0;",
         f"        int required_size = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, nullptr, 0);",
-        f"        auto buffer = std::make_unique<WCHAR[]>(required_size);",
-        f"        int err = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, buffer.get(), required_size);",
+        f"        std::wstring result;",
+        f"        if (required_size == 0) {{",
+        f"            return result;",
+        f"        }}",
+        f"        result.resize(required_size);",
+        f"        int err = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, &result[0], required_size);",
         f"        if (err == 0) {{",
         f"            // error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value",
         f"            switch (GetLastError()) {{",
@@ -663,7 +665,7 @@ def _generate_windows_body(hooks):
         f"                default: throw std::runtime_error(\"Undefined error: \" + std::to_string(GetLastError()));",
         f"            }}",
         f"        }}",
-        f"        return std::wstring(buffer.get(), required_size);",
+        f"        return result;",
         f"    }}",
         f"",
         f"",
@@ -695,7 +697,7 @@ def _generate_linux_body(hooks):
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f"    void load_impls_from_library(const std::string& utf8_filename) {{",
         f'        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);',
         f'        if (handle == nullptr) {{',
         f'            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");',

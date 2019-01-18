@@ -616,7 +616,7 @@ def _generate_windows_body(hooks):
         f"    }}",
     ]
 
-    # generate load_from_library()
+    # generate load_impls_from_library()
     result += [
         f"    void load_impls_from_library(const std::string utf8_filename) {{",
         f'        std::wstring w_filename = utf8_to_wstring(utf8_filename);',
@@ -667,9 +667,37 @@ def _generate_windows_body(hooks):
 
 
 def _generate_linux_body(hooks):
+    # generate destructor to free the library handles opened by load_from_library()
     result = [
+        f"private:",
+        f"    std::vector<void*> handles;",
+        "",
         "public:",
-        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f"    ~HookCaller() {{",
+        f"        for (auto handle : this->handles) {{",
+        f"            dlclose(handle);",
+        f"        }}",
         f"    }}",
     ]
+
+    # generate load_impls_from_library()
+    result += [
+        f"    void load_impls_from_library(const std::string utf8_filename) {{",
+        f'        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);',
+        f'        if (handle == nullptr) {{',
+        f'            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");',
+        f'        }}',
+        f'        this->handles.push_back(handle);',
+        "",
+    ]
+
+    for index, hook in enumerate(hooks):
+        result += [
+            f'        auto p{index} = dlsym(handle, "{hook.function_name}");',
+            f'        if (p{index} != nullptr) {{',
+            f'            this->append_{hook.name}_impl((uintptr_t)(p{index}));',
+            f'        }}',
+            "",
+        ]
+    result.append("    }")
     return result

@@ -94,8 +94,32 @@ private:
 
 #elif defined(__linux__)
 
+private:
+    std::vector<void*> handles;
+
 public:
+    ~HookCaller() {
+        for (auto handle : this->handles) {
+            dlclose(handle);
+        }
+    }
     void load_impls_from_library(const std::string utf8_filename) {
+        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);
+        if (handle == nullptr) {
+            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");
+        }
+        this->handles.push_back(handle);
+
+        auto p0 = dlsym(handle, "acme_v1_friction_factor");
+        if (p0 != nullptr) {
+            this->append_friction_factor_impl((uintptr_t)(p0));
+        }
+
+        auto p1 = dlsym(handle, "acme_v1_friction_factor_2");
+        if (p1 != nullptr) {
+            this->append_friction_factor_2_impl((uintptr_t)(p1));
+        }
+
     }
 
 #else

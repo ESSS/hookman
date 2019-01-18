@@ -72,9 +72,10 @@ public:
 
 private:
     std::wstring utf8_to_wstring(const std::string &s) {
-        int required_size = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, nullptr, 0);
+        int flags = 0;
+        int required_size = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, nullptr, 0);
         auto buffer = std::make_unique<WCHAR[]>(required_size);
-        int err = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, s.c_str(), -1, buffer.get(), required_size);
+        int err = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, buffer.get(), required_size);
         if (err == 0) {
             // error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value
             switch (GetLastError()) {

@@ -12,6 +12,7 @@ PYBIND11_MODULE(_test_hook_man_generator, m) {
 
     py::class_<hookman::HookCaller>(m, "HookCaller")
         .def(py::init<>())
+        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)
         .def("friction_factor_impls", &hookman::HookCaller::friction_factor_impls)
         .def("append_friction_factor_impl", &hookman::HookCaller::append_friction_factor_impl)
         .def("friction_factor_2_impls", &hookman::HookCaller::friction_factor_2_impls)

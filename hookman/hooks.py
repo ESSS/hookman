@@ -128,7 +128,7 @@ class HookMan:
         plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
         return [plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
 
-    def get_hook_caller(self, ignored_plugins: Sequence[str]=()):
+    def get_hook_caller(self, ignored_plugins: Sequence[str] = ()):
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
@@ -136,22 +136,5 @@ class HookMan:
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
         for plugin in self.get_plugins_available(ignored_plugins):
-            self._bind_libs_functions_on_hook_caller(plugin.shared_lib_path, hook_caller)
+            hook_caller.load_impls_from_library(str(plugin.shared_lib_path))
         return hook_caller
-
-    def _bind_libs_functions_on_hook_caller(self, shared_lib_path: Path, hook_caller):
-        """
-        Load the shared_lib_path from the plugin and bind methods that are implemented on the
-        hook_caller.
-        """
-        plugin_dll = ctypes.cdll.LoadLibrary(str(shared_lib_path))
-
-        hooks_to_bind = {}
-        for hook_name, full_hook_name in self.hooks_available.items():
-            if PluginInfo.is_implemented_on_plugin(plugin_dll, full_hook_name):
-                func_address = PluginInfo.get_function_address(plugin_dll, full_hook_name)
-                hooks_to_bind[f'append_{hook_name}_impl'] = func_address
-
-        for hook in hooks_to_bind:
-            cpp_func = getattr(hook_caller, hook)
-            cpp_func(hooks_to_bind[hook])

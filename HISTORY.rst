@@ -5,6 +5,9 @@ History
 0.2.0 (unreleased)
 ------------------
 
+- Moved load hook function code to ``HookCaller.load_impls_from_library`` function implemented in C++. This
+  enables using hook functionality in projects which don't use Python as their entry point.
+
 - ``HookSpecs`` now accepts an ``extra_includes`` argument, which can be used to add custom ``#include`` directives
   to the generated ``HookCaller.hpp`` file.
 

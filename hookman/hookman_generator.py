@@ -404,7 +404,7 @@ class HookManGenerator:
         for index, (r_type, args_type) in enumerate(sorted(signatures)):
             name = f'vector_hook_impl_type_{index}'
             vector_type = f"std::vector<std::function<{r_type}({args_type})>>"
-            content_lines.append(f'    py::bind_vector<{vector_type}>(m, "{name}");')
+            content_lines.append(f'    py::bind_vector<{vector_type}>(m, "{name}", "Hook for vector implementation type {index}");')
         content_lines.append("")
 
         content_lines += [

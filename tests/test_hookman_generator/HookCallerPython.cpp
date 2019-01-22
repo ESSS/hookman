@@ -8,7 +8,7 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<std::function<int(int, double[2])>>);
 
 PYBIND11_MODULE(_test_hook_man_generator, m) {
-    py::bind_vector<std::vector<std::function<int(int, double[2])>>>(m, "vector_hook_impl_type_0");
+    py::bind_vector<std::vector<std::function<int(int, double[2])>>>(m, "vector_hook_impl_type_0", "Hook for vector implementation type 0");
 
     py::class_<hookman::HookCaller>(m, "HookCaller")
         .def(py::init<>())

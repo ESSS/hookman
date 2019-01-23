@@ -180,13 +180,13 @@ class HookManGenerator:
         - HookCallerPython.cpp
         """
         hook_caller_hpp = Path(dst_path / 'cpp' / 'HookCaller.hpp')
-        hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
-
-        os.makedirs(hook_caller_hpp.parent)
-        os.makedirs(hook_caller_python.parent)
-
+        hook_caller_hpp.parent.mkdir(exist_ok=True, parents=True)
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
-        hook_caller_python.write_text(self._hook_caller_python_content())
+
+        if self.pyd_name:
+            hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
+            hook_caller_python.parent.mkdir(exist_ok=True, parents=True)
+            hook_caller_python.write_text(self._hook_caller_python_content())
 
         self._generate_cmake_files(dst_path)
 
@@ -427,37 +427,38 @@ class HookManGenerator:
         return "\n".join(content_lines)
 
     def _generate_cmake_files(self, dst_path: Path):
-        hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
-        hook_caller_python = Path(dst_path / 'binding' / 'CMakeLists.txt')
         from textwrap import dedent
 
+        hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
         with open(hook_caller_hpp, mode='w') as file:
             file.writelines(dedent(f"""\
                 add_library({self.pyd_name}_interface INTERFACE)
                 target_include_directories({self.pyd_name}_interface INTERFACE ./)
                 """))
 
-        with open(hook_caller_python, mode='w') as file:
-            file.writelines(dedent(f"""\
-            include(pybind11Config)
-
-            pybind11_add_module(
-                {self.pyd_name}
-                    HookCallerPython.cpp
-            )
-            target_include_directories(
-               {self.pyd_name}
-                PRIVATE
-                    ${{pybind11_INCLUDE_DIRS}}  # from pybind11Config
-            )
-            target_link_libraries(
-                {self.pyd_name}
-                PRIVATE
-                    {self.pyd_name}_interface
-            )
-
-            install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
-            """))
+        if self.pyd_name:
+            hook_caller_python = Path(dst_path / 'binding' / 'CMakeLists.txt')
+            with open(hook_caller_python, mode='w') as file:
+                file.writelines(dedent(f"""\
+                include(pybind11Config)
+    
+                pybind11_add_module(
+                    {self.pyd_name}
+                        HookCallerPython.cpp
+                )
+                target_include_directories(
+                   {self.pyd_name}
+                    PRIVATE
+                        ${{pybind11_INCLUDE_DIRS}}  # from pybind11Config
+                )
+                target_link_libraries(
+                    {self.pyd_name}
+                    PRIVATE
+                        {self.pyd_name}_interface
+                )
+    
+                install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
+                """))
 
     def _plugin_config_file_content(
             self,

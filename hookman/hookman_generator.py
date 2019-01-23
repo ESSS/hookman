@@ -364,10 +364,15 @@ class HookManGenerator:
             ]
 
             list_with_set_functions += [
+                # uintptr overload
                 f'    void append_{hook.name}_impl(uintptr_t pointer) {{',
                 f'        this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));',
                 f'    }}',
                 "",
+                # std::function overload
+                f'    void append_{hook.name}_impl(std::function<{hook.r_type}({hook.args_type})> func) {{',
+                f'        this->_{hook.name}_impls.push_back(func);',
+                f'    }}',
             ]
         content_lines += list_with_hook_calls
         content_lines.append("")
@@ -417,9 +422,14 @@ class HookManGenerator:
             f'        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
         ]
         for hook in self.hooks:
+            append_ptr = f'&hookman::HookCaller::append_{hook.name}_impl'
+            append_uint_sig = 'void (hookman::HookCaller::*)(uintptr_t)'
+            append_function_sig = f'void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>)'
+
             content_lines += [
                 f'        .def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
-                f'        .def("append_{hook.name}_impl", &hookman::HookCaller::append_{hook.name}_impl)',
+                f'        .def("append_{hook.name}_impl", ({append_uint_sig}) {append_ptr})',
+                f'        .def("append_{hook.name}_impl", ({append_function_sig}) {append_ptr})',
             ]
         content_lines.append(f'    ;')
         content_lines.append('}')

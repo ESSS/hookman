@@ -35,10 +35,16 @@ public:
         this->_friction_factor_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
     }
 
+    void append_friction_factor_impl(std::function<int(int, double[2])> func) {
+        this->_friction_factor_impls.push_back(func);
+    }
     void append_friction_factor_2_impl(uintptr_t pointer) {
         this->_friction_factor_2_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
     }
 
+    void append_friction_factor_2_impl(std::function<int(int, double[2])> func) {
+        this->_friction_factor_2_impls.push_back(func);
+    }
 
 #if defined(_WIN32)
 

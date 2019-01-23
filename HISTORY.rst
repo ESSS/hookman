@@ -21,6 +21,12 @@ History
   * ``HookMan.ensure_is_valid``
   * ``HookMan.get_status``
 
+
+- Generated files now sport a "do not modify" comment header.
+
+- Generation of the bindings code for ``HookCaller`` is skipped if ``specs.pyd_name`` is not defined.
+
+
 0.1.7 (2018-08-23)
 ------------------
 

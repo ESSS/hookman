@@ -39,7 +39,7 @@ With the :ref:`hook-specs-api-section` defined, it's possible to generate the ne
 
 .. code-block:: bash
 
-    $ python -m hookman hook_specs.py --dst-path <DEST_DIR>
+    $ python -m hookman generate-project-files hook_specs.py --dst-path <DEST_DIR>
 
 The output from the command above will be the following files:
 

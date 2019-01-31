@@ -26,6 +26,11 @@ History
 
 - Generation of the bindings code for ``HookCaller`` is skipped if ``specs.pyd_name`` is not defined.
 
+- Code generation is now available directly in the command-line through the commands:
+
+  * ``python -m hookman generate-plugin-package``
+  * ``python -m hookman generate-plugin-template``
+  * ``python -m hookman generate-project-files``
 
 0.1.7 (2018-08-23)
 ------------------

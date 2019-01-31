@@ -5,7 +5,7 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import NamedTuple
+from typing import NamedTuple, Union
 from zipfile import ZipFile
 
 from hookman.exceptions import (
@@ -55,12 +55,13 @@ class HookManGenerator:
     Class to assist in the process of creating necessary files for the hookman
     """
 
-    def __init__(self, hook_spec_file_path: Path) -> None:
+    def __init__(self, hook_spec_file_path: Union[Path, str]) -> None:
         """
         Receives a path to a hooks specification file.
         if the Path provided is not a file an exception FileNotFoundError is raised.
         If the File provided doesn't have a spec object, a RuntimeError is raised.
         """
+        hook_spec_file_path = Path(hook_spec_file_path)
         if hook_spec_file_path.is_file():
             hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
             self._populate_local_variables(hook_spec_module.specs)
@@ -137,6 +138,8 @@ class HookManGenerator:
         """
         Generate a template with the necessary files and structure to create a plugin
 
+        :param str plugin_name: the user-friendly name of the plugin, for example ``"Hydrates"``.
+
         A folder with the same name as the shared_lib_name argument will be created, with the following files:
             <plugin_folder>
                 - CMakeLists.txt
@@ -173,13 +176,13 @@ class HookManGenerator:
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
-    def generate_project_files(self, dst_path: Path):
+    def generate_project_files(self, dst_path: Union[Path, str]):
         """
         Generate the following files on the dst_path:
         - HookCaller.hpp
         - HookCallerPython.cpp
         """
-        hook_caller_hpp = Path(dst_path / 'cpp' / 'HookCaller.hpp')
+        hook_caller_hpp = Path(dst_path) / 'cpp' / 'HookCaller.hpp'
         hook_caller_hpp.parent.mkdir(exist_ok=True, parents=True)
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
 
@@ -190,7 +193,7 @@ class HookManGenerator:
 
         self._generate_cmake_files(dst_path)
 
-    def generate_plugin_package(self, package_name: str, plugin_dir: Path, dst: Path=None):
+    def generate_plugin_package(self, package_name: str, plugin_dir: Union[Path, str], dst_path: Path=None):
         """
         Creates a .hmplugin file using the name provided on package_name argument.
         The file `.hmplugin` will be created with the content from the folder assets and artifacts.
@@ -203,8 +206,9 @@ class HookManGenerator:
         Per default, the package will be created inside the folder plugin_dir, however it's possible
         to give another path filling the dst argument
         """
-        if dst is None:
-            dst = plugin_dir
+        plugin_dir = Path(plugin_dir)
+        if dst_path is None:
+            dst_path = plugin_dir
 
         assets_dir = plugin_dir / "assets"
         artifacts_dir = plugin_dir / "artifacts"
@@ -215,10 +219,10 @@ class HookManGenerator:
 
         if sys.platform == 'win32':
             shared_lib = '*.dll'
-            hmplugin_path = dst / f"{package_name}-win64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-win64.hmplugin"
         else:
             shared_lib = '*.so'
-            hmplugin_path = dst / f"{package_name}-linux64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-linux64.hmplugin"
 
         with ZipFile(hmplugin_path, 'w') as zip_file:
             for file in assets_dir.rglob('*'):
@@ -250,7 +254,7 @@ class HookManGenerator:
             raise AssetsDirNotFoundError()
 
         if not artifacts_dir.exists():
-            raise ArtifactsDirNotFoundError()
+            raise ArtifactsDirNotFoundError(f'Artifacts directory not found: {artifacts_dir}')
 
         shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
         if not any(artifacts_dir.rglob(shared_lib)):

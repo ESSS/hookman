@@ -65,8 +65,8 @@ def test_package_plugin(datadir):
     assert (datadir / 'my_plugin' / 'src' / 'plugin.c').is_file()
 
     # create dummy artifact
-    ext = '.dll' if sys.platform.startswith('win') else '.so'
-    lib = datadir / 'my_plugin' / 'artifacts' / f'my_plugin{ext}'
+    prefix, ext = ('', '.dll') if sys.platform.startswith('win') else ('lib', '.so')
+    lib = datadir / 'my_plugin' / 'artifacts' / f'{prefix}my_plugin{ext}'
     lib.parent.mkdir()
     lib.write_text('')
 

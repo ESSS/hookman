@@ -148,5 +148,5 @@ def _package_plugins(ctx):
             hm_generator.generate_plugin_package(
                 package_name=plugin.name,
                 plugin_dir=plugin,
-                dst=plugins_zip
+                dst_path=plugins_zip
             )

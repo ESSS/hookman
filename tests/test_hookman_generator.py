@@ -156,7 +156,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     asset_dir.mkdir()
 
     # -- Without Artifacts Folder
-    with pytest.raises(ArtifactsDirNotFoundError):
+    with pytest.raises(ArtifactsDirNotFoundError, match=r'Artifacts directory not found: .*[\\/]acme[\\/]artifacts'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
     artifacts_dir = plugin_dir / 'artifacts'

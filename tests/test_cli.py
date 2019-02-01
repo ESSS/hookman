@@ -45,6 +45,21 @@ def test_generate_plugin_template(datadir):
 
     assert (datadir / 'my_plugin' / 'assets' / 'plugin.yaml').is_file()
     assert (datadir / 'my_plugin' / 'src' / 'plugin.c').is_file()
+    assert (datadir / 'my_plugin' / 'src' / 'hook_specs.h').is_file()
+
+
+def test_generate_hook_specs_h(datadir):
+    runner = CliRunner()
+    hook_spec_file = str(datadir / 'hook_specs.py')
+    result = runner.invoke(__main__.cli, [
+        'generate-hook-specs-h',
+        hook_spec_file,
+        'my_plugin',
+        '--dst-path', datadir,
+    ])
+    assert result.exit_code == 0, result.output
+
+    assert (datadir / 'my_plugin' / 'src' / 'hook_specs.h').is_file()
 
 
 def test_package_plugin(datadir):

@@ -103,13 +103,3 @@ class PluginInfo(object):
         if not any(plugin_file_content['shared_lib_name'] in file for file in list_of_files):
             raise SharedLibraryNotFoundError(
                 f"{plugin_file_content['shared_lib_name']} could not be found inside the plugin file")
-
-    @classmethod
-    def get_function_address(cls, plugin_dll, hook_name):
-        """
-        Return the address of the requested hook for the given plugin_dll.
-
-        .. note:: The hook_name should be the full name of the hook
-        Ex.: {project}_{version}_{hook_name} -> hookman_v4_friction_factor
-        """
-        return ctypes.cast(getattr(plugin_dll, hook_name), ctypes.c_void_p).value

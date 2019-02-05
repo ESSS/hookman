@@ -5,6 +5,9 @@ Hookman
 .. image:: https://img.shields.io/pypi/v/python-hookman.svg
     :target: https://pypi.python.org/pypi/python-hookman
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/python-hookman.svg
+    :target: https://anaconda.org/conda-forge/python-hookman
+
 .. image:: https://img.shields.io/travis/ESSS/hookman.svg
         :target: https://travis-ci.org/ESSS/hookman
 

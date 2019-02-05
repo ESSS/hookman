@@ -35,6 +35,8 @@ History
 
 - Explicitly declare ``extern "C"`` calling convention in the ``hook_specs.h`` file.
 
+- The ``INIT_HOOKS`` macro has been removed as it didn't have any useful function.
+
 0.1.7 (2018-08-23)
 ------------------
 

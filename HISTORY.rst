@@ -21,6 +21,17 @@ History
   * ``HookMan.ensure_is_valid``
   * ``HookMan.get_status``
 
+
+- Generated files now sport a "do not modify" comment header.
+
+- Generation of the bindings code for ``HookCaller`` is skipped if ``specs.pyd_name`` is not defined.
+
+- Code generation is now available directly in the command-line through the commands:
+
+  * ``python -m hookman generate-plugin-template``
+  * ``python -m hookman generate-project-files``
+  * ``python -m hookman package-plugin``  
+
 0.1.7 (2018-08-23)
 ------------------
 

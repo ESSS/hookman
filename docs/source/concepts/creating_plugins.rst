@@ -20,20 +20,27 @@ A plugin consists of a ``ZipFile`` with the extension ``.hmplugin`` that has the
 
 
 The ``HookMan`` project has some utilities to help with the task to generate plugins for the user.
-The class :ref:`hookman-generator-api-section` has a method ``generate_plugin_template`` which generate a "boilerplate" for a plugin.
 
-In order to call this method it's necessary to pass the following arguments:
+To generate the initial boilerplate for a plugin, execute:
 
+.. code-block:: bash
+
+    $ python -m hookman generate-plugin-template <specs-path> <plugin-name> <shared-lib-name> <author-name> <author-email> [dst-path]
+
+The arguments are:
+
+- **specs-path**:
+    Path to the ``hook_specs.py`` file of the application
 - **plugin-name**: 
     Name of the plugin to be displayed
-- **shared_lib_name**: 
+- **shared-lib-name**:
     The filename of the compiled plugin
-- **author_name**: 
+- **author-name**:
     Name of the plugin author to be displayed
-- **author_email**: 
+- **author-email**:
     Email of the plugin author to be displayed
-- **dst_path**: 
-    A path to where the template generated should be placed, if not informed the current directory will be used.
+- **dst-path**:
+    A path to where the template generated should be placed, if not given the current directory will be used
 
 
 The generated template has the following structure:
@@ -71,5 +78,28 @@ Where:
     Script file to generate the shared library, this command will create a folder name artifacts.
 
 
-In order to create a ``.hmplugin`` the same class, The class :ref:`hookman-generator-api-section`, 
-has a method named ``generate_package`` which generate a ``.hmplugin`` file as output.
+Distributing
+------------
+
+Plugins should be packaged for distribution and installation in the target software. HookMan plugins are deployed
+with the ``.hmplugin`` extension, which is a zip file with the binaries and assets necessary for execution.
+
+To create a ``.hmplugin`` extension, use this command:
+
+.. code-block:: bash
+
+    $ python -m hookman package-plugin <specs-path> <package-name> <plugin-dir> [dst-path]
+
+Where:
+
+- **specs-path**:
+    Path to the ``hook_specs.py`` file of the application
+- **package-name**:
+    Output name of the package file, without extension. For example: ``myplugin-1.0``
+- **plugin-dir**:
+    Directory where the plugin is located
+- **plugin-dir**:
+    Directory where the plugin is located
+- **dst-path**:
+    A path to where put the generated package file, if not given the package will be generated in the same directory
+    as ``plugin-dir``.

@@ -5,7 +5,7 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import NamedTuple
+from typing import NamedTuple, Union
 from zipfile import ZipFile
 
 from hookman.exceptions import (
@@ -55,12 +55,13 @@ class HookManGenerator:
     Class to assist in the process of creating necessary files for the hookman
     """
 
-    def __init__(self, hook_spec_file_path: Path) -> None:
+    def __init__(self, hook_spec_file_path: Union[Path, str]) -> None:
         """
         Receives a path to a hooks specification file.
         if the Path provided is not a file an exception FileNotFoundError is raised.
         If the File provided doesn't have a spec object, a RuntimeError is raised.
         """
+        hook_spec_file_path = Path(hook_spec_file_path)
         if hook_spec_file_path.is_file():
             hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
             self._populate_local_variables(hook_spec_module.specs)
@@ -137,6 +138,8 @@ class HookManGenerator:
         """
         Generate a template with the necessary files and structure to create a plugin
 
+        :param str plugin_name: the user-friendly name of the plugin, for example ``"Hydrates"``.
+
         A folder with the same name as the shared_lib_name argument will be created, with the following files:
             <plugin_folder>
                 - CMakeLists.txt
@@ -173,24 +176,24 @@ class HookManGenerator:
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
-    def generate_project_files(self, dst_path: Path):
+    def generate_project_files(self, dst_path: Union[Path, str]):
         """
         Generate the following files on the dst_path:
         - HookCaller.hpp
         - HookCallerPython.cpp
         """
-        hook_caller_hpp = Path(dst_path / 'cpp' / 'HookCaller.hpp')
-        hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
-
-        os.makedirs(hook_caller_hpp.parent)
-        os.makedirs(hook_caller_python.parent)
-
+        hook_caller_hpp = Path(dst_path) / 'cpp' / 'HookCaller.hpp'
+        hook_caller_hpp.parent.mkdir(exist_ok=True, parents=True)
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
-        hook_caller_python.write_text(self._hook_caller_python_content())
+
+        if self.pyd_name:
+            hook_caller_python = Path(dst_path / 'binding' / 'HookCallerPython.cpp')
+            hook_caller_python.parent.mkdir(exist_ok=True, parents=True)
+            hook_caller_python.write_text(self._hook_caller_python_content())
 
         self._generate_cmake_files(dst_path)
 
-    def generate_plugin_package(self, package_name: str, plugin_dir: Path, dst: Path=None):
+    def generate_plugin_package(self, package_name: str, plugin_dir: Union[Path, str], dst_path: Path=None):
         """
         Creates a .hmplugin file using the name provided on package_name argument.
         The file `.hmplugin` will be created with the content from the folder assets and artifacts.
@@ -203,8 +206,9 @@ class HookManGenerator:
         Per default, the package will be created inside the folder plugin_dir, however it's possible
         to give another path filling the dst argument
         """
-        if dst is None:
-            dst = plugin_dir
+        plugin_dir = Path(plugin_dir)
+        if dst_path is None:
+            dst_path = plugin_dir
 
         assets_dir = plugin_dir / "assets"
         artifacts_dir = plugin_dir / "artifacts"
@@ -215,10 +219,10 @@ class HookManGenerator:
 
         if sys.platform == 'win32':
             shared_lib = '*.dll'
-            hmplugin_path = dst / f"{package_name}-win64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-win64.hmplugin"
         else:
             shared_lib = '*.so'
-            hmplugin_path = dst / f"{package_name}-linux64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-linux64.hmplugin"
 
         with ZipFile(hmplugin_path, 'w') as zip_file:
             for file in assets_dir.rglob('*'):
@@ -250,7 +254,7 @@ class HookManGenerator:
             raise AssetsDirNotFoundError()
 
         if not artifacts_dir.exists():
-            raise ArtifactsDirNotFoundError()
+            raise ArtifactsDirNotFoundError(f'Artifacts directory not found: {artifacts_dir}')
 
         shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
         if not any(artifacts_dir.rglob(shared_lib)):
@@ -279,7 +283,6 @@ class HookManGenerator:
         """
         Create a C header file with the content informed on the hook_specs
         """
-        file_content = ''
         list_with_hook_specs_with_documentation = ''
 
         for hook in self.hooks:
@@ -291,7 +294,8 @@ class HookManGenerator:
             """)
             list_with_hook_specs_with_documentation += hook_specs_content
 
-        file_content += dedent(f"""\
+        file_content = dedent(f"""\
+        /* {self._DO_NOT_MODIFY_MSG} */
         #ifndef {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         #define {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         #ifdef WIN32
@@ -312,6 +316,8 @@ class HookManGenerator:
         """)
         return file_content
 
+    _DO_NOT_MODIFY_MSG = 'File automatically generated by hookman, **DO NOT MODIFY MANUALLY**'
+
     def _hook_caller_hpp_content(self) -> str:
         """
         Create a .hpp file with the content informed on the hook_specs
@@ -322,6 +328,7 @@ class HookManGenerator:
         list_with_private_members = []
 
         content_lines += [
+            f"// {self._DO_NOT_MODIFY_MSG}",
             "#ifndef _H_HOOKMAN_HOOK_CALLER",
             "#define _H_HOOKMAN_HOOK_CALLER",
             "",
@@ -361,10 +368,15 @@ class HookManGenerator:
             ]
 
             list_with_set_functions += [
+                # uintptr overload
                 f'    void append_{hook.name}_impl(uintptr_t pointer) {{',
                 f'        this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));',
                 f'    }}',
                 "",
+                # std::function overload
+                f'    void append_{hook.name}_impl(std::function<{hook.r_type}({hook.args_type})> func) {{',
+                f'        this->_{hook.name}_impls.push_back(func);',
+                f'    }}',
             ]
         content_lines += list_with_hook_calls
         content_lines.append("")
@@ -386,6 +398,7 @@ class HookManGenerator:
         Create a .cpp file to bind python and cpp code with PyBind11
         """
         content_lines = [
+            f"// {self._DO_NOT_MODIFY_MSG}",
             "#include <pybind11/functional.h>",
             "#include <pybind11/pybind11.h>",
             "#include <pybind11/stl_bind.h>",
@@ -413,9 +426,14 @@ class HookManGenerator:
             f'        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
         ]
         for hook in self.hooks:
+            append_ptr = f'&hookman::HookCaller::append_{hook.name}_impl'
+            append_uint_sig = 'void (hookman::HookCaller::*)(uintptr_t)'
+            append_function_sig = f'void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>)'
+
             content_lines += [
                 f'        .def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
-                f'        .def("append_{hook.name}_impl", &hookman::HookCaller::append_{hook.name}_impl)',
+                f'        .def("append_{hook.name}_impl", ({append_uint_sig}) {append_ptr})',
+                f'        .def("append_{hook.name}_impl", ({append_function_sig}) {append_ptr})',
             ]
         content_lines.append(f'    ;')
         content_lines.append('}')
@@ -423,37 +441,38 @@ class HookManGenerator:
         return "\n".join(content_lines)
 
     def _generate_cmake_files(self, dst_path: Path):
-        hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
-        hook_caller_python = Path(dst_path / 'binding' / 'CMakeLists.txt')
         from textwrap import dedent
 
+        hook_caller_hpp = Path(dst_path / 'cpp' / 'CMakeLists.txt')
         with open(hook_caller_hpp, mode='w') as file:
             file.writelines(dedent(f"""\
                 add_library({self.pyd_name}_interface INTERFACE)
                 target_include_directories({self.pyd_name}_interface INTERFACE ./)
                 """))
 
-        with open(hook_caller_python, mode='w') as file:
-            file.writelines(dedent(f"""\
-            include(pybind11Config)
-
-            pybind11_add_module(
-                {self.pyd_name}
-                    HookCallerPython.cpp
-            )
-            target_include_directories(
-               {self.pyd_name}
-                PRIVATE
-                    ${{pybind11_INCLUDE_DIRS}}  # from pybind11Config
-            )
-            target_link_libraries(
-                {self.pyd_name}
-                PRIVATE
-                    {self.pyd_name}_interface
-            )
-
-            install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
-            """))
+        if self.pyd_name:
+            hook_caller_python = Path(dst_path / 'binding' / 'CMakeLists.txt')
+            with open(hook_caller_python, mode='w') as file:
+                file.writelines(dedent(f"""\
+                include(pybind11Config)
+    
+                pybind11_add_module(
+                    {self.pyd_name}
+                        HookCallerPython.cpp
+                )
+                target_include_directories(
+                   {self.pyd_name}
+                    PRIVATE
+                        ${{pybind11_INCLUDE_DIRS}}  # from pybind11Config
+                )
+                target_link_libraries(
+                    {self.pyd_name}
+                    PRIVATE
+                        {self.pyd_name}_interface
+                )
+    
+                install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
+                """))
 
     def _plugin_config_file_content(
             self,

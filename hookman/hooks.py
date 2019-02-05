@@ -13,18 +13,29 @@ from hookman.plugin_config import PluginInfo
 class HookSpecs:
     """
     A class that holds the specification of the hooks, currently the following specification are available:
-    - Project Name:
-        This field will be used to identify the project and to name the hook functions
-    - Version:
-        The current version of the spec, when a new hook is created or modified this version should be incremented
-    - Hooks:
-        A list with the hooks available for the project, each hook is represented by a python function
+
+    :kwparam project_name:
+        This field will be used to identify the project and to name the hook functions. This is usually a project name
+        in a user-friendly format, such as "My Project".
+
+    :kwparam str version:
+        The current version of the spec, when a new hook is created or modified this version should be changed.
+
+    :kwparam str pyd_name:
+        Base name of the shared library for the bindings for the HookCaller class. If None, no bindings will be
+        generated.
+
+    :kwparam List[function] hooks:
+        A list with the hooks available for the project, each hook is a python function with type annotations.
+
+    :kwparam List[str] extra_includes:
+        Extra #include directives that will be added to the generated HookCaller.hpp file.
     """
 
     def __init__(self, *,
             project_name: str,
             version: str,
-            pyd_name: str,
+            pyd_name: str = None,
             hooks: List[Callable],
             extra_includes: List[str] = (),
         ) -> None:

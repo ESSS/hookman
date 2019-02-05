@@ -13,8 +13,6 @@
     #include <dlfcn.h>
 #endif
 
-#include <custom_include1>
-#include <custom_include2>
 
 namespace hookman {
 
@@ -24,27 +22,7 @@ template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {
 
 class HookCaller {
 public:
-    std::vector<std::function<int(int, double[2])>> friction_factor_impls() {
-        return this->_friction_factor_impls;
-    }
-    std::vector<std::function<int(int, double[2])>> friction_factor_2_impls() {
-        return this->_friction_factor_2_impls;
-    }
 
-    void append_friction_factor_impl(uintptr_t pointer) {
-        this->_friction_factor_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
-    }
-
-    void append_friction_factor_impl(std::function<int(int, double[2])> func) {
-        this->_friction_factor_impls.push_back(func);
-    }
-    void append_friction_factor_2_impl(uintptr_t pointer) {
-        this->_friction_factor_2_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
-    }
-
-    void append_friction_factor_2_impl(std::function<int(int, double[2])> func) {
-        this->_friction_factor_2_impls.push_back(func);
-    }
 
 #if defined(_WIN32)
 
@@ -61,16 +39,6 @@ public:
             throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
         }
         this->handles.push_back(handle);
-
-        auto p0 = GetProcAddress(handle, "acme_v1_friction_factor");
-        if (p0 != nullptr) {
-            this->append_friction_factor_impl((uintptr_t)(p0));
-        }
-
-        auto p1 = GetProcAddress(handle, "acme_v1_friction_factor_2");
-        if (p1 != nullptr) {
-            this->append_friction_factor_2_impl((uintptr_t)(p1));
-        }
 
     }
 
@@ -120,16 +88,6 @@ public:
         }
         this->handles.push_back(handle);
 
-        auto p0 = dlsym(handle, "acme_v1_friction_factor");
-        if (p0 != nullptr) {
-            this->append_friction_factor_impl((uintptr_t)(p0));
-        }
-
-        auto p1 = dlsym(handle, "acme_v1_friction_factor_2");
-        if (p1 != nullptr) {
-            this->append_friction_factor_2_impl((uintptr_t)(p1));
-        }
-
     }
 
 #else
@@ -137,8 +95,6 @@ public:
 #endif
 
 private:
-    std::vector<std::function<int(int, double[2])>> _friction_factor_impls;
-    std::vector<std::function<int(int, double[2])>> _friction_factor_2_impls;
 };
 
 }  // namespace hookman

@@ -37,12 +37,9 @@ The block code below exemplifies a valid :ref:`hook-specs-api-section` configura
 
 With the :ref:`hook-specs-api-section` defined, it's possible to generate the necessary files to interact between the application and the plugins implementation.
 
-.. code-block:: python
+.. code-block:: bash
 
-    # Initializing a class
-    hook_gen = HookManGenerator(hook_spec_file_path=Path('hook_specs.py'))
-    hook_gen.generate_project_files(dst_path=<dst_dir>)
-
+    $ python -m hookman generate-project-files hook_specs.py --dst-path <DEST_DIR>
 
 The output from the command above will be the following files:
 

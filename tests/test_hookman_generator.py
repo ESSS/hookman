@@ -18,10 +18,17 @@ def test_hook_man_generator(datadir, file_regression):
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
     hg.generate_project_files(dst_path=datadir)
 
+    file_regression.check((datadir / 'cpp' / 'HookCaller.hpp').read_text(), basename='HookCaller', extension='.hpp')
+    file_regression.check((datadir / 'binding' / 'HookCallerPython.cpp').read_text(), basename='HookCallerPython', extension='.cpp')
+
+
+def test_hook_man_generator_no_pyd(datadir, file_regression):
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs_no_pyd.py'))
+    hg.generate_project_files(dst_path=datadir)
+
     obtained_hook_caller_file = datadir / 'cpp' / 'HookCaller.hpp'
-    obtained_hook_caller_python_file = datadir / 'binding' / 'HookCallerPython.cpp'
-    file_regression.check(obtained_hook_caller_file.read_text(), basename='HookCaller', extension='.hpp')
-    file_regression.check(obtained_hook_caller_python_file.read_text(), basename='HookCallerPython', extension='.cpp')
+    file_regression.check(obtained_hook_caller_file.read_text(), basename='HookCallerNoPyd', extension='.hpp')
+    assert not (datadir / 'binding').is_dir()
 
 
 def test_generate_plugin_template(datadir, file_regression):
@@ -149,7 +156,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     asset_dir.mkdir()
 
     # -- Without Artifacts Folder
-    with pytest.raises(ArtifactsDirNotFoundError):
+    with pytest.raises(ArtifactsDirNotFoundError, match=r'Artifacts directory not found: .*[\\/]acme[\\/]artifacts'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
     artifacts_dir = plugin_dir / 'artifacts'

@@ -9,6 +9,10 @@
     #define HOOKMAN_FUNC_EXP
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP acme_version_api() {return "v1";}
 HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {return "acme";}
 
@@ -22,4 +26,9 @@ Docs for Friction Factor
 */
 #define HOOK_FRICTION_FACTOR(v1, v2) HOOKMAN_API_EXP int HOOKMAN_FUNC_EXP acme_v1_friction_factor(int v1, double v2[2])
 
+
+#ifdef __cplusplus
+} // extern "C"
 #endif
+
+#endif // ACME_HOOK_SPECS_HEADER_FILE

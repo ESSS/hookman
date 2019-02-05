@@ -317,13 +317,22 @@ class HookManGenerator:
             #define HOOKMAN_FUNC_EXP
         #endif
 
+        #ifdef __cplusplus
+        extern "C" {{
+        #endif
+
         #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
         HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
 
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""
+
+        #ifdef __cplusplus
+        }} // extern "C"
         #endif
+
+        #endif // {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         """)
         return file_content
 

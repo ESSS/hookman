@@ -33,6 +33,8 @@ History
   * ``python -m hookman generate-hook-specs-h``
   * ``python -m hookman package-plugin``
 
+- Explicitly declare ``extern "C"`` calling convention in the ``hook_specs.h`` file.
+
 0.1.7 (2018-08-23)
 ------------------
 

@@ -78,5 +78,18 @@ def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path
     return 0
 
 
+@cli.command()
+@click.argument('specs_path', type=click.Path(exists=True))
+@click.argument('shared_lib_name')
+@click.option('--dst-path', default='./', help='Path to where the files will be written')
+def generate_hook_specs_h(specs_path: str, shared_lib_name: str, dst_path: Path):
+    """Generates or update the hook_specs.h header file."""
+    hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
+    hm_generator.generate_hook_specs_header(
+        shared_lib_name=shared_lib_name,
+        dst_path=Path(dst_path))
+    return 0
+
+
 if __name__ == "__main__":
     sys.exit(cli())  # pragma: no cover

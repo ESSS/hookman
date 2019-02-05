@@ -30,7 +30,8 @@ History
 
   * ``python -m hookman generate-plugin-template``
   * ``python -m hookman generate-project-files``
-  * ``python -m hookman package-plugin``  
+  * ``python -m hookman generate-hook-specs-h``
+  * ``python -m hookman package-plugin``
 
 0.1.7 (2018-08-23)
 ------------------

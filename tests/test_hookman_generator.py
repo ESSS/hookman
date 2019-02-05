@@ -65,6 +65,20 @@ def test_generate_plugin_template(datadir, file_regression):
     file_regression.check(obtained_compile_script.read_text(), basename='generate_compile', extension='.py')
 
 
+def test_generate_hook_specs_header(datadir, file_regression):
+    plugin_dir = datadir / 'my-plugin'
+
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
+    hg.generate_hook_specs_header(shared_lib_name='acme', dst_path=plugin_dir)
+
+    obtained_hook_specs_file = plugin_dir / 'acme/src/hook_specs.h'
+    file_regression.check(obtained_hook_specs_file.read_text(), basename='generate_hook_specs_header1', extension='.h')
+
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs_2.py'))
+    hg.generate_hook_specs_header(shared_lib_name='acme', dst_path=plugin_dir)
+    file_regression.check(obtained_hook_specs_file.read_text(), basename='generate_hook_specs_header2', extension='.h')
+
+
 def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, tmpdir):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
 

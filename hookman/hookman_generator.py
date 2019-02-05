@@ -176,6 +176,17 @@ class HookManGenerator:
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
 
+    def generate_hook_specs_header(self, shared_lib_name: str, dst_path: Union[str, Path]):
+        """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
+
+        :param shared_lib_name: short name of the generated shared library
+        :param dst_path: directory where to generate the file.
+        """
+        source_folder = Path(dst_path) / shared_lib_name / 'src'
+        source_folder.mkdir(parents=True, exist_ok=True)
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
+
+
     def generate_project_files(self, dst_path: Union[Path, str]):
         """
         Generate the following files on the dst_path:

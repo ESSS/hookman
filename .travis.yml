@@ -1,15 +1,20 @@
 
 sudo: required
+dist: xenial
 
 language: python
-python:
-  - 3.6
+
+jobs:
+  include:
+    - python: '3.6'
+      env: TOXENV=py36
+    - python: '3.7'
+      env: TOXENV=py37
 
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-6.0
+      - llvm-toolchain-xenial-6.0
     packages:
       - clang-6.0
       - ninja-build
@@ -20,7 +25,7 @@ install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PYBIND_PATH="$HOME/miniconda/share/cmake/pybind11"
-  - $HOME/miniconda/bin/conda install --channel conda-forge pybind11 python=3.6 -y --quiet
+  - $HOME/miniconda/bin/conda install --channel conda-forge pybind11 python=$TRAVIS_PYTHON_VERSION -y --quiet
 
 
 script: tox

@@ -1,8 +1,7 @@
 name: hookman
 
-
 dependencies:
-    - python==3.6.5
+    - python=3
     - strictyaml
     - invoke==1.0.0
     - click

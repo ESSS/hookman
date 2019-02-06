@@ -22,6 +22,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     description="HookMan is a python package that provides a plugin management system to applications, specially those who are written (in totally or partially) in C++.",
     entry_points={

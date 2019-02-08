@@ -2,22 +2,28 @@ skip_branch_with_pr: true
 
 image: Visual Studio 2017
 environment:
+  PYBIND_PATH: C:/Miniconda36-x64/share/cmake/pybind11
+
   matrix:
     - PYTHON_DIR: "C:/Python36-x64"
+      PYTHON_VER: "3.6"
       TOXENV: "py36"
-      PYBIND_PATH: C:/Miniconda36-x64/share/cmake/pybind11
+    - PYTHON_DIR: "C:/Python37-x64"
+      PYTHON_VER: "3.7"
+      TOXENV: "py37"
+
 
 platform:
-    - x64
+  - x64
 
 install:
   - set "PATH=%PYTHON_DIR%;%PATH%"
   - set "APPVEYOR_PYTHON=%PYTHON_DIR%/python.exe"
   - python -m pip install -U pip tox wheel
   - choco install ninja
-  - C:\Miniconda36-x64\Scripts\conda.exe install --channel conda-forge pybind11 -y
+  - C:\Miniconda36-x64\Scripts\conda.exe install --channel conda-forge pybind11 python=%PYTHON_VER% -y
 
-  
+
 build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:

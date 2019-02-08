@@ -90,7 +90,12 @@ def compile_build_files(ctx):
     os.makedirs(artifacts_dir)
     os.makedirs(ninja_dir)
 
-    call_cmake = f'cmake -DCMAKE_BUILD_TYPE=Release -G Ninja "{build_dir}" -DHEAVY_COMPILATION_PARALLEL_JOBS=8'
+    call_cmake = (
+        f'cmake '
+        f'-DCMAKE_BUILD_TYPE=Release '
+        f'-G Ninja "{build_dir}" '
+        f'-DPYTHON_EXECUTABLE={sys.executable} '
+    )
     call_ninja = 'ninja -j 8'
     call_install = 'ninja install'
 

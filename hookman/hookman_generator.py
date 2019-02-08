@@ -309,29 +309,32 @@ class HookManGenerator:
         /* {self._DO_NOT_MODIFY_MSG} */
         #ifndef {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         #define {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
+        #ifdef __cplusplus
+            #define _HOOKMAN_EXTERN_C extern "C"
+        #else
+            #define _HOOKMAN_EXTERN_C
+        #endif
+
         #ifdef WIN32
-            #define HOOKMAN_API_EXP __declspec(dllexport)
+            #define HOOKMAN_API_EXP _HOOKMAN_EXTERN_C __declspec(dllexport)
             #define HOOKMAN_FUNC_EXP __cdecl
         #else
-            #define HOOKMAN_API_EXP
+            #define HOOKMAN_API_EXP _HOOKMAN_EXTERN_C
             #define HOOKMAN_FUNC_EXP
         #endif
 
-        #ifdef __cplusplus
-        extern "C" {{
-        #endif
+        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{
+            return \"{self.version}\";
+        }}
 
-        #define INIT_HOOKS() HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP {self.project_name}_version_api() {{return \"{self.version}\";}}
-        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{return \"{shared_lib_name}\";}}
+        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{
+            return \"{shared_lib_name}\";
+        }}
 
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""
-
-        #ifdef __cplusplus
-        }} // extern "C"
-        #endif
-
+        
         #endif // {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         """)
         return file_content

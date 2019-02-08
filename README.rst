@@ -5,8 +5,14 @@ Hookman
 .. image:: https://img.shields.io/pypi/v/python-hookman.svg
     :target: https://pypi.python.org/pypi/python-hookman
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/python-hookman.svg
+    :target: https://anaconda.org/conda-forge/python-hookman
+
+.. image:: https://img.shields.io/pypi/pyversions/python-hookman.svg
+    :target: https://pypi.org/project/python-hookman
+
 .. image:: https://img.shields.io/travis/ESSS/hookman.svg
-        :target: https://travis-ci.org/ESSS/hookman
+    :target: https://travis-ci.org/ESSS/hookman                
 
 .. image:: https://ci.appveyor.com/api/projects/status/w472d1cm0w37ka3l/branch/master?svg=true
     :target: https://ci.appveyor.com/project/ESSS/hookman/?branch=master&svg=true
@@ -15,8 +21,8 @@ Hookman
     :target: https://codecov.io/gh/ESSS/hookman
 
 .. image:: https://readthedocs.org/projects/hookman/badge/?version=latest
-        :target: https://hookman.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+    :target: https://hookman.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 
 This documentation covers HookMan usage & API.

@@ -2,7 +2,7 @@
 History
 =======
 
-0.2.0 (unreleased)
+0.2.0 (2019-02-08)
 ------------------
 
 - Moved load hook function code to ``HookCaller.load_impls_from_library`` function implemented in C++. This

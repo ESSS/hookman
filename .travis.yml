@@ -4,12 +4,33 @@ dist: xenial
 
 language: python
 
+stages:
+- name: test
+  if: repo = ESSS/hookman AND tag IS NOT present
+- name: deploy
+  if: repo = ESSS/hookman AND tag IS present
+
 jobs:
   include:
     - python: '3.6'
       env: TOXENV=py36
     - python: '3.7'
       env: TOXENV=py37
+
+    - stage: deploy
+      python: '3.6'
+      env:
+      install: pip install -U setuptools setuptools_scm
+      script: skip
+      deploy:
+        provider: pypi
+        distributions: sdist bdist_wheel
+        user: williamjamir
+        password:
+          secure: U1LXcIkHPY7/8mYNX2ZM/KybtLbNKi9rxhMrw7PNgDPI8nH+2rpRPFTuoy8vlW4oxTJmq+TQorPfL7Gfnp5JbqSY17QiL9SS2DYqPtJecu7RHlb5DFOC8yl3xToZViBgOvdK2FbV0PkEySW2cJLNsQI2Xv/sVD5nLJPNyBwymCve4T8YZ4H6iGgg5cjXI/lAVnAniCnGFb1ppMixqgyJ6VtCNjP80/ZmJz+LSqCkq66QCDbpAaJn5CtZQfH5KeYy0nepeQL5mpm7q5I8uaxX7+AyhNwGjqjPmexmLLWOmLLVankOVxoUpjK6lLMWzwSzWYE14tVZHs3Ew5AaGLGFOx+RtHTeIWWRwwvGCRUr4tHl224Inha175i7ajRnidCiKaO7HqKcVn7sJ7gJnU1cGKsEB/HR+9h4IHAl/zCEl0pG6ocMiz6sjR6oAOyPL2pwjFan9n2hisSnm1hyCJcMKop2hedhguDlQGmuKlhR9CXaVLXqL0/im4m81zo5NFmI3ZN09PYdHjYZwwupZEFTgAiC0Dpqmlcte43GAWpVx96hWtdnrNoTgQOToIQ9485kgF3Q8ttr0IyeMMUI/2o7lnjfMoTE4Lfqe9fGYQUHTNjdwBvluCkAGbAR8Q4IPR13/lWu0p94V4FD3ENJn9nKgVfPCGVeV9ld28pjoDQkhDY=
+        on:
+          tags: true
+          repo: ESSS/hookman
 
 addons:
   apt:
@@ -29,17 +50,6 @@ install:
 
 
 script: tox
-
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: williamjamir
-  password:
-    secure: U1LXcIkHPY7/8mYNX2ZM/KybtLbNKi9rxhMrw7PNgDPI8nH+2rpRPFTuoy8vlW4oxTJmq+TQorPfL7Gfnp5JbqSY17QiL9SS2DYqPtJecu7RHlb5DFOC8yl3xToZViBgOvdK2FbV0PkEySW2cJLNsQI2Xv/sVD5nLJPNyBwymCve4T8YZ4H6iGgg5cjXI/lAVnAniCnGFb1ppMixqgyJ6VtCNjP80/ZmJz+LSqCkq66QCDbpAaJn5CtZQfH5KeYy0nepeQL5mpm7q5I8uaxX7+AyhNwGjqjPmexmLLWOmLLVankOVxoUpjK6lLMWzwSzWYE14tVZHs3Ew5AaGLGFOx+RtHTeIWWRwwvGCRUr4tHl224Inha175i7ajRnidCiKaO7HqKcVn7sJ7gJnU1cGKsEB/HR+9h4IHAl/zCEl0pG6ocMiz6sjR6oAOyPL2pwjFan9n2hisSnm1hyCJcMKop2hedhguDlQGmuKlhR9CXaVLXqL0/im4m81zo5NFmI3ZN09PYdHjYZwwupZEFTgAiC0Dpqmlcte43GAWpVx96hWtdnrNoTgQOToIQ9485kgF3Q8ttr0IyeMMUI/2o7lnjfMoTE4Lfqe9fGYQUHTNjdwBvluCkAGbAR8Q4IPR13/lWu0p94V4FD3ENJn9nKgVfPCGVeV9ld28pjoDQkhDY=
-  on:
-    tags: true
-    repo: ESSS/hookman
-    python: 3.6
 
 branches:
   only:

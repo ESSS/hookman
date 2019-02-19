@@ -9,7 +9,7 @@ from hookman.hookman_generator import HookManGenerator
 
 
 @invoke.task
-def build(ctx):
+def build(ctx, cache=None):
     """
     A task to build all the necessary files for the test and compile the dlls and pyd;
     """

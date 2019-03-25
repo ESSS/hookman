@@ -115,6 +115,7 @@ class HookMan:
         plugin_destination_folder = dest_path / plugin_name
         plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
+        return plugin_name
 
     def remove_plugin(self, plugin_name: str):
         """

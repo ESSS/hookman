@@ -83,9 +83,10 @@ class HookMan:
             for hook in specs.hooks
         }
 
-    def install_plugin(self, plugin_file_path: Path, dst_path: Path):
+    def install_plugin(self, plugin_file_path: Path, dest_path: Path) -> str:
         """
-        Extract the content of the zip file into dst_path.
+        Extract the content of the zip file into dest_path.
+        If the installation occurs successfully the name of the installed plugin will be returned.
 
         The following checks will be executed to validate the consistency of the inputs:
 
@@ -94,24 +95,24 @@ class HookMan:
             2. The plugins_dirs cannot have two plugins with the same name.
 
         :plugin_file_path: The Path for the ``.hmplugin``
-        :dst_path: The destination to where the plugin should be placed.
+        :dest_path: The destination to where the plugin should be placed.
         """
         plugin_file_zip = ZipFile(plugin_file_path)
         PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
 
-        if dst_path not in self.plugins_dirs:
-            raise InvalidDestinationPathError(f"Invalid destination path, {dst_path} is not one of "
+        if dest_path not in self.plugins_dirs:
+            raise InvalidDestinationPathError(f"Invalid destination path, {dest_path} is not one of "
                                               f"the paths that were informed when the HookMan "
                                               f"object was initialized: {self.plugins_dirs}.")
 
         plugin_name = Path(plugin_file_zip.filename).stem.replace('-linux64', '').replace('-win64', '')
 
-        plugins_dirs = [x for x in dst_path.iterdir() if x.is_dir()]
+        plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 
         if plugin_name in [x.name for x in plugins_dirs]:
             raise PluginAlreadyInstalledError("Plugin already installed")
 
-        plugin_destination_folder = dst_path / plugin_name
+        plugin_destination_folder = dest_path / plugin_name
         plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
 

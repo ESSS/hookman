@@ -13,7 +13,7 @@ dependencies:
 
     # C++ compilation
     - pybind11
-    - ninja=1.7.1
+    - ninja
     - cmake >=3.5.2
 
     {% if os.sys.platform != 'win32' %}

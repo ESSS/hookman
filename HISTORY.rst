@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.0 (Unreleased)
+------------------
+
+- Rename the parameter ``dst_path`` to ``dest_path`` on ``install_plugin`` method.
+- ``install_plugin`` now returns the name of the plugin when the installation is successful.
+
 0.2.0 (2019-02-08)
 ------------------
 

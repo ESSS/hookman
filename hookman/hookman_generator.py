@@ -547,20 +547,10 @@ class HookManGenerator:
 
     def _plugin_cmake_file_content(self, shared_lib_name):
         file_content = dedent(f'''\
-            cmake_minimum_required(VERSION 3.5.2)
+            cmake_minimum_required(VERSION 3.13)
 
             set(PROJECT_NAME {shared_lib_name})
             set(ARTIFACTS_DIR ${{CMAKE_CURRENT_SOURCE_DIR}}/artifacts)
-
-            if(NOT WIN32)
-              set(CMAKE_C_COMPILER    clang)
-              set(CMAKE_CXX_COMPILER  clang++)
-              set(CMAKE_C_FLAGS       "-Wall -std=c99")
-              set(CMAKE_C_FLAGS_DEBUG "-g")
-            endif(NOT WIN32)
-
-            set(CMAKE_CXX_LINK_FLAGS  "-lstdc++")
-            set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
             set(CMAKE_C_STANDARD 99)
 

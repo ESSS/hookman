@@ -110,16 +110,16 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
     # Trying to install without a SHARED LIB inside the plugin
     from hookman.exceptions import SharedLibraryNotFoundError
     with pytest.raises(SharedLibraryNotFoundError, match=f"{mocked_config_content['shared_lib_name']} could not be found inside the plugin file"):
-        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
+        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dest_path=simple_plugin['path'])
 
 
-def test_install_with_invalid_dst_path(simple_plugin):
+def test_install_with_invalid_dest_path(simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
 
     # Trying to install in the plugin on an different path informed on the construction of the HookMan object
     from hookman.exceptions import InvalidDestinationPathError
     with pytest.raises(InvalidDestinationPathError, match=f"Invalid destination path"):
-        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'] / 'INVALID_PATH')
+        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dest_path=simple_plugin['path'] / 'INVALID_PATH')
 
 
 def test_install_plugin_duplicate(simple_plugin):
@@ -130,13 +130,13 @@ def test_install_plugin_duplicate(simple_plugin):
     # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
     from hookman.exceptions import PluginAlreadyInstalledError
     with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
-        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'].parent)
+        hm.install_plugin(plugin_file_path=simple_plugin['zip'], dest_path=simple_plugin['path'].parent)
 
 
 def test_install_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin['specs'], plugin_dirs=[simple_plugin['path']])
     assert (simple_plugin['path'] / 'simple_plugin').exists() == False
-    hm.install_plugin(plugin_file_path=simple_plugin['zip'], dst_path=simple_plugin['path'])
+    hm.install_plugin(plugin_file_path=simple_plugin['zip'], dest_path=simple_plugin['path'])
     assert (simple_plugin['path'] / 'simple_plugin').exists() == True
 
 

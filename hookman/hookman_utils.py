@@ -1,4 +1,5 @@
 import ctypes
+import os
 import sys
 from contextlib import contextmanager
 from pathlib import Path
@@ -26,6 +27,8 @@ def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
     """
     Load a shared library using ctypes freeing the resource at end.
     """
+    if sys.platform.startswith('win'):
+        os.environ["PATH"] = os.path.dirname(shared_lib_path) + os.pathsep + os.environ["PATH"]
     plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
     try:
         yield plugin_dll

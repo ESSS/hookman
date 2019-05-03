@@ -186,7 +186,6 @@ class HookManGenerator:
         source_folder.mkdir(parents=True, exist_ok=True)
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
 
-
     def generate_project_files(self, dst_path: Union[Path, str]):
         """
         Generate the following files on the dst_path:
@@ -334,7 +333,7 @@ class HookManGenerator:
         """)
         file_content += list_with_hook_specs_with_documentation
         file_content += dedent(f"""
-        
+
         #endif // {self.project_name.upper()}_HOOK_SPECS_HEADER_FILE
         """)
         return file_content
@@ -361,6 +360,8 @@ class HookManGenerator:
             "#include <vector>",
             "",
             "#ifdef _WIN32",
+            f"    #include <cstdlib>",
+            f"    #include <malloc.h>",
             f"    #include <windows.h>",
             "#else",
             f"    #include <dlfcn.h>",
@@ -478,7 +479,7 @@ class HookManGenerator:
             with open(hook_caller_python, mode='w') as file:
                 file.writelines(dedent(f"""\
                 include(pybind11Config)
-    
+
                 pybind11_add_module(
                     {self.pyd_name}
                         HookCallerPython.cpp
@@ -493,7 +494,7 @@ class HookManGenerator:
                     PRIVATE
                         {self.pyd_name}_interface
                 )
-    
+
                 install(TARGETS {self.pyd_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
                 """))
 
@@ -666,7 +667,7 @@ def _generate_windows_body(hooks):
     result += [
         f"    void load_impls_from_library(const std::string& utf8_filename) {{",
         f'        std::wstring w_filename = utf8_to_wstring(utf8_filename);',
-        f'        auto handle = LoadLibraryW(w_filename.c_str());',
+        f'        auto handle = this->Load_DLL(w_filename);',
         f'        if (handle == NULL) {{',
         f'            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
         f'        }}',
@@ -708,6 +709,31 @@ def _generate_windows_body(hooks):
         f"            }}",
         f"        }}",
         f"        return result;",
+        f"    }}",
+        f"",
+        f"",
+        f"    HMODULE Load_DLL(const std::wstring& w_filename) {{",
+        f'        wchar_t *path_env = NULL;',
+        f'        rsize_t path_env_len = 0;',
+        f'        // Read PATH environment variable',
+        f'        _wdupenv_s(&path_env, &path_env_len, L"PATH");',
+        f'        std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\\\");',
+        f'        int size = path_env_len + MAX_PATH;',
+        f'        wchar_t *new_path_env;',
+        f'        new_path_env = (wchar_t *)malloc(size);',
+        f'        rsize_t new_path_len = size;',
+        f'        // Get dir name from library(DLL) full path',
+        f'        auto dir_name = w_filename.substr(0, dir_name_size) + L";";',
+        f'        // Add dir name to PATH environment variable string',
+        f'        wcsncpy_s(new_path_env, new_path_len, dir_name.c_str(), dir_name_size+2);',
+        f'        wcsncat_s(new_path_env, new_path_len, path_env, path_env_len);',
+        f'        // Set new PATH environmet variable',
+        f'        _wputenv_s(L"PATH", new_path_env);',
+        f'        // Load library (DLL)',
+        f'        auto handle = LoadLibraryW(w_filename.c_str());',
+        f'        // Set the original PATH environment variable',
+        f'        _wputenv_s(L"PATH", path_env);',
+        f'        return handle;',
         f"    }}",
         f"",
         f"",

@@ -8,6 +8,8 @@
 #include <vector>
 
 #ifdef _WIN32
+    #include <cstdlib>
+    #include <malloc.h>
     #include <windows.h>
 #else
     #include <dlfcn.h>
@@ -34,7 +36,7 @@ public:
     }
     void load_impls_from_library(const std::string& utf8_filename) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
-        auto handle = LoadLibraryW(w_filename.c_str());
+        auto handle = this->Load_DLL(w_filename);
         if (handle == NULL) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
         }
@@ -64,6 +66,31 @@ private:
             }
         }
         return result;
+    }
+
+
+    HMODULE Load_DLL(const std::wstring& w_filename) {
+        wchar_t *path_env = NULL;
+        rsize_t path_env_len = 0;
+        // Read PATH environment variable
+        _wdupenv_s(&path_env, &path_env_len, L"PATH");
+        std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\");
+        int size = path_env_len + MAX_PATH;
+        wchar_t *new_path_env;
+        new_path_env = (wchar_t *)malloc(size);
+        rsize_t new_path_len = size;
+        // Get dir name from library(DLL) full path
+        auto dir_name = w_filename.substr(0, dir_name_size) + L";";
+        // Add dir name to PATH environment variable string
+        wcsncpy_s(new_path_env, new_path_len, dir_name.c_str(), dir_name_size+2);
+        wcsncat_s(new_path_env, new_path_len, path_env, path_env_len);
+        // Set new PATH environmet variable
+        _wputenv_s(L"PATH", new_path_env);
+        // Load library (DLL)
+        auto handle = LoadLibraryW(w_filename.c_str());
+        // Set the original PATH environment variable
+        _wputenv_s(L"PATH", path_env);
+        return handle;
     }
 
 

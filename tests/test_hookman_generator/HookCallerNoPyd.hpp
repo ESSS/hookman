@@ -9,7 +9,6 @@
 
 #ifdef _WIN32
     #include <cstdlib>
-    #include <malloc.h>
     #include <windows.h>
 #else
     #include <dlfcn.h>

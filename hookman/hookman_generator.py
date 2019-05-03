@@ -361,7 +361,6 @@ class HookManGenerator:
             "",
             "#ifdef _WIN32",
             f"    #include <cstdlib>",
-            f"    #include <malloc.h>",
             f"    #include <windows.h>",
             "#else",
             f"    #include <dlfcn.h>",

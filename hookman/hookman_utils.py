@@ -23,13 +23,25 @@ def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
 
 
 @contextmanager
+def change_path_env(shared_lib_path: str):
+    """
+    Change PATH environment adding the shared library path to it.
+    """
+    old_path = os.environ["PATH"]
+    if sys.platform.startswith('win'):
+        os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
+    yield
+    os.environ["PATH"] = old_path
+
+
+@contextmanager
 def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
     """
     Load a shared library using ctypes freeing the resource at end.
     """
-    if sys.platform.startswith('win'):
-        os.environ["PATH"] = os.path.dirname(shared_lib_path) + os.pathsep + os.environ["PATH"]
-    plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
+    with change_path_env(shared_lib_path):
+        plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
+
     try:
         yield plugin_dll
     finally:

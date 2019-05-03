@@ -30,8 +30,10 @@ def change_path_env(shared_lib_path: str):
     old_path = os.environ["PATH"]
     if sys.platform.startswith('win'):
         os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
-    yield
-    os.environ["PATH"] = old_path
+    try:
+        yield
+    finally:
+        os.environ["PATH"] = old_path
 
 
 @contextmanager

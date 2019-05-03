@@ -36,7 +36,7 @@ public:
     }
     void load_impls_from_library(const std::string& utf8_filename) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
-        auto handle = this->Load_dll(w_filename);
+        auto handle = this->load_dll(w_filename);
         if (handle == NULL) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
         }
@@ -95,7 +95,7 @@ private:
 
         std::wstring path_env;
     };
-    HMODULE Load_dll(const std::wstring& w_filename) {
+    HMODULE load_dll(const std::wstring& w_filename) {
         // Path Modifier
         PathGuard path_guard{ w_filename };
         // Load library (DLL)

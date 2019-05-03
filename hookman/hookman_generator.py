@@ -667,7 +667,7 @@ def _generate_windows_body(hooks):
     result += [
         f"    void load_impls_from_library(const std::string& utf8_filename) {{",
         f'        std::wstring w_filename = utf8_to_wstring(utf8_filename);',
-        f'        auto handle = this->Load_dll(w_filename);',
+        f'        auto handle = this->load_dll(w_filename);',
         f'        if (handle == NULL) {{',
         f'            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
         f'        }}',
@@ -739,7 +739,7 @@ def _generate_windows_body(hooks):
         f"        std::wstring path_env;",
         f"    }};",
 
-        f"    HMODULE Load_dll(const std::wstring& w_filename) {{",
+        f"    HMODULE load_dll(const std::wstring& w_filename) {{",
         f'        // Path Modifier',
         f'        PathGuard path_guard{{ w_filename }};',
         f'        // Load library (DLL)',

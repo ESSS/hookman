@@ -7,6 +7,7 @@ History
 
 - Rename the parameter ``dst_path`` to ``dest_path`` on ``install_plugin`` method.
 - ``install_plugin`` now returns the name of the plugin when the installation is successful.
+- Now the libray path dir is added to ``PATH`` environment variable before load the library (Only on Windows).
 
 0.2.0 (2019-02-08)
 ------------------

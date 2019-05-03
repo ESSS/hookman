@@ -58,7 +58,7 @@ public:
     }
     void load_impls_from_library(const std::string& utf8_filename) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
-        auto handle = this->Load_DLL(w_filename);
+        auto handle = this->Load_dll(w_filename);
         if (handle == NULL) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
         }
@@ -101,28 +101,37 @@ private:
     }
 
 
-    HMODULE Load_DLL(const std::wstring& w_filename) {
-        wchar_t *path_env = NULL;
-        rsize_t path_env_len = 0;
-        // Read PATH environment variable
-        _wdupenv_s(&path_env, &path_env_len, L"PATH");
-        std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\");
-        int size = path_env_len + MAX_PATH;
-        wchar_t *new_path_env;
-        new_path_env = (wchar_t *)malloc(size);
-        rsize_t new_path_len = size;
-        // Get dir name from library(DLL) full path
-        auto dir_name = w_filename.substr(0, dir_name_size) + L";";
-        // Add dir name to PATH environment variable string
-        wcsncpy_s(new_path_env, new_path_len, dir_name.c_str(), dir_name_size+2);
-        wcsncat_s(new_path_env, new_path_len, path_env, path_env_len);
-        // Set new PATH environmet variable
-        _wputenv_s(L"PATH", new_path_env);
+    class PathGuard {
+    public:
+        PathGuard(std::wstring w_filename)
+            : path_env{ get_path() }
+        {
+            std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\");
+            std::wstring new_path_env = path_env + L";" + w_filename.substr(0, dir_name_size);
+            _wputenv_s(L"PATH", new_path_env.data());
+        }
+
+        ~PathGuard() {
+            _wputenv_s(L"PATH", path_env.data());
+        }
+
+    private:
+        static std::wstring get_path() {
+            rsize_t _len = 0;
+            wchar_t *buf;
+            _wdupenv_s(&buf, &_len, L"PATH");
+            std::wstring path_env{ buf };
+            free(buf);
+            return path_env;
+        }
+
+        std::wstring path_env;
+    };
+    HMODULE Load_dll(const std::wstring& w_filename) {
+        // Path Modifier
+        PathGuard path_guard{ w_filename };
         // Load library (DLL)
-        auto handle = LoadLibraryW(w_filename.c_str());
-        // Set the original PATH environment variable
-        _wputenv_s(L"PATH", path_env);
-        return handle;
+        return LoadLibraryW(w_filename.c_str());
     }
 
 

@@ -102,11 +102,11 @@ private:
 
     class PathGuard {
     public:
-        PathGuard(std::wstring w_filename)
+        PathGuard(std::wstring filename)
             : path_env{ get_path() }
         {
-            std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\");
-            std::wstring new_path_env = path_env + L";" + w_filename.substr(0, dir_name_size);
+            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");
+            std::wstring new_path_env = path_env + L";" + filename.substr(0, dir_name_size);
             _wputenv_s(L"PATH", new_path_env.c_str());
         }
 
@@ -126,11 +126,11 @@ private:
 
         std::wstring path_env;
     };
-    HMODULE load_dll(const std::wstring& w_filename) {
+    HMODULE load_dll(const std::wstring& filename) {
         // Path Modifier
-        PathGuard path_guard{ w_filename };
+        PathGuard path_guard{ filename };
         // Load library (DLL)
-        return LoadLibraryW(w_filename.c_str());
+        return LoadLibraryW(filename.c_str());
     }
 
 

@@ -107,11 +107,11 @@ private:
         {
             std::wstring::size_type dir_name_size = w_filename.find_last_of(L"/\\");
             std::wstring new_path_env = path_env + L";" + w_filename.substr(0, dir_name_size);
-            _wputenv_s(L"PATH", new_path_env.data());
+            _wputenv_s(L"PATH", new_path_env.c_str());
         }
 
         ~PathGuard() {
-            _wputenv_s(L"PATH", path_env.data());
+            _wputenv_s(L"PATH", path_env.c_str());
         }
 
     private:

@@ -31,6 +31,16 @@ def acme_hook_specs(acme_hook_specs_file):
 
 
 @pytest.fixture
+def simple_plugin_dll(datadir, plugins_folder):
+    plugin_dir = datadir / 'simple_plugin/'
+
+    from shutil import copytree
+    copytree(src=plugins_folder / 'simple_plugin/artifacts', dst=plugin_dir)
+
+    return plugin_dir / 'simple_plugin.dll'
+
+
+@pytest.fixture
 def simple_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
     plugin_dir = datadir / 'plugins/simple_plugin/'
 

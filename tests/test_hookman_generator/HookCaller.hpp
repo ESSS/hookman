@@ -8,6 +8,7 @@
 #include <vector>
 
 #ifdef _WIN32
+    #include <cstdlib>
     #include <windows.h>
 #else
     #include <dlfcn.h>
@@ -56,7 +57,7 @@ public:
     }
     void load_impls_from_library(const std::string& utf8_filename) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
-        auto handle = LoadLibraryW(w_filename.c_str());
+        auto handle = this->load_dll(w_filename);
         if (handle == NULL) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
         }
@@ -96,6 +97,41 @@ private:
             }
         }
         return result;
+    }
+
+
+    class PathGuard {
+    public:
+        explicit PathGuard(std::wstring filename)
+            : path_env{ get_path() }
+        {
+            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");
+            std::wstring new_path_env = path_env + L";" + filename.substr(0, dir_name_size);
+            _wputenv_s(L"PATH", new_path_env.c_str());
+        }
+
+        ~PathGuard() {
+            _wputenv_s(L"PATH", path_env.c_str());
+        }
+
+    private:
+        static std::wstring get_path() {
+            rsize_t _len = 0;
+            wchar_t *buf;
+            _wdupenv_s(&buf, &_len, L"PATH");
+            std::wstring path_env{ buf };
+            free(buf);
+            return path_env;
+        } 
+
+        std::wstring path_env;
+    };
+
+    HMODULE load_dll(const std::wstring& filename) {
+        // Path Modifier
+        PathGuard path_guard{ filename };
+        // Load library (DLL)
+        return LoadLibraryW(filename.c_str());
     }
 
 

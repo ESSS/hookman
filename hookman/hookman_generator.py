@@ -713,7 +713,7 @@ def _generate_windows_body(hooks):
         f"",
         f"    class PathGuard {{",
         f"    public:",
-        f"        PathGuard(std::wstring filename)",
+        f"        explicit PathGuard(std::wstring filename)",
         f"            : path_env{{ get_path() }}",
         f"        {{",
         fr'            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");',
@@ -737,7 +737,7 @@ def _generate_windows_body(hooks):
         f"",
         f"        std::wstring path_env;",
         f"    }};",
-
+        f"",
         f"    HMODULE load_dll(const std::wstring& filename) {{",
         f'        // Path Modifier',
         f'        PathGuard path_guard{{ filename }};',

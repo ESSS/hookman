@@ -70,7 +70,7 @@ private:
 
     class PathGuard {
     public:
-        PathGuard(std::wstring filename)
+        explicit PathGuard(std::wstring filename)
             : path_env{ get_path() }
         {
             std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");
@@ -94,6 +94,7 @@ private:
 
         std::wstring path_env;
     };
+
     HMODULE load_dll(const std::wstring& filename) {
         // Path Modifier
         PathGuard path_guard{ filename };

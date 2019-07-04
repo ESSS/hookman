@@ -477,7 +477,7 @@ class HookManGenerator:
             hook_caller_python = Path(dst_path / 'binding' / 'CMakeLists.txt')
             with open(hook_caller_python, mode='w') as file:
                 file.writelines(dedent(f"""\
-                include(pybind11Config)
+                find_package(pybind11 REQUIRED)
 
                 pybind11_add_module(
                     {self.pyd_name}

@@ -42,11 +42,10 @@ addons:
 
 install:
   - pip install -U pip
-  - pip install -U tox-travis
+  - pip install -U tox-travis tox-conda
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PYBIND_PATH="$HOME/miniconda/share/cmake/pybind11"
-  - $HOME/miniconda/bin/conda install --channel conda-forge pybind11 python=$TRAVIS_PYTHON_VERSION -y --quiet
+  - export PATH=$HOME/miniconda/bin:$PATH
 
 
 script: tox

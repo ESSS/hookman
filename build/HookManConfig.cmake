@@ -1,34 +1,17 @@
-if (NOT "$ENV{CONDA_PREFIX}" STREQUAL "")
-    if(WIN32)
-        string(REPLACE "\\" "/" _CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/Library")
-        string(REPLACE "\\" "/" _PYTHON_DIR "$ENV{CONDA_PREFIX}")
-        set(CMAKE_PREFIX_PATH "${_CMAKE_PREFIX_PATH}" CACHE PATH "prefix path")
-        set(PYTHON_DIR "${_PYTHON_DIR}" CACHE PATH "python directory")
-    elseif(UNIX)
-        set(CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX} CACHE PATH "prefix path")
-        set(PYTHON_DIR $ENV{CONDA_PREFIX} CACHE PATH "python directory")
-    endif()
-
-    message(STATUS "Conda detected. CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
+if("$ENV{CONDA_PREFIX}" STREQUAL "")
+  file(TO_CMAKE_PATH "$ENV{TOX_ENV_DIR}" ENV_PREFIX)
+  message(STATUS "ENV_PREFIX from tox: ${ENV_PREFIX}")
 else()
-    # Add support for `pybind11` in CMake trough an environment variable, this configuration is currently used on appveyor
-  if(NOT "$ENV{PYBIND_PATH}" STREQUAL "")
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{PYBIND_PATH}")
-  endif()
+file(TO_CMAKE_PATH "$ENV{CONDA_PREFIX}" ENV_PREFIX)
+  message(STATUS "ENV_PREFIX from conda: ${ENV_PREFIX}")
 endif()
 
-
-# Add support for `pybind11` in CMake (cmake modules coming from `conda-forge`).
-if(WIN32)
-    # On Windows, these packages are not installing things under `<env>/Library/...`, which would be the correct place.
-    # This fixes things.
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_PREFIX_PATH}/../share/cmake/pybind11")
-else()
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_PREFIX_PATH}/share/cmake/pybind11")
+if (NOT "$ENV_PREFIX" STREQUAL "")
+    set(CMAKE_PREFIX_PATH "${ENV_PREFIX}" CACHE PATH "prefix path")
+    set(PYTHON_DIR "${ENV_PREFIX}" CACHE PATH "python directory")
 endif()
 
-message(STATUS "(3) CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 if(NOT WIN32)
   # These must be configured after include(Config)
@@ -50,5 +33,3 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
 endif(NOT WIN32)
-
-

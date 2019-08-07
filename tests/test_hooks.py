@@ -90,6 +90,7 @@ def test_plugins_available(simple_plugin, simple_plugin_2):
         'description',
         'email',
         'hooks_implemented',
+        'plugin_caption',
         'plugin_name',
         'shared_lib_name',
         'shared_lib_path',

@@ -23,6 +23,7 @@ class PluginInfo(object):
     description = attrib(type=str, default="Could not find a description", init=False)
     email = attrib(type=str, init=False)
     hooks_implemented = attrib(type=list, init=False)
+    plugin_caption = attrib(type=str, init=False)
     plugin_name = attrib(type=str, init=False)
     shared_lib_name = attrib(type=str, init=False)
     shared_lib_path = attrib(type=Path, init=False)
@@ -36,6 +37,7 @@ class PluginInfo(object):
 
         object.__setattr__(self, "author", plugin_config_file_content['author'])
         object.__setattr__(self, "email", plugin_config_file_content['email'])
+        object.__setattr__(self, "plugin_caption", plugin_config_file_content['plugin_name'])
         object.__setattr__(self, "plugin_name", plugin_name)
         object.__setattr__(self, "shared_lib_name", plugin_config_file_content['shared_lib_name'])
         object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / self.shared_lib_name)

@@ -61,7 +61,7 @@ def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_
     assert len(hm.get_plugins_available()) == 2
     assert len(list((datadir / 'plugins').iterdir())) == 2
 
-    hook_caller = hm.get_hook_caller(ignored_plugins=['Simple Plugin 2'])
+    hook_caller = hm.get_hook_caller(ignored_plugins=['simple_plugin_2'])
     env_temperatures = hook_caller.env_temperature_impls()
 
     # Plugin2 implements the Hook env_temperature
@@ -86,18 +86,17 @@ def test_plugins_available(simple_plugin, simple_plugin_2):
     assert list(attr.asdict(plugins[0]).keys()) == [
         'yaml_location',
         'hooks_available',
-
         'author',
         'description',
         'email',
         'hooks_implemented',
-        'name',
+        'plugin_name',
         'shared_lib_name',
         'shared_lib_path',
         'version',
     ]
 
-    plugins = hm.get_plugins_available(ignored_plugins=['Simple Plugin 2'])
+    plugins = hm.get_plugins_available(ignored_plugins=['simple_plugin_2'])
     assert len(plugins) == 1
 
 
@@ -146,6 +145,6 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
 
     assert len(hm.get_plugins_available()) == 2
     assert len(list((datadir / 'plugins').iterdir())) == 2
-    hm.remove_plugin('Simple Plugin 2')
+    hm.remove_plugin('simple_plugin_2')
     assert len(hm.get_plugins_available()) == 1
     assert len(list((datadir / 'plugins').iterdir())) == 1

@@ -23,7 +23,7 @@ class PluginInfo(object):
     description = attrib(type=str, default="Could not find a description", init=False)
     email = attrib(type=str, init=False)
     hooks_implemented = attrib(type=list, init=False)
-    name = attrib(type=str, init=False)
+    plugin_name = attrib(type=str, init=False)
     shared_lib_name = attrib(type=str, init=False)
     shared_lib_path = attrib(type=Path, init=False)
     version = attrib(type=str, init=False)
@@ -31,9 +31,12 @@ class PluginInfo(object):
     def __attrs_post_init__(self):
         plugin_config_file_content = self._load_yaml_file(self.yaml_location.read_text(encoding="utf-8"))
 
+        name = plugin_config_file_content['shared_lib_name']
+        plugin_name = name.replace('.dll', '') if  sys.platform == 'win32' else name.replace('.so', '').replace('lib', '')
+
         object.__setattr__(self, "author", plugin_config_file_content['author'])
         object.__setattr__(self, "email", plugin_config_file_content['email'])
-        object.__setattr__(self, "name", plugin_config_file_content['plugin_name'])
+        object.__setattr__(self, "plugin_name", plugin_name)
         object.__setattr__(self, "shared_lib_name", plugin_config_file_content['shared_lib_name'])
         object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / self.shared_lib_name)
         object.__setattr__(self, "version", plugin_config_file_content['plugin_version'])

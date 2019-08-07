@@ -124,7 +124,7 @@ class HookMan:
         :plugin_name: Name of the plugin to be removed
         """
         for plugin in self.get_plugins_available():
-            if plugin.name == plugin_name:
+            if plugin.plugin_name == plugin_name:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
@@ -133,18 +133,23 @@ class HookMan:
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
 
         Optionally you can pass a list of plugins that should be ignored.
+        When informed, the `ignored_plugins` must be a list with the names of the plugins (same as shared_lib_name)
+        instead of the plugin caption.
 
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
 
         plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
-        return [plugin_info for plugin_info in plugins_available if plugin_info.name not in ignored_plugins]
+        return [plugin_info for plugin_info in plugins_available if plugin_info.plugin_name not in ignored_plugins]
 
     def get_hook_caller(self, ignored_plugins: Sequence[str] = ()):
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
+
+        When informed, the `ignored_plugins` must be a list with the names of the plugins (same as shared_lib_name)
+        instead of the plugin caption.
         """
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()

@@ -1,4 +1,3 @@
-import ctypes
 import inspect
 import shutil
 from pathlib import Path
@@ -32,13 +31,16 @@ class HookSpecs:
         Extra #include directives that will be added to the generated HookCaller.hpp file.
     """
 
-    def __init__(self, *,
-            project_name: str,
-            version: str,
-            pyd_name: str = None,
-            hooks: List[Callable],
-            extra_includes: List[str] = (),
-        ) -> None:
+    def __init__(
+        self,
+        *,
+        project_name: str,
+        version: str,
+        pyd_name: str = None,
+        hooks: List[Callable],
+        extra_includes: List[str] = (),
+    ) -> None:
+
         for hook in hooks:
             self._check_hook_arguments(hook)
         self.project_name = project_name
@@ -105,26 +107,26 @@ class HookMan:
                                               f"the paths that were informed when the HookMan "
                                               f"object was initialized: {self.plugins_dirs}.")
 
-        plugin_name = Path(plugin_file_zip.filename).stem.replace('-linux64', '').replace('-win64', '')
+        plugin_id = Path(plugin_file_zip.filename).stem.replace('-linux64', '').replace('-win64', '')
 
         plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 
-        if plugin_name in [x.name for x in plugins_dirs]:
+        if plugin_id in [x.name for x in plugins_dirs]:
             raise PluginAlreadyInstalledError("Plugin already installed")
 
-        plugin_destination_folder = dest_path / plugin_name
+        plugin_destination_folder = dest_path / plugin_id
         plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
-        return plugin_name
+        return plugin_id
 
-    def remove_plugin(self, plugin_name: str):
+    def remove_plugin(self, caption: str):
         """
         This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
 
-        :plugin_name: Name of the plugin to be removed
+        :caption: Name of the plugin to be removed
         """
         for plugin in self.get_plugins_available():
-            if plugin.plugin_name == plugin_name:
+            if plugin.id == caption:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
@@ -141,7 +143,7 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
 
         plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
-        return [plugin_info for plugin_info in plugins_available if plugin_info.plugin_name not in ignored_plugins]
+        return [plugin_info for plugin_info in plugins_available if plugin_info.id not in ignored_plugins]
 
     def get_hook_caller(self, ignored_plugins: Sequence[str] = ()):
         """

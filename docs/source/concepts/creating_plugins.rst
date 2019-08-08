@@ -9,14 +9,14 @@ A plugin consists of a ``ZipFile`` with the extension ``.hmplugin`` that has the
 
 .. code-block:: Bash
 
-    \---<plugin_name>
+    \---<id>
         |
         +---assets
         |       plugin.yaml
         |       README.md
         |
         \---artifacts
-                shared_lib_name<.so or .dll>
+                id<.so or .dll>
 
 
 The ``HookMan`` project has some utilities to help with the task to generate plugins for the user.
@@ -48,7 +48,7 @@ The generated template has the following structure:
 
 .. code-block:: bash
 
-    \---<plugin_name>
+    \---<id>
         |   build.py
         |   CMakeLists.txt
         |

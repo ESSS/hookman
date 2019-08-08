@@ -1,7 +1,7 @@
-plugin_name: 'plugin_2'
-plugin_version: '1'
+caption: 'plugin_2'
+version: '1'
 
 author: 'plugin_2_author'
 email: 'plugin_2@plugin_2.com'
 
-shared_lib: 'test_hooks'
+id: 'test_hooks'

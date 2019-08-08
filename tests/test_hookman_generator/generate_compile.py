@@ -12,9 +12,9 @@ build_dir = current_dir / "build"
 package_dir = current_dir / "package"
 
 if sys.platform == 'win32':
-    shared_lib = artifacts_dir / "acme.dll"
+    shared_lib_path = artifacts_dir / "acme.dll"
 else:
-    shared_lib = artifacts_dir / "libacme.so"
+    shared_lib_path = artifacts_dir / "libacme.so"
 
 if build_dir.exists():
     shutil.rmtree(build_dir)
@@ -35,4 +35,4 @@ if package_dir.exists():
     shutil.rmtree(package_dir)
 
 shutil.copytree(src=assets, dst=package_dir)
-shutil.copy2(src=shared_lib, dst=package_dir)
+shutil.copy2(src=shared_lib_path, dst=package_dir)

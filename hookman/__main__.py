@@ -40,23 +40,23 @@ def generate_project_files(specs_path, dst_path):
 
 @cli.command()
 @click.argument('specs_path', type=click.Path(exists=True))
-@click.argument('plugin_name')
-@click.argument('shared_lib_name')
+@click.argument('caption')
+@click.argument('plugin_id')
 @click.argument('author_name')
 @click.argument('author_email')
 @click.option('--dst-path', default='./', help='Path to where the files will be written')
 def generate_plugin_template(
         specs_path: str,
-        plugin_name: str,
-        shared_lib_name: str,
+        caption: str,
+        plugin_id: str,
         author_email: str,
         author_name: str,
         dst_path: Path):
     """Generate a plugin starting template."""
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_plugin_template(
-        plugin_name=plugin_name,
-        shared_lib_name=shared_lib_name,
+        caption=caption,
+        plugin_id=plugin_id,
         author_email=author_email,
         author_name=author_name,
         dst_path=Path(dst_path))
@@ -80,13 +80,13 @@ def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path
 
 @cli.command()
 @click.argument('specs_path', type=click.Path(exists=True))
-@click.argument('shared_lib_name')
+@click.argument('plugin_id')
 @click.option('--dst-path', default='./', help='Path to where the files will be written')
-def generate_hook_specs_h(specs_path: str, shared_lib_name: str, dst_path: Path):
+def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path):
     """Generates or update the hook_specs.h header file."""
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_hook_specs_header(
-        shared_lib_name=shared_lib_name,
+        plugin_id=plugin_id,
         dst_path=Path(dst_path))
     return 0
 

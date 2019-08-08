@@ -1,7 +1,7 @@
-plugin_name: 'Simple Plugin'
-plugin_version: '1'
+caption: 'Simple Plugin'
+version: '1'
 
 author: 'simple_plugin_author'
 email: 'simple_plugin_author@simple_plugin_author.com'
 
-shared_lib: 'simple_plugin'
+id: 'simple_plugin'

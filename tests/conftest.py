@@ -39,34 +39,29 @@ def simple_plugin_dll(datadir, plugins_folder):
 
     return plugin_dir / 'simple_plugin.dll'
 
+@pytest.fixture
+def get_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
+
+    def _get_plugin(name):
+        plugin_dir = datadir / f'plugins/{name}/'
+
+        from shutil import copytree
+        copytree(src=plugins_folder / name, dst=plugin_dir)
+
+        import sys
+        hm_plugin_name = f"{name}-win64.hmplugin" if sys.platform == 'win32' else f"{name}-linux64.hmplugin"
+        plugin_zip_path = plugins_zip_folder / hm_plugin_name
+
+        return {'path': plugin_dir, 'specs': acme_hook_specs, 'zip': plugin_zip_path}
+
+    return _get_plugin
+
 
 @pytest.fixture
-def simple_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
-    plugin_dir = datadir / 'plugins/simple_plugin/'
-
-    from shutil import copytree
-    copytree(src=plugins_folder / 'simple_plugin', dst=plugin_dir)
-
-    import sys
-    if sys.platform == 'win32':
-        plugin_zip_name = plugins_zip_folder / "simple_plugin-win64.hmplugin"
-    else:
-        plugin_zip_name = plugins_zip_folder / "simple_plugin-linux64.hmplugin"
-
-    return {'path': plugin_dir, 'specs': acme_hook_specs, 'zip': plugin_zip_name}
+def simple_plugin(get_plugin):
+    return get_plugin("simple_plugin")
 
 
 @pytest.fixture
-def simple_plugin_2(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
-    plugin_dir = datadir / 'plugins/simple_plugin_2/'
-
-    from shutil import copytree
-    copytree(src=plugins_folder / 'simple_plugin_2', dst=plugin_dir)
-
-    import sys
-    if sys.platform == 'win32':
-        plugin_zip_name = plugins_zip_folder / "simple_plugin_2-win64.hmplugin"
-    else:
-        plugin_zip_name = plugins_zip_folder / "simple_plugin_2-linux64.hmplugin"
-
-    return {'path': plugin_dir, 'specs': acme_hook_specs, 'zip': plugin_zip_name}
+def simple_plugin_2(get_plugin):
+    return get_plugin("simple_plugin_2")

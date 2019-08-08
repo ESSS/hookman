@@ -23,8 +23,7 @@ class PluginInfo(object):
     description = attrib(type=str, default="Could not find a description", init=False)
     email = attrib(type=str, init=False)
     hooks_implemented = attrib(type=list, init=False)
-    plugin_caption = attrib(type=str, init=False)
-    plugin_name = attrib(type=str, init=False)
+    caption = attrib(type=str, init=False)
     shared_lib_name = attrib(type=str, init=False)
     shared_lib_path = attrib(type=Path, init=False)
     version = attrib(type=str, init=False)
@@ -32,16 +31,16 @@ class PluginInfo(object):
     def __attrs_post_init__(self):
         plugin_config_file_content = self._load_yaml_file(self.yaml_location.read_text(encoding="utf-8"))
 
-        name = plugin_config_file_content['shared_lib_name']
-        plugin_name = name.replace('.dll', '') if  sys.platform == 'win32' else name.replace('.so', '').replace('lib', '')
+        name = plugin_config_file_content['id']
+        shared_lib_name = f"{name}.dll" if  sys.platform == 'win32' else f"lib{name}.so"
 
         object.__setattr__(self, "author", plugin_config_file_content['author'])
+        object.__setattr__(self, "caption", plugin_config_file_content['caption'])
         object.__setattr__(self, "email", plugin_config_file_content['email'])
-        object.__setattr__(self, "plugin_caption", plugin_config_file_content['plugin_name'])
-        object.__setattr__(self, "plugin_name", plugin_name)
-        object.__setattr__(self, "shared_lib_name", plugin_config_file_content['shared_lib_name'])
-        object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / self.shared_lib_name)
-        object.__setattr__(self, "version", plugin_config_file_content['plugin_version'])
+        object.__setattr__(self, "id", plugin_config_file_content['id'])
+        object.__setattr__(self, "shared_lib_name", shared_lib_name)
+        object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / shared_lib_name)
+        object.__setattr__(self, "version", plugin_config_file_content['version'])
 
         if not self.hooks_available is None:
             object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
@@ -81,24 +80,24 @@ class PluginInfo(object):
     def _load_yaml_file(cls, yaml_content):
         import strictyaml
         schema = strictyaml.Map({
-            "plugin_name": strictyaml.Str(),
-            "plugin_version": strictyaml.Str(),
+            "caption": strictyaml.Str(),
+            "version": strictyaml.Str(),
             "author": strictyaml.Str(),
             "email": strictyaml.Str(),
-            "shared_lib": strictyaml.Str(),
+            "id": strictyaml.Str(),
         })
         plugin_config_file_content = strictyaml.load(yaml_content, schema).data
         if sys.platform == 'win32':
-            plugin_config_file_content['shared_lib_name'] = f"{plugin_config_file_content['shared_lib']}.dll"
+            plugin_config_file_content['shared_lib_name'] = f"{plugin_config_file_content['id']}.dll"
         else:
-            plugin_config_file_content['shared_lib_name'] = f"lib{plugin_config_file_content['shared_lib']}.so"
+            plugin_config_file_content['shared_lib_name'] = f"lib{plugin_config_file_content['id']}.so"
         return plugin_config_file_content
 
     @classmethod
     def validate_plugin_file(cls, plugin_file_zip: ZipFile):
         """
         Check if the given plugin_file is valid,
-        currently the only check that this method do is to verify if the shared_lib is available
+        currently the only check that this method do is to verify if the id is available
         """
         list_of_files = [file.filename for file in plugin_file_zip.filelist]
 

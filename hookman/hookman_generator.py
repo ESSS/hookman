@@ -1,6 +1,5 @@
 import importlib
 import inspect
-import os
 import re
 import sys
 from pathlib import Path
@@ -130,17 +129,18 @@ class HookManGenerator:
                 ))
 
     def generate_plugin_template(self,
-            plugin_name: str,
-            shared_lib_name: str,
-            author_email: str,
-            author_name: str,
-            dst_path: Path):
+        caption: str,
+        plugin_id: str,
+        author_email: str,
+        author_name: str,
+        dst_path: Path
+    ):
         """
         Generate a template with the necessary files and structure to create a plugin
 
-        :param str plugin_name: the user-friendly name of the plugin, for example ``"Hydrates"``.
+        :param str caption: the user-friendly name of the plugin, for example ``"Hydrates"``.
 
-        A folder with the same name as the shared_lib_name argument will be created, with the following files:
+        A folder with the same name as the plugin_id argument will be created, with the following files:
             <plugin_folder>
                 - CMakeLists.txt
                 - compile.py
@@ -152,10 +152,10 @@ class HookManGenerator:
                     - plugin.c
                     - CMakeLists.txt
         """
-        if not shared_lib_name.isidentifier():
+        if not plugin_id.isidentifier():
             raise HookmanError("The shared library name must be a valid identifier.")
 
-        plugin_folder = dst_path / shared_lib_name
+        plugin_folder = dst_path / plugin_id
         assets_folder = plugin_folder / 'assets'
         source_folder = plugin_folder / 'src'
 
@@ -168,23 +168,23 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
-        Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(shared_lib_name))
-        Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(shared_lib_name))
-        Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(plugin_name, shared_lib_name, author_email, author_name))
-        Path(assets_folder / 'README.md').write_text(self._readme_content(plugin_name, author_email, author_name))
-        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
+        Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(plugin_id))
+        Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(plugin_id))
+        Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
+        Path(assets_folder / 'README.md').write_text(self._readme_content(caption, author_email, author_name))
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
         Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
-        Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(shared_lib_name))
+        Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
 
-    def generate_hook_specs_header(self, shared_lib_name: str, dst_path: Union[str, Path]):
+    def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
         """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
 
-        :param shared_lib_name: short name of the generated shared library
+        :param plugin_id: short name of the generated shared library
         :param dst_path: directory where to generate the file.
         """
-        source_folder = Path(dst_path) / shared_lib_name / 'src'
+        source_folder = Path(dst_path) / plugin_id / 'src'
         source_folder.mkdir(parents=True, exist_ok=True)
-        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(shared_lib_name))
+        Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
 
     def generate_project_files(self, dst_path: Union[Path, str]):
         """
@@ -228,17 +228,17 @@ class HookManGenerator:
         self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
 
         if sys.platform == 'win32':
-            shared_lib = '*.dll'
+            shared_lib_extension = '*.dll'
             hmplugin_path = dst_path / f"{package_name}-win64.hmplugin"
         else:
-            shared_lib = '*.so'
+            shared_lib_extension = '*.so'
             hmplugin_path = dst_path / f"{package_name}-linux64.hmplugin"
 
         with ZipFile(hmplugin_path, 'w') as zip_file:
             for file in assets_dir.rglob('*'):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 
-            for file in artifacts_dir.rglob(shared_lib):
+            for file in artifacts_dir.rglob(shared_lib_extension):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 
             for file in python_dir.rglob('*'):
@@ -258,7 +258,7 @@ class HookManGenerator:
             - The artifacts folder need to contain:
                 - At least one shared library (.dll or .so)
 
-            - The plugin.yaml should have the name of the main library in the "shared_lib" entry.
+            - The plugin.yaml should have the name of the main library in the "plugin_id" entry.
         """
         if not assets_dir.exists():
             raise AssetsDirNotFoundError()
@@ -266,10 +266,10 @@ class HookManGenerator:
         if not artifacts_dir.exists():
             raise ArtifactsDirNotFoundError(f'Artifacts directory not found: {artifacts_dir}')
 
-        shared_lib = '*.dll' if sys.platform == 'win32' else '*.so'
-        if not any(artifacts_dir.rglob(shared_lib)):
+        shared_lib_extension = '*.dll' if sys.platform == 'win32' else '*.so'
+        if not any(artifacts_dir.rglob(shared_lib_extension)):
             raise FileNotFoundError(
-                f"Unable to locate a shared library ({shared_lib}) in {artifacts_dir}")
+                f"Unable to locate a shared library ({shared_lib_extension}) in {artifacts_dir}")
 
         if not assets_dir.joinpath('plugin.yaml').is_file():
             raise FileNotFoundError(f"Unable to locate the file plugin.yaml in {assets_dir}")
@@ -280,7 +280,7 @@ class HookManGenerator:
     def _validate_plugin_config_file(cls, plugin_config_file: Path, artifacts_dir: Path):
         """
         Check if the given plugin_file is valid,
-        currently the only check that this method do is to verify if the shared_lib is available
+        currently the only check that this method do is to verify if the plugin_id is available
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
 
@@ -289,7 +289,7 @@ class HookManGenerator:
                 f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
             )
 
-    def _hook_specs_header_content(self, shared_lib_name) -> str:
+    def _hook_specs_header_content(self, plugin_id) -> str:
         """
         Create a C header file with the content informed on the hook_specs
         """
@@ -326,8 +326,8 @@ class HookManGenerator:
             return \"{self.version}\";
         }}
 
-        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_name() {{
-            return \"{shared_lib_name}\";
+        HOOKMAN_API_EXP const char* HOOKMAN_FUNC_EXP get_plugin_id() {{
+            return \"{plugin_id}\";
         }}
 
         """)
@@ -498,27 +498,27 @@ class HookManGenerator:
                 """))
 
     def _plugin_config_file_content(
-            self,
-            plugin_name: str,
-            shared_lib_name: str,
-            author_email: str,
-            author_name: str,
+        self,
+        caption: str,
+        plugin_id: str,
+        author_email: str,
+        author_name: str,
         ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin
         """
         file_content = dedent(f"""\
-        plugin_name: '{plugin_name}'
-        plugin_version: '1'
         author: '{author_name}'
+        caption: '{caption}'
         email: '{author_email}'
-        shared_lib: '{shared_lib_name}'
+        id: '{plugin_id}'
+        version: '1'
         """)
         return file_content
 
-    def _readme_content(self, plugin_name: str, author_email: str, author_name: str) -> str:
+    def _readme_content(self, caption: str, author_email: str, author_name: str) -> str:
         file_content = dedent(f"""\
-        Plugin: '{plugin_name}'
+        Plugin: '{caption}'
         Author: '{author_name}'
         Email: '{author_email}'
 
@@ -545,11 +545,11 @@ class HookManGenerator:
         file_content += plugin_hooks_macro
         return ''.join(file_content)
 
-    def _plugin_cmake_file_content(self, shared_lib_name):
+    def _plugin_cmake_file_content(self, plugin_id):
         file_content = dedent(f'''\
             cmake_minimum_required(VERSION 3.5.2)
 
-            set(PROJECT_NAME {shared_lib_name})
+            set(PROJECT_NAME {plugin_id})
             set(ARTIFACTS_DIR ${{CMAKE_CURRENT_SOURCE_DIR}}/artifacts)
 
             if(NOT WIN32)
@@ -564,21 +564,21 @@ class HookManGenerator:
 
             set(CMAKE_C_STANDARD 99)
 
-            project ({shared_lib_name} LANGUAGES CXX C)
+            project ({plugin_id} LANGUAGES CXX C)
             add_subdirectory(src)
         ''')
         return file_content
 
-    def _plugin_src_cmake_file_content(self, shared_lib_name):
+    def _plugin_src_cmake_file_content(self, plugin_id):
         file_content = dedent(f'''\
-            add_library({shared_lib_name} SHARED plugin.c hook_specs.h)
-            install(TARGETS {shared_lib_name} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
+            add_library({plugin_id} SHARED plugin.c hook_specs.h)
+            install(TARGETS {plugin_id} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content
 
-    def _compile_shared_lib_python_script_content(self, shared_lib_name):
-        lib_name_win = f"{shared_lib_name}.dll"
-        lib_name_linux = f"lib{shared_lib_name}.so"
+    def _compile_shared_lib_python_script_content(self, plugin_id):
+        lib_name_win = f"{plugin_id}.dll"
+        lib_name_linux = f"lib{plugin_id}.so"
 
         file_content = dedent(f'''\
             import os
@@ -595,9 +595,9 @@ class HookManGenerator:
             package_dir = current_dir / "package"
 
             if sys.platform == 'win32':
-                shared_lib = artifacts_dir / "{lib_name_win}"
+                shared_lib_path = artifacts_dir / "{lib_name_win}"
             else:
-                shared_lib = artifacts_dir / "{lib_name_linux}"
+                shared_lib_path = artifacts_dir / "{lib_name_linux}"
 
             if build_dir.exists():
                 shutil.rmtree(build_dir)
@@ -618,7 +618,7 @@ class HookManGenerator:
                 shutil.rmtree(package_dir)
 
             shutil.copytree(src=assets, dst=package_dir)
-            shutil.copy2(src=shared_lib, dst=package_dir)
+            shutil.copy2(src=shared_lib_path, dst=package_dir)
         ''')
         return file_content
 

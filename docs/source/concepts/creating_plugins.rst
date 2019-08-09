@@ -9,14 +9,15 @@ A plugin consists of a ``ZipFile`` with the extension ``.hmplugin`` that has the
 
 .. code-block:: Bash
 
-    \---<id>
+    \---<plugin_id>
         |
         +---assets
         |       plugin.yaml
         |       README.md
         |
         \---artifacts
-                id<.so or .dll>
+                Linux:    lib<plugin_id>.so
+                Windows:  <plugin_id>.dll
 
 
 The ``HookMan`` project has some utilities to help with the task to generate plugins for the user.

@@ -52,7 +52,16 @@ def generate_plugin_template(
         author_email: str,
         author_name: str,
         dst_path: Path):
-    """Generate a plugin starting template."""
+    """
+    Generate a plugin starting template with the necessary structure and files to create a plugin.
+
+    SPECS_PATH    Path to where the hook_specs.py file is located.
+    CAPTION       Caption to be used across the application to identify the plugin.
+    PLUGIN_ID     A unique string to identify the plugin.
+    AUTHOR_NAME   Name of the plugin author to be displayed.
+    AUTHOR_EMAIL  Email of the plugin author to be displayed.
+
+    """
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_plugin_template(
         caption=caption,
@@ -69,7 +78,15 @@ def generate_plugin_template(
 @click.argument('plugin_dir')
 @click.option('--dst-path', default='./', help='Path to where the files will be written')
 def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path: Path):
-    """Packages a plugin for distribution."""
+    """
+    Creates a PACKAGE_NAME for distribution on the current directory from the given PLUGIN_DIR for the project.
+
+    If --dst-path is not provide, the PACKAGE_NAME will be created inside the PLUGIN_DIR folder.
+
+    SPECS_PATH    Path to where the hook_specs.py file is located.
+    PACKAGE_NAME  The name of the generated package
+    PLUGIN_DIR    Path to the plugin directory, where configuration and the shared library is located.
+    """
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_plugin_package(
         package_name=package_name,
@@ -83,7 +100,12 @@ def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path
 @click.argument('plugin_id')
 @click.option('--dst-path', default='./', help='Path to where the files will be written')
 def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path):
-    """Generates or update the hook_specs.h header file."""
+    """
+    Generates or update the hook_specs.h header file.
+
+    SPECS_PATH   Path to where the hook_specs.py file is located.
+    PLUGIN_ID    A unique string to identify the plugin.
+    """
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_hook_specs_header(
         plugin_id=plugin_id,

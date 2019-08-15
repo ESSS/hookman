@@ -7,8 +7,7 @@ from textwrap import dedent
 from typing import NamedTuple, Union
 from zipfile import ZipFile
 
-from hookman.exceptions import (
-    ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError, SharedLibraryNotFoundError)
+from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
 from hookman.hooks import HookSpecs
 from hookman.plugin_config import PluginInfo
 
@@ -225,7 +224,7 @@ class HookManGenerator:
         python_dir = plugin_dir / "src" / "python"
 
         self._validate_package_folder(artifacts_dir, assets_dir)
-        self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
+        self._validate_plugin_config_file(assets_dir / 'plugin.yaml')
 
         if sys.platform == 'win32':
             shared_lib_extension = '*.dll'
@@ -277,17 +276,12 @@ class HookManGenerator:
         if not assets_dir.joinpath('README.md').is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
 
-    def _validate_plugin_config_file(cls, plugin_config_file: Path, artifacts_dir: Path):
+    def _validate_plugin_config_file(cls, plugin_config_file: Path):
         """
-        Check if the given plugin_file is valid,
-        currently the only check that this method do is to verify if the plugin_id is available
+        Check if the given plugin_file is valid, by creating a instance of PluginInfo.
+        All checks are made in the __init__
         """
-        plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
-
-        if not artifacts_dir.joinpath(plugin_file_content.shared_lib_name).is_file():
-            raise SharedLibraryNotFoundError(
-                f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
-            )
+        PluginInfo(plugin_config_file, hooks_available=None)
 
     def _hook_specs_header_content(self, plugin_id) -> str:
         """

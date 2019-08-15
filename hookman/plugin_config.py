@@ -34,13 +34,16 @@ class PluginInfo(object):
         name = plugin_config_file_content['id']
         shared_lib_name = f"{name}.dll" if  sys.platform == 'win32' else f"lib{name}.so"
 
+        object.__setattr__(self, "shared_lib_name", shared_lib_name)
+        object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / shared_lib_name)
+
         object.__setattr__(self, "author", plugin_config_file_content['author'])
         object.__setattr__(self, "caption", plugin_config_file_content['caption'])
         object.__setattr__(self, "email", plugin_config_file_content['email'])
-        object.__setattr__(self, "id", plugin_config_file_content['id'])
-        object.__setattr__(self, "shared_lib_name", shared_lib_name)
-        object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / shared_lib_name)
         object.__setattr__(self, "version", plugin_config_file_content['version'])
+
+        # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
+        object.__setattr__(self, "id", self._get_plugin_id_from_dll(plugin_config_file_content['id']))
 
         if not self.hooks_available is None:
             object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
@@ -49,10 +52,30 @@ class PluginInfo(object):
         if readme_file.exists():
             object.__setattr__(self, "description", readme_file.read_text())
 
+    def _check_if_shared_lib_exists(self):
+        if not self.shared_lib_path.is_file():
+            raise SharedLibraryNotFoundError(
+                f"{self.shared_lib_name} could not be found in {self.shared_lib_path.parent}"
+            )
+
+    def _get_plugin_id_from_dll(self, plugin_id_from_plugin_yaml: str) -> str:
+        self._check_if_shared_lib_exists()
+        with load_shared_lib(str(self.shared_lib_path)) as plugin_dll:
+            plugin_dll.get_plugin_id.restype = ctypes.c_char_p
+            plugin_id_from_shared_lib = plugin_dll.get_plugin_id().decode("utf-8")
+            if plugin_id_from_shared_lib != plugin_id_from_plugin_yaml:
+                msg = (
+                    f'Error, the plugin_id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
+                    f'while the plugin_id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}'
+                )
+                raise RuntimeError(msg)
+            return plugin_id_from_shared_lib
+
     def _get_hooks_implemented(self) -> List[str]:
         """
         Return a list of which hooks from "hooks_available" the shared library implements
         """
+        self._check_if_shared_lib_exists()
         with load_shared_lib(str(self.shared_lib_path)) as plugin_dll:
             hooks_implemented = [
                 hook_name

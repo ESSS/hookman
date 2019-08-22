@@ -284,6 +284,12 @@ class HookManGenerator:
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
 
+        semantic_version_re = re.compile(r'^(\d+)\.(\d+)\.(\d+)')  # Ex.: 1.0.0
+        version = semantic_version_re.match(plugin_file_content.version)
+
+        if not version:
+            raise ValueError(f"Version attribute does not follow semantic version, got {plugin_file_content.version}")
+
         if not artifacts_dir.joinpath(plugin_file_content.shared_lib_name).is_file():
             raise SharedLibraryNotFoundError(
                 f"{plugin_file_content.shared_lib_name} could not be found in {artifacts_dir}"
@@ -512,7 +518,7 @@ class HookManGenerator:
         caption: '{caption}'
         email: '{author_email}'
         id: '{plugin_id}'
-        version: '1'
+        version: '1.0.0'
         """)
         return file_content
 

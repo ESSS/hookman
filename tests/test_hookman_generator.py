@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from hookman.hookman_generator import HookManGenerator
 
 
@@ -135,6 +136,13 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
         plugin_dir=plugin_dir,
     )
 
+    from hookman.plugin_config import PluginInfo
+    version = PluginInfo(Path(tmpdir / 'acme/assets/plugin.yaml'), None).version
+
+    win_plugin_name = f"{plugin_id}-{version}-win64.hmplugin"
+    linux_plugin_name = f"lib{plugin_id}-{version}-linux64.hmplugin"
+    hm_plugin_name = win_plugin_name if sys.platform == 'win32' else linux_plugin_name
+
     compressed_plugin = plugin_dir / hm_plugin_name
     assert compressed_plugin.exists()
 
@@ -202,7 +210,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     # # -- With a invalid shared_library name on config_file
     acme_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
-    hm_plugin_name = 'acme-win64.hmplugin' if sys.platform == 'win32' else 'acme-linux64.hmplugin'
+    hm_plugin_name = 'acme-1.0.0-win64.hmplugin' if sys.platform == 'win32' else 'acme-1.0.0-linux64.hmplugin'
 
     with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)

@@ -282,8 +282,7 @@ class HookManGenerator:
         Check if the given plugin_file is valid, by creating a instance of PluginInfo.
         All checks are made in the __init__
         """
-        PluginInfo(plugin_config_file, hooks_available=None)
-
+        plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
         semantic_version_re = re.compile(r'^(\d+)\.(\d+)\.(\d+)')  # Ex.: 1.0.0
         version = semantic_version_re.match(plugin_file_content.version)
 

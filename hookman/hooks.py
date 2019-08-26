@@ -107,7 +107,8 @@ class HookMan:
                                               f"the paths that were informed when the HookMan "
                                               f"object was initialized: {self.plugins_dirs}.")
 
-        plugin_id = Path(plugin_file_zip.filename).stem.replace('-linux64', '').replace('-win64', '')
+        yaml_content = plugin_file_zip.open('assets/plugin.yaml').read().decode('utf-8')
+        plugin_id = PluginInfo._load_yaml_file(yaml_content)['id']
 
         plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 

@@ -226,13 +226,14 @@ class HookManGenerator:
 
         self._validate_package_folder(artifacts_dir, assets_dir)
         self._validate_plugin_config_file(assets_dir / 'plugin.yaml', artifacts_dir)
+        version = PluginInfo(assets_dir / 'plugin.yaml', hooks_available=None).version
 
         if sys.platform == 'win32':
             shared_lib_extension = '*.dll'
-            hmplugin_path = dst_path / f"{package_name}-win64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-{version}-win64.hmplugin"
         else:
             shared_lib_extension = '*.so'
-            hmplugin_path = dst_path / f"{package_name}-linux64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-{version}-linux64.hmplugin"
 
         with ZipFile(hmplugin_path, 'w') as zip_file:
             for file in assets_dir.rglob('*'):
@@ -283,6 +284,12 @@ class HookManGenerator:
         currently the only check that this method do is to verify if the plugin_id is available
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
+
+        semantic_version_re = re.compile(r'^(\d+)\.(\d+)\.(\d+)')  # Ex.: 1.0.0
+        version = semantic_version_re.match(plugin_file_content.version)
+
+        if not version:
+            raise ValueError(f"Version attribute does not follow semantic version, got {plugin_file_content.version!r}")
 
         if not artifacts_dir.joinpath(plugin_file_content.shared_lib_name).is_file():
             raise SharedLibraryNotFoundError(
@@ -512,7 +519,7 @@ class HookManGenerator:
         caption: '{caption}'
         email: '{author_email}'
         id: '{plugin_id}'
-        version: '1'
+        version: '1.0.0'
         """)
         return file_content
 

@@ -127,9 +127,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
     artifacts_dir.mkdir()
     import sys
 
-    shared_lib_name =  f"{plugin_id}.dll" if sys.platform == 'win32' else f"lib{plugin_id}.so"
-    hm_plugin_name = f"{plugin_id}-win64.hmplugin" if sys.platform == 'win32' else f"lib{plugin_id}-linux64.hmplugin"
-
+    shared_lib_name = f"{plugin_id}.dll" if sys.platform == 'win32' else f"lib{plugin_id}.so"
     shared_lib_path = artifacts_dir / shared_lib_name
     shared_lib_path.write_text('')
 
@@ -137,6 +135,13 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
         package_name='acme',
         plugin_dir=plugin_dir,
     )
+
+    from hookman.plugin_config import PluginInfo
+    version = PluginInfo(Path(tmpdir / 'acme/assets/plugin.yaml'), None).version
+
+    win_plugin_name = f"{plugin_id}-{version}-win64.hmplugin"
+    linux_plugin_name = f"{plugin_id}-{version}-linux64.hmplugin"
+    hm_plugin_name = win_plugin_name if sys.platform == 'win32' else linux_plugin_name
 
     compressed_plugin = plugin_dir / hm_plugin_name
     assert compressed_plugin.exists()
@@ -189,7 +194,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     config_file = asset_dir / 'plugin.yaml'
     config_file.write_text(dedent(f"""\
             caption: 'ACME'
-            version: '1'
+            version: '1.0.0'
 
             author: 'acme_author'
             email: 'acme_email'
@@ -205,7 +210,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     # # -- With a invalid shared_library name on config_file
     acme_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
-    hm_plugin_name = 'acme-win64.hmplugin' if sys.platform == 'win32' else 'acme-linux64.hmplugin'
+    hm_plugin_name = 'acme-1.0.0-win64.hmplugin' if sys.platform == 'win32' else 'acme-1.0.0-linux64.hmplugin'
 
     with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
@@ -216,3 +221,18 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
     compressed_plugin_package = plugin_dir / hm_plugin_name
     assert compressed_plugin_package.exists()
+
+
+def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path, mocker):
+    hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
+    plugin_id = 'acme'
+    hg.generate_plugin_template(plugin_id, plugin_id, 'acme1', 'acme2', tmp_path)
+
+    plugin_yaml = tmp_path / 'acme/assets/plugin.yaml'
+    new_content = plugin_yaml.read_text().replace("version: '1.0.0'", "version: '1'")
+    plugin_yaml.write_text(new_content)
+
+    mocker.patch('hookman.hookman_generator.HookManGenerator._validate_package_folder', return_value=None)
+
+    with pytest.raises(ValueError, match="Version attribute does not follow semantic version, got '1'"):
+        hg.generate_plugin_package(plugin_id, plugin_dir=tmp_path / plugin_id)

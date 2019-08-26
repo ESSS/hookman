@@ -119,7 +119,7 @@ def compile_build_files(ctx):
 
             call_cmd = f'call "{msvc_path}" amd64'
             print('Running: ')
-            print(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
+            print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 
         else:

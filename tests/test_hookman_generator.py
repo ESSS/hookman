@@ -140,7 +140,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
     version = PluginInfo(Path(tmpdir / 'acme/assets/plugin.yaml'), None).version
 
     win_plugin_name = f"{plugin_id}-{version}-win64.hmplugin"
-    linux_plugin_name = f"lib{plugin_id}-{version}-linux64.hmplugin"
+    linux_plugin_name = f"{plugin_id}-{version}-linux64.hmplugin"
     hm_plugin_name = win_plugin_name if sys.platform == 'win32' else linux_plugin_name
 
     compressed_plugin = plugin_dir / hm_plugin_name

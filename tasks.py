@@ -90,11 +90,12 @@ def compile_build_files(ctx):
     os.makedirs(artifacts_dir)
     os.makedirs(ninja_dir)
 
-    call_cmake = (
+    call_cmake = os.path.expandvars(
         f'cmake '
         f'-DCMAKE_BUILD_TYPE=Release '
         f'-G Ninja "{build_dir}" '
         f'-DPYTHON_EXECUTABLE={sys.executable} '
+        f'-DCMAKE_MODULE_PATH=$TOX_ENV_DIR/Library/share/cmake/pybind11 '
     )
     call_ninja = 'ninja -j 8'
     call_install = 'ninja install'
@@ -117,6 +118,8 @@ def compile_build_files(ctx):
                     "Couldn't find MSVC compiler in any of:\n{}".format('- ' + '\n- '.join(paths)))
 
             call_cmd = f'call "{msvc_path}" amd64'
+            print('Running: ')
+            print(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 
         else:

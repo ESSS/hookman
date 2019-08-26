@@ -95,7 +95,7 @@ def compile_build_files(ctx):
         f'-DCMAKE_BUILD_TYPE=Release '
         f'-G Ninja "{build_dir}" '
         f'-DPYTHON_EXECUTABLE={sys.executable} '
-        f'-DCMAKE_MODULE_PATH=$TOX_ENV_DIR/Library/share/cmake/pybind11 '
+        f'-DCMAKE_MODULE_PATH=$TOX_ENV_DIR\Library\share\cmake\pybind11 '
     )
     call_ninja = 'ninja -j 8'
     call_install = 'ninja install'
@@ -119,6 +119,23 @@ def compile_build_files(ctx):
 
             call_cmd = f'call "{msvc_path}" amd64'
             print('Running: ')
+            from pathlib import Path
+            path_lib = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library'))
+            path_share = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share'))
+            path_cmake = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake'))
+            path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
+            
+            print(path_lib)
+            print(path_share)
+            print(path_cmake)
+            print(path_pybind11)
+            
+            print(list(path_lib.iterdir()))
+            print(list(path_share.iterdir()))
+            print(list(path_cmake.iterdir()))
+            print(list(path_pybind11.iterdir()))
+            
+            
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 

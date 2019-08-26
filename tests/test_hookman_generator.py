@@ -234,5 +234,5 @@ def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path,
 
     mocker.patch('hookman.hookman_generator.HookManGenerator._validate_package_folder', return_value=None)
 
-    with pytest.raises(ValueError, match=" Version attribute does not follow semantic version, got 1"):
+    with pytest.raises(ValueError, match="Version attribute does not follow semantic version, got '1'"):
         hg.generate_plugin_package(plugin_id, plugin_dir=tmp_path / plugin_id)

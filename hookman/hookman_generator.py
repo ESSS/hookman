@@ -289,7 +289,7 @@ class HookManGenerator:
         version = semantic_version_re.match(plugin_file_content.version)
 
         if not version:
-            raise ValueError(f"Version attribute does not follow semantic version, got {plugin_file_content.version}")
+            raise ValueError(f"Version attribute does not follow semantic version, got {plugin_file_content.version!r}")
 
         if not artifacts_dir.joinpath(plugin_file_content.shared_lib_name).is_file():
             raise SharedLibraryNotFoundError(

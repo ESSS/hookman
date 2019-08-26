@@ -228,7 +228,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     assert compressed_plugin_package.exists()
 
 
-def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path, mocker):
+def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path, mocker, mock_plugin_id_from_dll):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = 'acme'
     hg.generate_plugin_template(plugin_id, plugin_id, 'acme1', 'acme2', tmp_path)

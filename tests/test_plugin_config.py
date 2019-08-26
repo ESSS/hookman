@@ -47,9 +47,10 @@ def test_plugin_id_conflict(simple_plugin, datadir):
     new_content = yaml_file.read_text().replace('simple_plugin', 'ACME')
     yaml_file.write_text(new_content)
 
+
     expected_msg = (
         'Error, the plugin_id inside plugin.yaml is "ACME" '
-        'while the plugin_id inside the ACME.dll is simple_plugin'
+        f'while the plugin_id inside the {acme_lib_name} is simple_plugin'
     )
     with pytest.raises(RuntimeError, match=expected_msg):
         PluginInfo(yaml_file, None)

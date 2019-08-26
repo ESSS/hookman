@@ -3,9 +3,7 @@ import pytest
 from hookman.plugin_config import PluginInfo
 
 
-def test_load_config_content(datadir, mocker):
-    # The mock bellow is to avoid to have get a valid dll on this test
-    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')
+def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
 
     mocker.patch.object(PluginInfo, '_get_hooks_implemented', return_value=['a'])
 
@@ -19,12 +17,9 @@ def test_load_config_content(datadir, mocker):
         PluginInfo(datadir / 'NonValid', hooks_available)
 
 
-def test_get_shared_libs_path(datadir, mocker):
+def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll):
 
     mocker.patch('sys.platform', 'linux')
-
-    # The mock bellow avoid the test to access a valid shared_lib
-    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')
 
     expected_path = datadir / 'artifacts/libname_of_the_shared_lib.so'
     plugin_config = PluginInfo(datadir / 'assets/plugin.yaml', hooks_available=None)

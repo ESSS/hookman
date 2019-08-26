@@ -62,7 +62,7 @@ def test_generate_hook_specs_h(datadir):
     assert (datadir / 'my_plugin' / 'src' / 'hook_specs.h').is_file()
 
 
-def test_package_plugin(datadir, mocker):
+def test_package_plugin(datadir, mock_plugin_id_from_dll):
     runner = CliRunner()
     hook_spec_file = str(datadir / 'hook_specs.py')
     result = runner.invoke(__main__.cli, [
@@ -80,10 +80,6 @@ def test_package_plugin(datadir, mocker):
     assert (datadir / 'my_plugin' / 'src' / 'plugin.c').is_file()
 
     # create dummy artifact
-    # The mock bellow is to avoid to have get a valid dll on this test
-    from hookman.plugin_config import PluginInfo
-    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')
-
     prefix, ext = ('', '.dll') if sys.platform.startswith('win') else ('lib', '.so')
     lib = datadir / 'my_plugin' / 'artifacts' / f'{prefix}my_plugin{ext}'
     lib.parent.mkdir()

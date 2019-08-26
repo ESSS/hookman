@@ -111,7 +111,7 @@ def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, t
         )
 
 
-def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mocker):
+def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = 'acme'
     hg.generate_plugin_template(
@@ -132,10 +132,6 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mocker):
 
     shared_lib_path = artifacts_dir / shared_lib_name
     shared_lib_path.write_text('')
-
-    # The mock bellow is to avoid to have get a valid dll on this test
-    from hookman.plugin_config import PluginInfo
-    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')
 
     hg.generate_plugin_package(
         package_name='acme',

@@ -111,7 +111,7 @@ def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, t
         )
 
 
-def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
+def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = 'acme'
     hg.generate_plugin_template(
@@ -155,7 +155,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir):
     assert f'artifacts/{shared_lib_name}' in list_of_files
 
 
-def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir):
+def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker):
     import sys
     from textwrap import dedent
     from hookman.exceptions import AssetsDirNotFoundError, ArtifactsDirNotFoundError, SharedLibraryNotFoundError
@@ -179,8 +179,9 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     # -- Without a shared library binary
     shared_lib_extension = '*.dll' if sys.platform == 'win32' else '*.so'
-    string_to_match = fr'Unable to locate a shared library \(\{shared_lib_extension}\) in'
-    with pytest.raises(FileNotFoundError, match=string_to_match):
+    string_to_match = fr'Unable to locate a shared library ({shared_lib_extension}) in'
+    import re
+    with pytest.raises(FileNotFoundError, match=re.escape(string_to_match)):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
     lib_name = 'test.dll' if sys.platform == 'win32' else 'libtest.so'
@@ -212,18 +213,22 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     acme_lib_name = 'acme.dll' if sys.platform == 'win32' else 'libacme.so'
     hm_plugin_name = 'acme-1.0.0-win64.hmplugin' if sys.platform == 'win32' else 'acme-1.0.0-linux64.hmplugin'
 
-    with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found'):
+    with pytest.raises(SharedLibraryNotFoundError, match=f'{acme_lib_name} could not be found in *'):
         hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
 
     acme_shared_library_file = artifacts_dir / acme_lib_name
     acme_shared_library_file.write_text('')
+
+    # The mock bellow is to avoid to have get a valid dll on this test
+    from hookman.plugin_config import PluginInfo
+    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')
 
     hg.generate_plugin_package(package_name='acme', plugin_dir=plugin_dir)
     compressed_plugin_package = plugin_dir / hm_plugin_name
     assert compressed_plugin_package.exists()
 
 
-def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path, mocker):
+def test_generate_plugin_package_invalid_version(acme_hook_specs_file, tmp_path, mocker, mock_plugin_id_from_dll):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = 'acme'
     hg.generate_plugin_template(plugin_id, plugin_id, 'acme1', 'acme2', tmp_path)

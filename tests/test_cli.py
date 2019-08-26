@@ -1,7 +1,7 @@
 import sys
 
-from click.testing import CliRunner
 from _pytest.pytester import LineMatcher
+from click.testing import CliRunner
 
 from hookman import __main__
 
@@ -62,7 +62,7 @@ def test_generate_hook_specs_h(datadir):
     assert (datadir / 'my_plugin' / 'src' / 'hook_specs.h').is_file()
 
 
-def test_package_plugin(datadir):
+def test_package_plugin(datadir, mock_plugin_id_from_dll):
     runner = CliRunner()
     hook_spec_file = str(datadir / 'hook_specs.py')
     result = runner.invoke(__main__.cli, [

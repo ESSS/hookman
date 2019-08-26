@@ -39,6 +39,7 @@ def simple_plugin_dll(datadir, plugins_folder):
 
     return plugin_dir / 'simple_plugin.dll'
 
+
 @pytest.fixture
 def get_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
 
@@ -67,3 +68,10 @@ def simple_plugin(get_plugin):
 @pytest.fixture
 def simple_plugin_2(get_plugin):
     return get_plugin("simple_plugin_2")
+
+
+@pytest.fixture
+def mock_plugin_id_from_dll(mocker):
+    # The mock bellow is to avoid to have get a valid dll on this test
+    from hookman.plugin_config import PluginInfo
+    mocker.patch.object(PluginInfo, '_get_plugin_id_from_dll', return_value='')

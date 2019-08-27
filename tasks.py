@@ -130,7 +130,7 @@ def compile_build_files(ctx):
             print("\n\nCalling cmake --version\n\n")
             ctx.run('cmake --version')
             print('\n\nRunning: ')
-            print(\f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
+            print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 
         else:

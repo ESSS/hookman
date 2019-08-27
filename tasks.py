@@ -126,7 +126,13 @@ def compile_build_files(ctx):
             
             print("\n\n Print for debug the files\n\n")
             print(list(path_pybind11))
-                  
+            
+            print("\n\n Calling Conda list \n\n")
+            ctx.run('conda list')
+
+            print("\n\n Calling Conda list \n\n")
+            ctx.run('conda info')                  
+            
             print("\n\n Calling cmake --version \n\n")
             ctx.run('cmake --version')
             

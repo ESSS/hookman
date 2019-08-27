@@ -125,7 +125,7 @@ def compile_build_files(ctx):
             path_share = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share'))
             path_cmake = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake'))
             path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
-            
+                        
             print(path_lib)
             print(path_share)
             print(path_cmake)
@@ -135,6 +135,11 @@ def compile_build_files(ctx):
             print(list(path_share.iterdir()))
             print(list(path_cmake.iterdir()))
             print(list(path_pybind11.iterdir()))
+            
+            path_cmake_2 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake-3.15'))
+            path_pybind11_2 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake-3.15\pybind11'))
+            print(list(path_cmake_2.iterdir()))
+            print(list(path_pybind11_2.iterdir()))
             
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)

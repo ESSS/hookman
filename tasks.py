@@ -125,7 +125,7 @@ def compile_build_files(ctx):
             path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
             
             print("\n\n Print for debug the files\n\n")
-            print(list(path_pybind11))
+            print(list(path_pybind11.iterdir()))
             
             print("\n\n Calling Conda list \n\n")
             ctx.run('conda list')

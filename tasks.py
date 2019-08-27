@@ -135,7 +135,6 @@ def compile_build_files(ctx):
             print(list(path_cmake.iterdir()))
             print(list(path_pybind11.iterdir()))
             
-            
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 

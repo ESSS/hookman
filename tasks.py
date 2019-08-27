@@ -76,6 +76,7 @@ def compile_build_files(ctx):
     """
     A task to compile all dlls and pyd necessary for the tests
     """
+    from pathlib import Path
     project_dir = Path(__file__).parent
 
     build_dir = project_dir / 'build'

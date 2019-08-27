@@ -125,12 +125,12 @@ def compile_build_files(ctx):
             path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
             
             print("\n\n Print for debug the files\n\n")
-            print(list(path_pybind11)
+            print(list(path_pybind11))
                   
-            print("\n\nCalling cmake --version\n\n")
+            print("\n\n Calling cmake --version \n\n")
             ctx.run('cmake --version')
             
-            print('\n\nRunning: \n\n')
+            print('\n\n Running: \n\n')
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
             
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)

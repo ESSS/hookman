@@ -121,16 +121,18 @@ def compile_build_files(ctx):
             call_cmd = f'call "{msvc_path}" amd64'
             
             from pathlib import Path
-            path_lib = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library'))
-            path_share = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share'))
+            
+            path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
             
             print("\n\n Print for debug the files\n\n")
-            for i in path_share.glob('**/*'):
-                print(i.name, i)
+            print(list(path_pybind11)
+                  
             print("\n\nCalling cmake --version\n\n")
             ctx.run('cmake --version')
-            print('\n\nRunning: ')
+            
+            print('\n\nRunning: \n\n')
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")
+            
             ctx.run(command=call_cmd + '&' + call_cmake + '&&' + call_ninja + '&&' + call_install)
 
         else:

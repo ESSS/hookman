@@ -121,12 +121,27 @@ def compile_build_files(ctx):
             call_cmd = f'call "{msvc_path}" amd64'
             
             from pathlib import Path
-            
+           
             path_pybind11 = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake\pybind11'))
+            path_cmake = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\share\cmake'))
+            path_include = Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\include'))
             
-            print("\n\n Print for debug the files\n\n")
-            print(list(path_pybind11.iterdir()))
+            import pybind11
+            print(f"pybind11.get_include() = {pybind11.get_include()}")
             
+            print("\n\n Print on Library\include \n\n")
+            if path_include.is_dir():
+                print(list(path_include.iterdir()))
+            print("\n\n Print on Library\share\cmake\n\n")
+            if path_cmake.is_dir():
+                print(list(path_cmake.iterdir()))
+            
+            print("\n\n Print on Library\share\cmake\pybind11\n\n")
+            if path_pybind11.is_dir():
+                print(list(path_pybind11.iterdir()))
+            else:
+                print("\n\n Something went wrong on Library\share\cmake\pybind11 \n\n") 
+                            
             print("\n\n Calling Conda list \n\n")
             ctx.run('conda list')
 

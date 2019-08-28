@@ -149,7 +149,7 @@ def compile_build_files(ctx):
             ctx.run('conda info')                  
             
             print("\n\n Print Everthing from Library \n\n")
-            for i in Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\).rglob("*"):
+            for i in Path(os.path.expandvars(r'$TOX_ENV_DIR\Library').rglob("*"):
                 print(i)
             
             print('\n\n Running: \n\n')

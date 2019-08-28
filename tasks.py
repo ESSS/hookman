@@ -148,8 +148,9 @@ def compile_build_files(ctx):
             print("\n\n Calling Conda list \n\n")
             ctx.run('conda info')                  
             
-            print("\n\n Calling cmake --version \n\n")
-            ctx.run('cmake --version')
+            print("\n\n Print Everthing from Library \n\n")
+            for i in Path(os.path.expandvars(r'$TOX_ENV_DIR\Library\).rglob("*")
+                print(i)
             
             print('\n\n Running: \n\n')
             print(f"command={call_cmd} + '&' + {call_cmake} + '&&' + {call_ninja} + '&&' + {call_install}")

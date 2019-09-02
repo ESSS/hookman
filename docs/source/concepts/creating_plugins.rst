@@ -49,8 +49,8 @@ The generated template has the following structure:
 
 .. code-block:: bash
 
-    \---<id>
-        |   build.py
+    \---<plugin_id>
+        |   compile.py
         |   CMakeLists.txt
         |
         +---assets

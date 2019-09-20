@@ -3,7 +3,7 @@ name: hookman
 dependencies:
     - python=3
     - strictyaml
-    - invoke==1.0.0
+    - invoke>=1.0.0
     - click
     - pytest
     - pytest-cov

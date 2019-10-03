@@ -171,6 +171,13 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
+        if extra_includes is None:
+            extra_includes = []
+
+        # Convert the given argument to a List
+        if not isinstance(extra_includes, (list, set)):
+            extra_includes = [extra_includes]
+
         Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(plugin_id))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(plugin_id))
         Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
@@ -542,11 +549,8 @@ class HookManGenerator:
         """
 
         plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}' for hook in self.hooks]
-        file_content = [
-            '#include "hook_specs.h"',
-            '\n'
-        ]
-        extra_include_content = extra_includes if extra_includes else []
+        file_content = ['#include "hook_specs.h"', '\n']
+        extra_include_content = [f'#include "{include}"' for include in extra_includes]
         full_content = extra_include_content + file_content + plugin_hooks_macro
         return '\n'.join(full_content)
 

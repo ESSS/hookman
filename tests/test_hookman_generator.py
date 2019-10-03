@@ -64,6 +64,22 @@ def test_generate_plugin_template(datadir, file_regression):
     obtained_compile_script = datadir / 'test_generate_plugin_template/acme/compile.py'
     file_regression.check(obtained_compile_script.read_text(), basename='generate_compile', extension='.py')
 
+def test_generate_plugin_template_source_content_with_extra_includes (datadir, file_regression):
+    plugin_dir = datadir / 'test_generate_plugin_template_with_extra_include'
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
+
+    hg.generate_plugin_template(
+        caption='Acme',
+        plugin_id='acme',
+        author_name='FOO',
+        author_email='FOO@FOO.com',
+        dst_path=plugin_dir,
+        extra_includes=['#include "my_sdk/sdk.h"'],
+    )
+
+    obtained_plugin_file = datadir / 'test_generate_plugin_template_with_extra_include/acme/src/acme.cpp'
+    file_regression.check(obtained_plugin_file.read_text(), basename='plugin_file_with_extra_includes', extension='.cpp')
+
 
 def test_generate_hook_specs_header(datadir, file_regression):
     plugin_dir = datadir / 'my-plugin'

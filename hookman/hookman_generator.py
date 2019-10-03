@@ -4,7 +4,7 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import NamedTuple, Union, Optional, List
+from typing import List, NamedTuple, Optional, Union
 from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
@@ -133,7 +133,8 @@ class HookManGenerator:
         author_email: str,
         author_name: str,
         dst_path: Path,
-        extra_includes: Optional[List[str]] = None
+        extra_includes: Optional[List[str]] = None,
+        extra_body_lines: Optional[List[str]] = None,
     ):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -154,6 +155,9 @@ class HookManGenerator:
 
         :param extra_includes:
             Extras include to be added on {plugin_id}.cpp as "default", as an example is the includes for a SDK.
+
+        :param extra_body_lines:
+            Extras lines to be added on {plugin_id}.cpp on the body, used for default implementations of hooks
         """
         if not plugin_id.isidentifier():
             raise HookmanError("The shared library name must be a valid identifier.")
@@ -174,16 +178,21 @@ class HookManGenerator:
         if extra_includes is None:
             extra_includes = []
 
+        if extra_body_lines is None:
+            extra_body_lines = []
+
         # Convert the given argument to a List
         if not isinstance(extra_includes, (list, set)):
             extra_includes = [extra_includes]
 
         Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(plugin_id))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(plugin_id))
-        Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
+        Path(assets_folder / 'plugin.yaml').write_text(
+            self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(caption, author_email, author_name))
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
-        Path(source_folder / f'{plugin_id}.cpp').write_text(self._plugin_source_content(extra_includes))
+        Path(source_folder / f'{plugin_id}.cpp').write_text(
+            self._plugin_source_content(extra_includes, extra_body_lines))
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
 
     def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
@@ -540,7 +549,7 @@ class HookManGenerator:
         """)
         return file_content
 
-    def _plugin_source_content(self, extra_includes) -> str:
+    def _plugin_source_content(self, extra_includes: List[str], extra_body_lines: List[str]) -> str:
         """
         Create a C header file with the content informed on the hook_specs
 
@@ -551,7 +560,7 @@ class HookManGenerator:
         plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}' for hook in self.hooks]
         file_content = ['#include "hook_specs.h"', '\n']
         extra_include_content = [f'#include "{include}"' for include in extra_includes]
-        full_content = extra_include_content + file_content + plugin_hooks_macro
+        full_content = extra_include_content + file_content + extra_body_lines + plugin_hooks_macro
         return '\n'.join(full_content)
 
     def _plugin_cmake_file_content(self, plugin_id):

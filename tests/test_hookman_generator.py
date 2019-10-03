@@ -49,8 +49,8 @@ def test_generate_plugin_template(datadir, file_regression):
     obtained_plugin_yaml = datadir / 'test_generate_plugin_template/acme/assets/plugin.yaml'
     file_regression.check(obtained_plugin_yaml.read_text(), basename='generate_plugin', extension='.yaml')
 
-    obtained_plugin_c = datadir / 'test_generate_plugin_template/acme/src/plugin.c'
-    file_regression.check(obtained_plugin_c.read_text(), basename='generate_plugin', extension='.c')
+    obtained_plugin_file = datadir / 'test_generate_plugin_template/acme/src/acme.cpp'
+    file_regression.check(obtained_plugin_file.read_text(), basename='generate_plugin', extension='.c')
 
     obtained_readme = datadir / 'test_generate_plugin_template/acme/assets/README.md'
     file_regression.check(obtained_readme.read_text(), basename='generate_README', extension='.md')

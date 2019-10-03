@@ -148,7 +148,7 @@ class HookManGenerator:
                     - README.md
                 src/
                     - hook_specs.h
-                    - plugin.c
+                    - {plugin_id}.cpp
                     - CMakeLists.txt
         """
         if not plugin_id.isidentifier():
@@ -172,7 +172,7 @@ class HookManGenerator:
         Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(caption, author_email, author_name))
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
-        Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
+        Path(source_folder / f'{plugin_id}.cpp').write_text(self._plugin_source_content())
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
 
     def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
@@ -571,7 +571,7 @@ class HookManGenerator:
 
     def _plugin_src_cmake_file_content(self, plugin_id):
         file_content = dedent(f'''\
-            add_library({plugin_id} SHARED plugin.c hook_specs.h)
+            add_library({plugin_id} SHARED {plugin_id}.cpp hook_specs.h)
             install(TARGETS {plugin_id} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content

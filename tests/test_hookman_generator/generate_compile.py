@@ -23,12 +23,12 @@ build_dir.mkdir()
 
 binary_directory_path = f"-B{str(build_dir)}"
 home_directory_path = f"-H{current_dir}"
-
+sdk_include_dir = f"-DSDK_INCLUDE_DIR={os.getenv('SDK_INCLUDE_DIR', '')}"
 build_generator = "Visual Studio 14 2015 Win64" if sys.platform == "win32" else "Unix Makefiles"
 if artifacts_dir.exists():
     shutil.rmtree(artifacts_dir)
 
-subprocess.check_call(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
+subprocess.check_call(["cmake", binary_directory_path, home_directory_path, sdk_include_dir, "-G", build_generator])
 subprocess.check_call(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
 
 if package_dir.exists():

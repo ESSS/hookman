@@ -1,2 +1,3 @@
 add_library(acme SHARED acme.cpp hook_specs.h)
+target_include_directories(acme PUBLIC ${SDK_INCLUDE_DIR})
 install(TARGETS acme EXPORT ${PROJECT_NAME}_export DESTINATION ${ARTIFACTS_DIR})

@@ -100,6 +100,7 @@ def test_generate_plugin_template_source_content_with_default_impls(datadir, fil
         author_email='FOO@FOO.com',
         dst_path=plugin_dir,
         extra_body_lines=extra_body_lines,
+        exclude_hooks=['HOOK_FRICTION_FACTOR']
     )
 
     obtained_plugin_file = datadir / 'test_generate_plugin_template_source_content_with_default_impls/acme/src/acme.cpp'

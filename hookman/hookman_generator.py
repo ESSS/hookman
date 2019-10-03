@@ -135,6 +135,7 @@ class HookManGenerator:
         dst_path: Path,
         extra_includes: Optional[List[str]] = None,
         extra_body_lines: Optional[List[str]] = None,
+        exclude_hooks: Optional[List[str]] = None,
     ):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -158,6 +159,9 @@ class HookManGenerator:
 
         :param extra_body_lines:
             Extras lines to be added on {plugin_id}.cpp on the body, used for default implementations of hooks
+
+        :param exclude_hooks:
+            List of hooks, that will not be inserted on the {plugin_id}.cpp
         """
         if not plugin_id.isidentifier():
             raise HookmanError("The shared library name must be a valid identifier.")
@@ -181,6 +185,9 @@ class HookManGenerator:
         if extra_body_lines is None:
             extra_body_lines = []
 
+        if exclude_hooks is None:
+            exclude_hooks = []
+
         # Convert the given argument to a List
         if not isinstance(extra_includes, (list, set)):
             extra_includes = [extra_includes]
@@ -192,7 +199,7 @@ class HookManGenerator:
         Path(assets_folder / 'README.md').write_text(self._readme_content(caption, author_email, author_name))
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
         Path(source_folder / f'{plugin_id}.cpp').write_text(
-            self._plugin_source_content(extra_includes, extra_body_lines))
+            self._plugin_source_content(extra_includes, extra_body_lines, exclude_hooks))
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
 
     def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
@@ -549,15 +556,16 @@ class HookManGenerator:
         """)
         return file_content
 
-    def _plugin_source_content(self, extra_includes: List[str], extra_body_lines: List[str]) -> str:
+    def _plugin_source_content(self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]) -> str:
         """
         Create a C header file with the content informed on the hook_specs
 
-        extra_includes are indent to be "defaults" includes that it's desired to be provided as default, as an example
-        the include for a SDK.
+        :param extra_includes: All includes extras, requested to be included, example, the include of a SDK.
+        :param extra_body_lines: Extra lines, indent to be inserted on the template, example, implementation of hook.
+        :param exclude_hooks: List of hooks names, that will not be inserted on the source file
         """
 
-        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}' for hook in self.hooks]
+        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}' for hook in self.hooks if hook.macro_name not in exclude_hooks]
         file_content = ['#include "hook_specs.h"', '\n']
         extra_include_content = [f'#include "{include}"' for include in extra_includes]
         full_content = extra_include_content + file_content + extra_body_lines + plugin_hooks_macro

@@ -111,10 +111,10 @@ def test_generate_plugin_template_source_wrong_arguments(datadir):
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
 
     with pytest.raises(ValueError, match='extra_includes parameter must be a list, got int'):
-        hg._parameter_validation('extra_includes', 1)
+        hg._validate_parameter('extra_includes', 1)
 
     with pytest.raises(ValueError, match='All elements of extra_includes must be a string'):
-        hg._parameter_validation('extra_includes', ['xx', 1])
+        hg._validate_parameter('extra_includes', ['xx', 1])
 
 
 def test_generate_hook_specs_header(datadir, file_regression):

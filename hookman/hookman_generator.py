@@ -179,9 +179,9 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
-        extra_includes = self._parameter_validation('extra_includes', extra_includes)
-        extra_body_lines = self._parameter_validation('extra_body_lines', extra_body_lines)
-        exclude_hooks = self._parameter_validation('exclude_hooks', exclude_hooks)
+        extra_includes = self._validate_parameter('extra_includes', extra_includes)
+        extra_body_lines = self._validate_parameter('extra_body_lines', extra_body_lines)
+        exclude_hooks = self._validate_parameter('exclude_hooks', exclude_hooks)
 
         Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(plugin_id))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(plugin_id))
@@ -191,7 +191,7 @@ class HookManGenerator:
         Path(source_folder / f'{plugin_id}.cpp').write_text(self._plugin_source_content(extra_includes, extra_body_lines, exclude_hooks))
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
 
-    def _parameter_validation(self, parameter_name: str, parameter_value: Any) -> Union[List, List[str]]:
+    def _validate_parameter(self, parameter_name: str, parameter_value: Any) -> Union[List, List[str]]:
         """
         Check if the given parameter is a list and if all elements of this list are strings
         """

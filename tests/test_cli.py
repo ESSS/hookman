@@ -44,7 +44,7 @@ def test_generate_plugin_template(datadir):
     assert result.exit_code == 0, result.output
 
     assert (datadir / 'my_plugin' / 'assets' / 'plugin.yaml').is_file()
-    assert (datadir / 'my_plugin' / 'src' / 'plugin.c').is_file()
+    assert (datadir / 'my_plugin' / 'src' / 'my_plugin.cpp').is_file()
     assert (datadir / 'my_plugin' / 'src' / 'hook_specs.h').is_file()
 
 
@@ -77,7 +77,7 @@ def test_package_plugin(datadir, mock_plugin_id_from_dll):
     assert result.exit_code == 0, result.output
 
     assert (datadir / 'my_plugin' / 'assets' / 'plugin.yaml').is_file()
-    assert (datadir / 'my_plugin' / 'src' / 'plugin.c').is_file()
+    assert (datadir / 'my_plugin' / 'src' / 'my_plugin.cpp').is_file()
 
     # create dummy artifact
     prefix, ext = ('', '.dll') if sys.platform.startswith('win') else ('lib', '.so')

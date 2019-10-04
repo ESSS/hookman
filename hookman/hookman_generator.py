@@ -4,7 +4,7 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import NamedTuple, Union
+from typing import Any, List, NamedTuple, Optional, Union
 from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
@@ -132,7 +132,10 @@ class HookManGenerator:
         plugin_id: str,
         author_email: str,
         author_name: str,
-        dst_path: Path
+        dst_path: Path,
+        extra_includes: Optional[List[str]]=None,
+        extra_body_lines: Optional[List[str]]=None,
+        exclude_hooks: Optional[List[str]]=None,
     ):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -148,8 +151,17 @@ class HookManGenerator:
                     - README.md
                 src/
                     - hook_specs.h
-                    - plugin.c
+                    - {plugin_id}.cpp
                     - CMakeLists.txt
+
+        :param extra_includes:
+            Extras include to be added on {plugin_id}.cpp as "default", as an example is the includes for a SDK.
+
+        :param extra_body_lines:
+            Extras lines to be added on {plugin_id}.cpp on the body, used for default implementations of hooks
+
+        :param exclude_hooks:
+            List of hooks, that will not be inserted on the {plugin_id}.cpp
         """
         if not plugin_id.isidentifier():
             raise HookmanError("The shared library name must be a valid identifier.")
@@ -167,13 +179,34 @@ class HookManGenerator:
         if not source_folder.exists():
             source_folder.mkdir()
 
+        extra_includes = self._validate_parameter('extra_includes', extra_includes)
+        extra_body_lines = self._validate_parameter('extra_body_lines', extra_body_lines)
+        exclude_hooks = self._validate_parameter('exclude_hooks', exclude_hooks)
+
         Path(plugin_folder / 'compile.py').write_text(self._compile_shared_lib_python_script_content(plugin_id))
         Path(plugin_folder / 'CMakeLists.txt').write_text(self._plugin_cmake_file_content(plugin_id))
         Path(assets_folder / 'plugin.yaml').write_text(self._plugin_config_file_content(caption, plugin_id, author_email, author_name))
         Path(assets_folder / 'README.md').write_text(self._readme_content(caption, author_email, author_name))
         Path(source_folder / 'hook_specs.h').write_text(self._hook_specs_header_content(plugin_id))
-        Path(source_folder / 'plugin.c').write_text(self._plugin_source_content())
+        Path(source_folder / f'{plugin_id}.cpp').write_text(self._plugin_source_content(extra_includes, extra_body_lines, exclude_hooks))
         Path(source_folder / 'CMakeLists.txt').write_text(self._plugin_src_cmake_file_content(plugin_id))
+
+    def _validate_parameter(self, parameter_name: str, parameter_value: Any) -> Union[List, List[str]]:
+        """
+        Check if the given parameter is a list and if all elements of this list are strings
+        """
+
+        if parameter_value is None:
+            parameter_value = []
+
+        if not isinstance(parameter_value, list):
+            raise ValueError(f"{parameter_name} parameter must be a list, got {type(parameter_value).__name__}")
+
+        # Check if the list is empty otherwise check if all elements of the list are strings
+        if parameter_value and not all([isinstance(i, str) for i in parameter_value]):
+            raise ValueError(f"All elements of {parameter_name} must be a string")
+
+        return parameter_value
 
     def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
         """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
@@ -529,21 +562,24 @@ class HookManGenerator:
         """)
         return file_content
 
-    def _plugin_source_content(self) -> str:
+    def _plugin_source_content(self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]) -> str:
         """
         Create a C header file with the content informed on the hook_specs
+
+        :param extra_includes: All includes extras, requested to be included, example, the include of a SDK.
+        :param extra_body_lines: Extra lines, indent to be inserted on the template, example, implementation of hook.
+        :param exclude_hooks: List of hooks names, that will not be inserted on the source file
         """
-        file_content = []
-        plugin_hooks_macro = [f'// HOOK_{hook.macro_name}({hook.args}){{}}\n' for hook in self.hooks]
 
-        file_content += dedent(f"""\
-        #include "hook_specs.h"
-
-        INIT_HOOKS()
-
-        """)
-        file_content += plugin_hooks_macro
-        return ''.join(file_content)
+        plugin_hooks_macro = [
+            f'// HOOK_{hook.macro_name}({hook.args}){{}}'
+            for hook in self.hooks
+            if hook.macro_name not in exclude_hooks
+        ]
+        file_content = ['#include "hook_specs.h"', '\n']
+        extra_include_content = [f'#include "{include}"' for include in extra_includes]
+        full_content = extra_include_content + file_content + extra_body_lines + plugin_hooks_macro + ['']
+        return '\n'.join(full_content)
 
     def _plugin_cmake_file_content(self, plugin_id):
         file_content = dedent(f'''\
@@ -571,7 +607,8 @@ class HookManGenerator:
 
     def _plugin_src_cmake_file_content(self, plugin_id):
         file_content = dedent(f'''\
-            add_library({plugin_id} SHARED plugin.c hook_specs.h)
+            add_library({plugin_id} SHARED {plugin_id}.cpp hook_specs.h)
+            target_include_directories({plugin_id} PUBLIC ${{SDK_INCLUDE_DIR}})
             install(TARGETS {plugin_id} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         ''')
         return file_content
@@ -606,12 +643,12 @@ class HookManGenerator:
 
             binary_directory_path = f"-B{{str(build_dir)}}"
             home_directory_path = f"-H{{current_dir}}"
-
+            sdk_include_dir = f"-DSDK_INCLUDE_DIR={{os.getenv('SDK_INCLUDE_DIR', '')}}"
             build_generator = "Visual Studio 14 2015 Win64" if sys.platform == "win32" else "Unix Makefiles"
             if artifacts_dir.exists():
                 shutil.rmtree(artifacts_dir)
 
-            subprocess.check_call(["cmake", binary_directory_path, home_directory_path, "-G", build_generator])
+            subprocess.check_call(["cmake", binary_directory_path, home_directory_path, sdk_include_dir, "-G", build_generator])
             subprocess.check_call(["cmake", "--build", str(build_dir), "--config", "Release", "--target", "install"])
 
             if package_dir.exists():

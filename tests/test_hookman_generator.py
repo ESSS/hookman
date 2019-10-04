@@ -49,8 +49,8 @@ def test_generate_plugin_template(datadir, file_regression):
     obtained_plugin_yaml = datadir / 'test_generate_plugin_template/acme/assets/plugin.yaml'
     file_regression.check(obtained_plugin_yaml.read_text(), basename='generate_plugin', extension='.yaml')
 
-    obtained_plugin_c = datadir / 'test_generate_plugin_template/acme/src/plugin.c'
-    file_regression.check(obtained_plugin_c.read_text(), basename='generate_plugin', extension='.c')
+    obtained_plugin_file = datadir / 'test_generate_plugin_template/acme/src/acme.cpp'
+    file_regression.check(obtained_plugin_file.read_text(), basename='generate_plugin', extension='.cpp')
 
     obtained_readme = datadir / 'test_generate_plugin_template/acme/assets/README.md'
     file_regression.check(obtained_readme.read_text(), basename='generate_README', extension='.md')
@@ -63,6 +63,58 @@ def test_generate_plugin_template(datadir, file_regression):
 
     obtained_compile_script = datadir / 'test_generate_plugin_template/acme/compile.py'
     file_regression.check(obtained_compile_script.read_text(), basename='generate_compile', extension='.py')
+
+
+def test_generate_plugin_template_source_content_with_extra_includes (datadir, file_regression):
+    plugin_dir = datadir / 'test_generate_plugin_template_with_extra_include'
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
+
+    hg.generate_plugin_template(
+        caption='Acme',
+        plugin_id='acme',
+        author_name='FOO',
+        author_email='FOO@FOO.com',
+        dst_path=plugin_dir,
+        extra_includes=['my_sdk/sdk.h'],
+    )
+
+    obtained_plugin_file = datadir / 'test_generate_plugin_template_with_extra_include/acme/src/acme.cpp'
+    file_regression.check(obtained_plugin_file.read_text(), basename='plugin_file_with_extra_includes', extension='.cpp')
+
+
+def test_generate_plugin_template_source_content_with_default_impls(datadir, file_regression):
+    plugin_dir = datadir / 'test_generate_plugin_template_source_content_with_default_impls'
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
+
+    extra_body_lines = [
+        'HOOK_FRICTION_FACTOR(v1, v2)',
+        '{',
+        '    return 0;',
+        '}',
+    ]
+
+    hg.generate_plugin_template(
+        caption='Acme',
+        plugin_id='acme',
+        author_name='FOO',
+        author_email='FOO@FOO.com',
+        dst_path=plugin_dir,
+        extra_body_lines=extra_body_lines,
+        exclude_hooks=['HOOK_FRICTION_FACTOR']
+    )
+
+    obtained_plugin_file = datadir / 'test_generate_plugin_template_source_content_with_default_impls/acme/src/acme.cpp'
+    file_regression.check(obtained_plugin_file.read_text(), basename='plugin_file_with_default_impl', extension='.cpp')
+
+
+def test_generate_plugin_template_source_wrong_arguments(datadir):
+    hg = HookManGenerator(hook_spec_file_path=Path(datadir / 'hook_specs.py'))
+
+    with pytest.raises(ValueError, match='extra_includes parameter must be a list, got int'):
+        hg._validate_parameter('extra_includes', 1)
+
+    with pytest.raises(ValueError, match='All elements of extra_includes must be a string'):
+        hg._validate_parameter('extra_includes', ['xx', 1])
 
 
 def test_generate_hook_specs_header(datadir, file_regression):

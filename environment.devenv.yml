@@ -4,7 +4,7 @@ dependencies:
     - python=3
     - strictyaml
     - invoke>=1.0.0
-    - click
+    - click>=7.0.0
     - pytest
     - pytest-cov
     - pytest-datadir

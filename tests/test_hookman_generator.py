@@ -50,7 +50,7 @@ def test_generate_plugin_template(datadir, file_regression):
     file_regression.check(obtained_plugin_yaml.read_text(), basename='generate_plugin', extension='.yaml')
 
     obtained_plugin_file = datadir / 'test_generate_plugin_template/acme/src/acme.cpp'
-    file_regression.check(obtained_plugin_file.read_text(), basename='generate_plugin', extension='.c')
+    file_regression.check(obtained_plugin_file.read_text(), basename='generate_plugin', extension='.cpp')
 
     obtained_readme = datadir / 'test_generate_plugin_template/acme/assets/README.md'
     file_regression.check(obtained_readme.read_text(), basename='generate_README', extension='.md')

@@ -577,7 +577,7 @@ class HookManGenerator:
             if hook.macro_name not in exclude_hooks
         ]
         file_content = ['#include "hook_specs.h"', '\n']
-        extra_include_content = [f'#include "{include}"' for include in extra_includes]
+        extra_include_content = [f'#include {include}' for include in extra_includes]
         full_content = extra_include_content + file_content + extra_body_lines + plugin_hooks_macro + ['']
         return '\n'.join(full_content)
 

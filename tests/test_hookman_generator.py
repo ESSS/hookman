@@ -75,7 +75,7 @@ def test_generate_plugin_template_source_content_with_extra_includes (datadir, f
         author_name='FOO',
         author_email='FOO@FOO.com',
         dst_path=plugin_dir,
-        extra_includes=['my_sdk/sdk.h'],
+        extra_includes=['<my_sdk/sdk.h>'],
     )
 
     obtained_plugin_file = datadir / 'test_generate_plugin_template_with_extra_include/acme/src/acme.cpp'

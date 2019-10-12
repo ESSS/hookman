@@ -14,8 +14,10 @@ def cli():
 
 
 @cli.command()
-@click.argument('specs_path', type=click.Path(exists=True))
-@click.option('--dst-path', default='./', help='Path to where the files will be written')
+@click.argument("specs_path", type=click.Path(exists=True))
+@click.option(
+    "--dst-path", default="./", help="Path to where the files will be written"
+)
 def generate_project_files(specs_path, dst_path):
     """
     Generate hooks_pecs.h, HookCaller c++ class and bindings.
@@ -39,19 +41,22 @@ def generate_project_files(specs_path, dst_path):
 
 
 @cli.command()
-@click.argument('specs_path', type=click.Path(exists=True))
-@click.argument('caption')
-@click.argument('plugin_id')
-@click.argument('author_name')
-@click.argument('author_email')
-@click.option('--dst-path', default='./', help='Path to where the files will be written')
+@click.argument("specs_path", type=click.Path(exists=True))
+@click.argument("caption")
+@click.argument("plugin_id")
+@click.argument("author_name")
+@click.argument("author_email")
+@click.option(
+    "--dst-path", default="./", help="Path to where the files will be written"
+)
 def generate_plugin_template(
-        specs_path: str,
-        caption: str,
-        plugin_id: str,
-        author_email: str,
-        author_name: str,
-        dst_path: Path):
+    specs_path: str,
+    caption: str,
+    plugin_id: str,
+    author_email: str,
+    author_name: str,
+    dst_path: Path,
+):
     """
     Generate a plugin starting template with the necessary structure and files to create a plugin.
 
@@ -68,15 +73,18 @@ def generate_plugin_template(
         plugin_id=plugin_id,
         author_email=author_email,
         author_name=author_name,
-        dst_path=Path(dst_path))
+        dst_path=Path(dst_path),
+    )
     return 0
 
 
 @cli.command()
-@click.argument('specs_path', type=click.Path(exists=True))
-@click.argument('package_name')
-@click.argument('plugin_dir')
-@click.option('--dst-path', default='./', help='Path to where the files will be written')
+@click.argument("specs_path", type=click.Path(exists=True))
+@click.argument("package_name")
+@click.argument("plugin_dir")
+@click.option(
+    "--dst-path", default="./", help="Path to where the files will be written"
+)
 def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path: Path):
     """
     Creates a PACKAGE_NAME for distribution on the current directory from the given PLUGIN_DIR for the project.
@@ -89,16 +97,17 @@ def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path
     """
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_plugin_package(
-        package_name=package_name,
-        plugin_dir=plugin_dir,
-        dst_path=Path(dst_path))
+        package_name=package_name, plugin_dir=plugin_dir, dst_path=Path(dst_path)
+    )
     return 0
 
 
 @cli.command()
-@click.argument('specs_path', type=click.Path(exists=True))
-@click.argument('plugin_id')
-@click.option('--dst-path', default='./', help='Path to where the files will be written')
+@click.argument("specs_path", type=click.Path(exists=True))
+@click.argument("plugin_id")
+@click.option(
+    "--dst-path", default="./", help="Path to where the files will be written"
+)
 def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path):
     """
     Generates or update the hook_specs.h header file.
@@ -108,8 +117,8 @@ def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path):
     """
     hm_generator = HookManGenerator(hook_spec_file_path=specs_path)
     hm_generator.generate_hook_specs_header(
-        plugin_id=plugin_id,
-        dst_path=Path(dst_path))
+        plugin_id=plugin_id, dst_path=Path(dst_path)
+    )
     return 0
 
 

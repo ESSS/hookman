@@ -43,8 +43,3 @@ Dig deeper into specific topics:
 
     concepts/creating_an_sdk
     api/*
-
-
-
-
-

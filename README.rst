@@ -12,7 +12,7 @@ Hookman
     :target: https://pypi.org/project/python-hookman
 
 .. image:: https://img.shields.io/travis/ESSS/hookman.svg
-    :target: https://travis-ci.org/ESSS/hookman                
+    :target: https://travis-ci.org/ESSS/hookman
 
 .. image:: https://ci.appveyor.com/api/projects/status/w472d1cm0w37ka3l/branch/master?svg=true
     :target: https://ci.appveyor.com/project/ESSS/hookman/?branch=master&svg=true

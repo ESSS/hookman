@@ -122,7 +122,7 @@ private:
             std::wstring path_env{ buf };
             free(buf);
             return path_env;
-        } 
+        }
 
         std::wstring path_env;
     };

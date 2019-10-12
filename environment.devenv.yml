@@ -17,7 +17,9 @@ dependencies:
     - cmake >=3.5.2
 
     {% if os.sys.platform != 'win32' %}
-    - clangdev>=6.0.0
+    - cxx-compiler
+    - c-compiler
+    - cython
     {% endif %}
 
     {% if os.sys.platform == 'win32' %}

@@ -6,8 +6,8 @@ set(PROJECT_NAME hookman)
 set(ARTIFACTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/artifacts)
 
 if(NOT WIN32)
-  set(CMAKE_C_COMPILER    clang)
-  set(CMAKE_CXX_COMPILER  clang++)
+  set(CMAKE_C_COMPILER    gcc)
+  set(CMAKE_CXX_COMPILER  gcc)
 endif(NOT WIN32)
 
 project (hookman LANGUAGES CXX C)

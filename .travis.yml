@@ -34,10 +34,7 @@ jobs:
 
 addons:
   apt:
-    sources:
-      - llvm-toolchain-xenial-6.0
     packages:
-      - clang-6.0
       - ninja-build
 
 install:

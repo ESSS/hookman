@@ -28,8 +28,9 @@ if(NOT WIN32)
 
   message(STATUS "Found GCC base directory: ${GCC_BASE_DIR}")
 
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_FLAGS       "-Wall")
-  set(CMAKE_CXX_LINK_FLAGS  "-std=c++11")
   set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
 endif(NOT WIN32)

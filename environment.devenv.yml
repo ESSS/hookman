@@ -18,7 +18,6 @@ dependencies:
 
     {% if os.sys.platform != 'win32' %}
     - compilers
-    - cython
     {% endif %}
 
     {% if os.sys.platform == 'win32' %}

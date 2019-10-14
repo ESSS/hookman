@@ -36,9 +36,7 @@ def generate_build_files(ctx):
 
     # Finding hook_specs.py, each hook_specs represent a different project with different hooks
     hook_spec_paths = [
-        path
-        for path in directory_of_the_tests.glob("**/hook_specs.py")
-        if "tmp" not in path.parts
+        path for path in directory_of_the_tests.glob("**/hook_specs.py") if "tmp" not in path.parts
     ]
 
     # CMakeList.txt that includes all sub_directory with tests to be compiled
@@ -50,9 +48,7 @@ def generate_build_files(ctx):
 
     # For each hook_specs, create a directory for the compilation and generate the files
     for project_hook_spec_path in hook_spec_paths:
-        project_dir_for_build = (
-            directory_to_build_tests / project_hook_spec_path.parent.name
-        )
+        project_dir_for_build = directory_to_build_tests / project_hook_spec_path.parent.name
         project_dir_for_build.mkdir(parents=True)
 
         hm_generator = HookManGenerator(hook_spec_file_path=project_hook_spec_path)
@@ -76,9 +72,7 @@ def generate_build_files(ctx):
         # Create the CMakeFile on root of the project to include others CMake files.
         main_cmakelist = project_dir_for_build / "CMakeLists.txt"
         main_cmakelist_content = []
-        main_cmakelist_content.append(
-            "add_subdirectory(cpp)\nadd_subdirectory(binding)\n"
-        )
+        main_cmakelist_content.append("add_subdirectory(cpp)\nadd_subdirectory(binding)\n")
         main_cmakelist_content += [
             f"add_subdirectory(plugin/{plugin.name}/src)\n" for plugin in plugins_dirs
         ]
@@ -136,21 +130,11 @@ def compile_build_files(ctx):
                     break
             else:
                 raise RuntimeError(
-                    "Couldn't find MSVC compiler in any of:\n{}".format(
-                        "- " + "\n- ".join(paths)
-                    )
+                    "Couldn't find MSVC compiler in any of:\n{}".format("- " + "\n- ".join(paths))
                 )
 
             call_cmd = f'call "{msvc_path}" amd64'
-            ctx.run(
-                command=call_cmd
-                + "&"
-                + call_cmake
-                + "&&"
-                + call_ninja
-                + "&&"
-                + call_install
-            )
+            ctx.run(command=call_cmd + "&" + call_cmake + "&&" + call_ninja + "&&" + call_install)
 
         else:
             ctx.run(command=call_cmake + "&&" + call_ninja + "&&" + call_install)
@@ -164,9 +148,7 @@ def _package_plugins(ctx):
 
     project_dir = Path(__file__).parent
     plugins_projects = [
-        x
-        for x in (project_dir / "build/build_directory_for_tests/").iterdir()
-        if x.is_dir()
+        x for x in (project_dir / "build/build_directory_for_tests/").iterdir() if x.is_dir()
     ]
     artifacts_dir = project_dir / "build/artifacts"
 
@@ -178,25 +160,18 @@ def _package_plugins(ctx):
 
     for project in plugins_projects:
         plugins_dirs = [
-            x
-            for x in (project / "plugin").iterdir()
-            if x.is_dir() and (x / "assets").exists()
+            x for x in (project / "plugin").iterdir() if x.is_dir() and (x / "assets").exists()
         ]
         hm_generator = HookManGenerator(
-            hook_spec_file_path=project_dir
-            / f"tests/plugins/{project.name}/hook_specs.py"
+            hook_spec_file_path=project_dir / f"tests/plugins/{project.name}/hook_specs.py"
         )
 
         for plugin in plugins_dirs:
             (plugin / "artifacts").mkdir()
             if sys.platform == "win32":
-                shutil.copy2(
-                    src=artifacts_dir / f"{plugin.name}.dll", dst=plugin / "artifacts"
-                )
+                shutil.copy2(src=artifacts_dir / f"{plugin.name}.dll", dst=plugin / "artifacts")
             else:
-                shutil.copy2(
-                    src=artifacts_dir / f"lib{plugin.name}.so", dst=plugin / "artifacts"
-                )
+                shutil.copy2(src=artifacts_dir / f"lib{plugin.name}.so", dst=plugin / "artifacts")
 
             hm_generator.generate_plugin_package(
                 package_name=plugin.name, plugin_dir=plugin, dst_path=plugins_zip

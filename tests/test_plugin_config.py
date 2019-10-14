@@ -41,9 +41,7 @@ def test_plugin_id_conflict(simple_plugin, datadir):
 
     import sys
 
-    shared_lib_name = (
-        f"simple_plugin.dll" if sys.platform == "win32" else f"libsimple_plugin.so"
-    )
+    shared_lib_name = f"simple_plugin.dll" if sys.platform == "win32" else f"libsimple_plugin.so"
     shared_lib_executable = simple_plugin["path"] / f"artifacts/{shared_lib_name}"
 
     acme_lib_name = shared_lib_name.replace("simple_plugin", "ACME")

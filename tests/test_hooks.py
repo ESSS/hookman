@@ -10,14 +10,9 @@ def test_hook_specs_without_arguments():
         """
 
     # A hook must have parameters
-    with pytest.raises(
-        TypeError, match="It's not possible to create a hook without argument"
-    ):
+    with pytest.raises(TypeError, match="It's not possible to create a hook without argument"):
         specs = HookSpecs(
-            project_name="acme",
-            version="1",
-            pyd_name="_acme",
-            hooks=[method_without_arguments],
+            project_name="acme", version="1", pyd_name="_acme", hooks=[method_without_arguments]
         )
 
 
@@ -28,9 +23,7 @@ def test_hook_specs_with_missing_type_on_argument():
         """
 
     # A arguments of the hook must inform the type
-    with pytest.raises(
-        TypeError, match="All hooks arguments must have the type informed"
-    ):
+    with pytest.raises(TypeError, match="All hooks arguments must have the type informed"):
         specs = HookSpecs(
             project_name="acme",
             version="1",
@@ -45,10 +38,7 @@ def test_hook_specs_without_docs_arguments():
 
     with pytest.raises(TypeError, match="All hooks must have documentation"):
         specs = HookSpecs(
-            project_name="acme",
-            version="1",
-            pyd_name="_acme",
-            hooks=[method_with_docs_missing],
+            project_name="acme", version="1", pyd_name="_acme", hooks=[method_with_docs_missing]
         )
 
 
@@ -70,9 +60,7 @@ def test_get_hook_caller(simple_plugin):
     assert friction_factors[0](1, 2) == 3
 
 
-def test_get_hook_caller_passing_ignored_plugins(
-    datadir, simple_plugin, simple_plugin_2
-):
+def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2):
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 
@@ -87,9 +75,7 @@ def test_get_hook_caller_passing_ignored_plugins(
 
 
 def test_get_hook_caller_without_plugin(datadir, simple_plugin):
-    hm = HookMan(
-        specs=simple_plugin["specs"], plugin_dirs=[datadir / "some_non_existing_folder"]
-    )
+    hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[datadir / "some_non_existing_folder"])
     hook_caller = hm.get_hook_caller()
     friction_factors = hook_caller.friction_factor_impls()
     env_temperatures = hook_caller.env_temperature_impls()
@@ -125,9 +111,7 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
 
     mocked_config_content = {"shared_lib_name": "NON_VALID_SHARED_LIB"}
-    mocker.patch.object(
-        PluginInfo, "_load_yaml_file", return_value=mocked_config_content
-    )
+    mocker.patch.object(PluginInfo, "_load_yaml_file", return_value=mocked_config_content)
 
     # Trying to install without a SHARED LIB inside the plugin
     from hookman.exceptions import SharedLibraryNotFoundError
@@ -136,9 +120,7 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
         SharedLibraryNotFoundError,
         match=f"{mocked_config_content['shared_lib_name']} could not be found inside the plugin file",
     ):
-        hm.install_plugin(
-            plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"]
-        )
+        hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
 
 
 def test_install_with_invalid_dest_path(simple_plugin):
@@ -149,15 +131,12 @@ def test_install_with_invalid_dest_path(simple_plugin):
 
     with pytest.raises(InvalidDestinationPathError, match=f"Invalid destination path"):
         hm.install_plugin(
-            plugin_file_path=simple_plugin["zip"],
-            dest_path=simple_plugin["path"] / "INVALID_PATH",
+            plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"] / "INVALID_PATH"
         )
 
 
 def test_install_plugin_duplicate(simple_plugin):
-    hm = HookMan(
-        specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"].parent]
-    )
+    hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"].parent])
     import os
 
     os.makedirs(simple_plugin["path"] / "simple_plugin")
@@ -167,17 +146,14 @@ def test_install_plugin_duplicate(simple_plugin):
 
     with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
         hm.install_plugin(
-            plugin_file_path=simple_plugin["zip"],
-            dest_path=simple_plugin["path"].parent,
+            plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"].parent
         )
 
 
 def test_install_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
     assert (simple_plugin["path"] / "simple_plugin").exists() == False
-    hm.install_plugin(
-        plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"]
-    )
+    hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
     assert (simple_plugin["path"] / "simple_plugin").exists() == True
 
 

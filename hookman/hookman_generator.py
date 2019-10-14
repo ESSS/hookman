@@ -7,11 +7,7 @@ from textwrap import dedent
 from typing import Any, List, NamedTuple, Optional, Union
 from zipfile import ZipFile
 
-from hookman.exceptions import (
-    ArtifactsDirNotFoundError,
-    AssetsDirNotFoundError,
-    HookmanError,
-)
+from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
 from hookman.hooks import HookSpecs
 from hookman.plugin_config import PluginInfo
 
@@ -123,12 +119,8 @@ class HookManGenerator:
             self.hooks.append(
                 Hook(
                     args=", ".join(hook_arguments),
-                    args_type=", ".join(
-                        [f"{hook_types[arg]}" for arg in hook_arguments]
-                    ),
-                    args_with_type=", ".join(
-                        get_arg_with_type(arg) for arg in hook_arguments
-                    ),
+                    args_type=", ".join([f"{hook_types[arg]}" for arg in hook_arguments]),
+                    args_with_type=", ".join(get_arg_with_type(arg) for arg in hook_arguments),
                     documentation=hook_documentation,
                     function_name=f"{self.project_name}_{self.version}_{hook_spec.__name__.lower()}",
                     macro_name=hook_spec.__name__.upper(),
@@ -191,9 +183,7 @@ class HookManGenerator:
             source_folder.mkdir()
 
         extra_includes = self._validate_parameter("extra_includes", extra_includes)
-        extra_body_lines = self._validate_parameter(
-            "extra_body_lines", extra_body_lines
-        )
+        extra_body_lines = self._validate_parameter("extra_body_lines", extra_body_lines)
         exclude_hooks = self._validate_parameter("exclude_hooks", exclude_hooks)
 
         Path(plugin_folder / "compile.py").write_text(
@@ -203,16 +193,12 @@ class HookManGenerator:
             self._plugin_cmake_file_content(plugin_id)
         )
         Path(assets_folder / "plugin.yaml").write_text(
-            self._plugin_config_file_content(
-                caption, plugin_id, author_email, author_name
-            )
+            self._plugin_config_file_content(caption, plugin_id, author_email, author_name)
         )
         Path(assets_folder / "README.md").write_text(
             self._readme_content(caption, author_email, author_name)
         )
-        Path(source_folder / "hook_specs.h").write_text(
-            self._hook_specs_header_content(plugin_id)
-        )
+        Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
         Path(source_folder / f"{plugin_id}.cpp").write_text(
             self._plugin_source_content(extra_includes, extra_body_lines, exclude_hooks)
         )
@@ -249,9 +235,7 @@ class HookManGenerator:
         """
         source_folder = Path(dst_path) / plugin_id / "src"
         source_folder.mkdir(parents=True, exist_ok=True)
-        Path(source_folder / "hook_specs.h").write_text(
-            self._hook_specs_header_content(plugin_id)
-        )
+        Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
 
     def generate_project_files(self, dst_path: Union[Path, str]):
         """
@@ -312,9 +296,7 @@ class HookManGenerator:
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 
             for file in python_dir.rglob("*"):
-                dst_filename = Path(
-                    "artifacts" / file.relative_to(plugin_dir / "src/python")
-                )
+                dst_filename = Path("artifacts" / file.relative_to(plugin_dir / "src/python"))
                 zip_file.write(filename=file, arcname=dst_filename)
 
     def _validate_package_folder(self, artifacts_dir, assets_dir):
@@ -336,9 +318,7 @@ class HookManGenerator:
             raise AssetsDirNotFoundError()
 
         if not artifacts_dir.exists():
-            raise ArtifactsDirNotFoundError(
-                f"Artifacts directory not found: {artifacts_dir}"
-            )
+            raise ArtifactsDirNotFoundError(f"Artifacts directory not found: {artifacts_dir}")
 
         shared_lib_extension = "*.dll" if sys.platform == "win32" else "*.so"
         if not any(artifacts_dir.rglob(shared_lib_extension)):
@@ -347,14 +327,10 @@ class HookManGenerator:
             )
 
         if not assets_dir.joinpath("plugin.yaml").is_file():
-            raise FileNotFoundError(
-                f"Unable to locate the file plugin.yaml in {assets_dir}"
-            )
+            raise FileNotFoundError(f"Unable to locate the file plugin.yaml in {assets_dir}")
 
         if not assets_dir.joinpath("README.md").is_file():
-            raise FileNotFoundError(
-                f"Unable to locate the file README.md in {assets_dir}"
-            )
+            raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
 
     def _validate_plugin_config_file(cls, plugin_config_file: Path):
         """
@@ -425,9 +401,7 @@ class HookManGenerator:
         )
         return file_content
 
-    _DO_NOT_MODIFY_MSG = (
-        "File automatically generated by hookman, **DO NOT MODIFY MANUALLY**"
-    )
+    _DO_NOT_MODIFY_MSG = "File automatically generated by hookman, **DO NOT MODIFY MANUALLY**"
 
     def _hook_caller_hpp_content(self) -> str:
         """
@@ -544,7 +518,9 @@ class HookManGenerator:
         for hook in self.hooks:
             append_ptr = f"&hookman::HookCaller::append_{hook.name}_impl"
             append_uint_sig = "void (hookman::HookCaller::*)(uintptr_t)"
-            append_function_sig = f"void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>)"
+            append_function_sig = (
+                f"void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>)"
+            )
 
             content_lines += [
                 f'        .def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
@@ -631,10 +607,7 @@ class HookManGenerator:
         return file_content
 
     def _plugin_source_content(
-        self,
-        extra_includes: List[str],
-        extra_body_lines: List[str],
-        exclude_hooks: List[str],
+        self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]
     ) -> str:
         """
         Create a C header file with the content informed on the hook_specs
@@ -652,11 +625,7 @@ class HookManGenerator:
         file_content = ['#include "hook_specs.h"', "\n"]
         extra_include_content = [f"#include {include}" for include in extra_includes]
         full_content = (
-            extra_include_content
-            + file_content
-            + extra_body_lines
-            + plugin_hooks_macro
-            + [""]
+            extra_include_content + file_content + extra_body_lines + plugin_hooks_macro + [""]
         )
         return "\n".join(full_content)
 

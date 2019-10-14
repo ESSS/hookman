@@ -19,9 +19,7 @@ def test_hook_man_generator(datadir, file_regression):
     hg.generate_project_files(dst_path=datadir)
 
     file_regression.check(
-        (datadir / "cpp" / "HookCaller.hpp").read_text(),
-        basename="HookCaller",
-        extension=".hpp",
+        (datadir / "cpp" / "HookCaller.hpp").read_text(), basename="HookCaller", extension=".hpp"
     )
     file_regression.check(
         (datadir / "binding" / "HookCallerPython.cpp").read_text(),
@@ -36,9 +34,7 @@ def test_hook_man_generator_no_pyd(datadir, file_regression):
 
     obtained_hook_caller_file = datadir / "cpp" / "HookCaller.hpp"
     file_regression.check(
-        obtained_hook_caller_file.read_text(),
-        basename="HookCallerNoPyd",
-        extension=".hpp",
+        obtained_hook_caller_file.read_text(), basename="HookCallerNoPyd", extension=".hpp"
     )
     assert not (datadir / "binding").is_dir()
 
@@ -55,18 +51,12 @@ def test_generate_plugin_template(datadir, file_regression):
         dst_path=plugin_dir,
     )
 
-    obtained_hook_specs_file = (
-        datadir / "test_generate_plugin_template/acme/src/hook_specs.h"
-    )
+    obtained_hook_specs_file = datadir / "test_generate_plugin_template/acme/src/hook_specs.h"
     file_regression.check(
-        obtained_hook_specs_file.read_text(),
-        basename="generate_hook_specs",
-        extension=".h",
+        obtained_hook_specs_file.read_text(), basename="generate_hook_specs", extension=".h"
     )
 
-    obtained_plugin_yaml = (
-        datadir / "test_generate_plugin_template/acme/assets/plugin.yaml"
-    )
+    obtained_plugin_yaml = datadir / "test_generate_plugin_template/acme/assets/plugin.yaml"
     file_regression.check(
         obtained_plugin_yaml.read_text(), basename="generate_plugin", extension=".yaml"
     )
@@ -77,37 +67,25 @@ def test_generate_plugin_template(datadir, file_regression):
     )
 
     obtained_readme = datadir / "test_generate_plugin_template/acme/assets/README.md"
-    file_regression.check(
-        obtained_readme.read_text(), basename="generate_README", extension=".md"
-    )
+    file_regression.check(obtained_readme.read_text(), basename="generate_README", extension=".md")
 
     obtained_cmake_list = datadir / "test_generate_plugin_template/acme/CMakeLists.txt"
     file_regression.check(
-        obtained_cmake_list.read_text(),
-        basename="generate_CMakeLists",
-        extension=".txt",
+        obtained_cmake_list.read_text(), basename="generate_CMakeLists", extension=".txt"
     )
 
-    obtained_cmake_list_src = (
-        datadir / "test_generate_plugin_template/acme/src/CMakeLists.txt"
-    )
+    obtained_cmake_list_src = datadir / "test_generate_plugin_template/acme/src/CMakeLists.txt"
     file_regression.check(
-        obtained_cmake_list_src.read_text(),
-        basename="generate_src_CMakeLists",
-        extension=".txt",
+        obtained_cmake_list_src.read_text(), basename="generate_src_CMakeLists", extension=".txt"
     )
 
     obtained_compile_script = datadir / "test_generate_plugin_template/acme/compile.py"
     file_regression.check(
-        obtained_compile_script.read_text(),
-        basename="generate_compile",
-        extension=".py",
+        obtained_compile_script.read_text(), basename="generate_compile", extension=".py"
     )
 
 
-def test_generate_plugin_template_source_content_with_extra_includes(
-    datadir, file_regression
-):
+def test_generate_plugin_template_source_content_with_extra_includes(datadir, file_regression):
     plugin_dir = datadir / "test_generate_plugin_template_with_extra_include"
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
@@ -130,12 +108,8 @@ def test_generate_plugin_template_source_content_with_extra_includes(
     )
 
 
-def test_generate_plugin_template_source_content_with_default_impls(
-    datadir, file_regression
-):
-    plugin_dir = (
-        datadir / "test_generate_plugin_template_source_content_with_default_impls"
-    )
+def test_generate_plugin_template_source_content_with_default_impls(datadir, file_regression):
+    plugin_dir = datadir / "test_generate_plugin_template_source_content_with_default_impls"
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
     extra_body_lines = ["HOOK_FRICTION_FACTOR(v1, v2)", "{", "    return 0;", "}"]
@@ -155,23 +129,17 @@ def test_generate_plugin_template_source_content_with_default_impls(
         / "test_generate_plugin_template_source_content_with_default_impls/acme/src/acme.cpp"
     )
     file_regression.check(
-        obtained_plugin_file.read_text(),
-        basename="plugin_file_with_default_impl",
-        extension=".cpp",
+        obtained_plugin_file.read_text(), basename="plugin_file_with_default_impl", extension=".cpp"
     )
 
 
 def test_generate_plugin_template_source_wrong_arguments(datadir):
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
-    with pytest.raises(
-        ValueError, match="extra_includes parameter must be a list, got int"
-    ):
+    with pytest.raises(ValueError, match="extra_includes parameter must be a list, got int"):
         hg._validate_parameter("extra_includes", 1)
 
-    with pytest.raises(
-        ValueError, match="All elements of extra_includes must be a string"
-    ):
+    with pytest.raises(ValueError, match="All elements of extra_includes must be a string"):
         hg._validate_parameter("extra_includes", ["xx", 1])
 
 
@@ -183,17 +151,13 @@ def test_generate_hook_specs_header(datadir, file_regression):
 
     obtained_hook_specs_file = plugin_dir / "acme/src/hook_specs.h"
     file_regression.check(
-        obtained_hook_specs_file.read_text(),
-        basename="generate_hook_specs_header1",
-        extension=".h",
+        obtained_hook_specs_file.read_text(), basename="generate_hook_specs_header1", extension=".h"
     )
 
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs_2.py"))
     hg.generate_hook_specs_header(plugin_id="acme", dst_path=plugin_dir)
     file_regression.check(
-        obtained_hook_specs_file.read_text(),
-        basename="generate_hook_specs_header2",
-        extension=".h",
+        obtained_hook_specs_file.read_text(), basename="generate_hook_specs_header2", extension=".h"
     )
 
 
@@ -246,9 +210,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
     artifacts_dir.mkdir()
     import sys
 
-    shared_lib_name = (
-        f"{plugin_id}.dll" if sys.platform == "win32" else f"lib{plugin_id}.so"
-    )
+    shared_lib_name = f"{plugin_id}.dll" if sys.platform == "win32" else f"lib{plugin_id}.so"
     shared_lib_path = artifacts_dir / shared_lib_name
     shared_lib_path.write_text("")
 
@@ -275,9 +237,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
     assert f"artifacts/{shared_lib_name}" in list_of_files
 
 
-def test_generate_plugin_package_with_missing_folders(
-    acme_hook_specs_file, tmpdir, mocker
-):
+def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker):
     import sys
     from textwrap import dedent
     from hookman.exceptions import (
@@ -299,8 +259,7 @@ def test_generate_plugin_package_with_missing_folders(
 
     # -- Without Artifacts Folder
     with pytest.raises(
-        ArtifactsDirNotFoundError,
-        match=r"Artifacts directory not found: .*[\\/]acme[\\/]artifacts",
+        ArtifactsDirNotFoundError, match=r"Artifacts directory not found: .*[\\/]acme[\\/]artifacts"
     ):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
@@ -320,9 +279,7 @@ def test_generate_plugin_package_with_missing_folders(
     shared_library_file.write_text("")
 
     # -- Without Config file
-    with pytest.raises(
-        FileNotFoundError, match=f"Unable to locate the file plugin.yaml in"
-    ):
+    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file plugin.yaml in"):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
     config_file = asset_dir / "plugin.yaml"
@@ -340,9 +297,7 @@ def test_generate_plugin_package_with_missing_folders(
         )
     )
     # -- Without Readme file
-    with pytest.raises(
-        FileNotFoundError, match=f"Unable to locate the file README.md in"
-    ):
+    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file README.md in"):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
     readme_file = asset_dir / "README.md"
@@ -351,9 +306,7 @@ def test_generate_plugin_package_with_missing_folders(
     # # -- With a invalid shared_library name on config_file
     acme_lib_name = "acme.dll" if sys.platform == "win32" else "libacme.so"
     hm_plugin_name = (
-        "acme-1.0.0-win64.hmplugin"
-        if sys.platform == "win32"
-        else "acme-1.0.0-linux64.hmplugin"
+        "acme-1.0.0-win64.hmplugin" if sys.platform == "win32" else "acme-1.0.0-linux64.hmplugin"
     )
 
     with pytest.raises(
@@ -386,8 +339,7 @@ def test_generate_plugin_package_invalid_version(
     plugin_yaml.write_text(new_content)
 
     mocker.patch(
-        "hookman.hookman_generator.HookManGenerator._validate_package_folder",
-        return_value=None,
+        "hookman.hookman_generator.HookManGenerator._validate_package_folder", return_value=None
     )
 
     with pytest.raises(

@@ -26,9 +26,7 @@ setup(
     ],
     description="HookMan is a python package that provides a plugin management system to applications, specially those who are written (in totally or partially) in C++.",
     entry_points={"console_scripts": ["hookman=hookman.__main__:cli"]},
-    extras_require={
-        "docs": ["sphinx >= 1.4", "sphinx_rtd_theme", "sphinx-autodoc-typehints"]
-    },
+    extras_require={"docs": ["sphinx >= 1.4", "sphinx_rtd_theme", "sphinx-autodoc-typehints"]},
     install_requires=requirements,
     license="MIT license",
     long_description=readme + "\n\n" + history,

@@ -52,16 +52,12 @@ def get_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
         copytree(src=plugins_folder / plugin_name, dst=plugin_dir)
         from hookman.plugin_config import PluginInfo
 
-        version = PluginInfo(
-            plugin_dir / "assets/plugin.yaml", hooks_available=None
-        ).version
+        version = PluginInfo(plugin_dir / "assets/plugin.yaml", hooks_available=None).version
         name = f"{plugin_name}-{version}"
         import sys
 
         hm_plugin_name = (
-            f"{name}-win64.hmplugin"
-            if sys.platform == "win32"
-            else f"{name}-linux64.hmplugin"
+            f"{name}-win64.hmplugin" if sys.platform == "win32" else f"{name}-linux64.hmplugin"
         )
         plugin_zip_path = plugins_zip_folder / hm_plugin_name
 

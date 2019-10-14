@@ -60,8 +60,7 @@ def test_generate_hook_specs_h(datadir):
     runner = CliRunner()
     hook_spec_file = str(datadir / "hook_specs.py")
     result = runner.invoke(
-        __main__.cli,
-        ["generate-hook-specs-h", hook_spec_file, "my_plugin", "--dst-path", datadir],
+        __main__.cli, ["generate-hook-specs-h", hook_spec_file, "my_plugin", "--dst-path", datadir]
     )
     assert result.exit_code == 0, result.output
 

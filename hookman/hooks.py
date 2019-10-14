@@ -60,9 +60,7 @@ class HookSpecs:
             raise TypeError("It's not possible to create a hook without argument")
 
         annotate_args = {
-            arg: hook_args.annotations[arg]
-            for arg in hook_args.annotations
-            if arg != "return"
+            arg: hook_args.annotations[arg] for arg in hook_args.annotations if arg != "return"
         }
 
         if len(annotate_args) != len(hook_args.args):
@@ -148,8 +146,7 @@ class HookMan:
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
 
         plugins_available = [
-            PluginInfo(plugin_file, self.hooks_available)
-            for plugin_file in plugin_config_files
+            PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files
         ]
         return [
             plugin_info

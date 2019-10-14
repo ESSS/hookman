@@ -18,9 +18,7 @@ class PluginInfo(object):
     """
 
     yaml_location = attrib(type=Path)
-    hooks_available = attrib(
-        validator=attr.validators.optional(attr.validators.instance_of(dict))
-    )
+    hooks_available = attrib(validator=attr.validators.optional(attr.validators.instance_of(dict)))
 
     author = attrib(type=str, init=False)
     description = attrib(type=str, default="Could not find a description", init=False)
@@ -41,9 +39,7 @@ class PluginInfo(object):
 
         object.__setattr__(self, "shared_lib_name", shared_lib_name)
         object.__setattr__(
-            self,
-            "shared_lib_path",
-            self.yaml_location.parents[1] / "artifacts" / shared_lib_name,
+            self, "shared_lib_path", self.yaml_location.parents[1] / "artifacts" / shared_lib_name
         )
 
         object.__setattr__(self, "author", plugin_config_file_content["author"])
@@ -145,9 +141,7 @@ class PluginInfo(object):
         plugin_file_str = plugin_file_zip.read("assets/plugin.yaml").decode("utf-8")
         plugin_file_content = PluginInfo._load_yaml_file(plugin_file_str)
 
-        if not any(
-            plugin_file_content["shared_lib_name"] in file for file in list_of_files
-        ):
+        if not any(plugin_file_content["shared_lib_name"] in file for file in list_of_files):
             raise SharedLibraryNotFoundError(
                 f"{plugin_file_content['shared_lib_name']} could not be found inside the plugin file"
             )

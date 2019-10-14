@@ -16,6 +16,7 @@ class PluginInfo(object):
     """
     Class that holds all information related to the plugin with some auxiliary methods
     """
+
     yaml_location = attrib(type=Path)
     hooks_available = attrib(validator=attr.validators.optional(attr.validators.instance_of(dict)))
 
@@ -29,26 +30,32 @@ class PluginInfo(object):
     version = attrib(type=str, init=False)
 
     def __attrs_post_init__(self):
-        plugin_config_file_content = self._load_yaml_file(self.yaml_location.read_text(encoding="utf-8"))
+        plugin_config_file_content = self._load_yaml_file(
+            self.yaml_location.read_text(encoding="utf-8")
+        )
 
-        name = plugin_config_file_content['id']
-        shared_lib_name = f"{name}.dll" if  sys.platform == 'win32' else f"lib{name}.so"
+        name = plugin_config_file_content["id"]
+        shared_lib_name = f"{name}.dll" if sys.platform == "win32" else f"lib{name}.so"
 
         object.__setattr__(self, "shared_lib_name", shared_lib_name)
-        object.__setattr__(self, "shared_lib_path", self.yaml_location.parents[1] / 'artifacts' / shared_lib_name)
+        object.__setattr__(
+            self, "shared_lib_path", self.yaml_location.parents[1] / "artifacts" / shared_lib_name
+        )
 
-        object.__setattr__(self, "author", plugin_config_file_content['author'])
-        object.__setattr__(self, "caption", plugin_config_file_content['caption'])
-        object.__setattr__(self, "email", plugin_config_file_content['email'])
-        object.__setattr__(self, "version", plugin_config_file_content['version'])
+        object.__setattr__(self, "author", plugin_config_file_content["author"])
+        object.__setattr__(self, "caption", plugin_config_file_content["caption"])
+        object.__setattr__(self, "email", plugin_config_file_content["email"])
+        object.__setattr__(self, "version", plugin_config_file_content["version"])
 
         # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
-        object.__setattr__(self, "id", self._get_plugin_id_from_dll(plugin_config_file_content['id']))
+        object.__setattr__(
+            self, "id", self._get_plugin_id_from_dll(plugin_config_file_content["id"])
+        )
 
         if not self.hooks_available is None:
             object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
 
-        readme_file = self.yaml_location.parent / 'README.md'
+        readme_file = self.yaml_location.parent / "README.md"
         if readme_file.exists():
             object.__setattr__(self, "description", readme_file.read_text())
 
@@ -66,7 +73,7 @@ class PluginInfo(object):
             if plugin_id_from_shared_lib != plugin_id_from_plugin_yaml:
                 msg = (
                     f'Error, the plugin_id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
-                    f'while the plugin_id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}'
+                    f"while the plugin_id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}"
                 )
                 raise RuntimeError(msg)
             return plugin_id_from_shared_lib
@@ -102,18 +109,25 @@ class PluginInfo(object):
     @classmethod
     def _load_yaml_file(cls, yaml_content):
         import strictyaml
-        schema = strictyaml.Map({
-            "caption": strictyaml.Str(),
-            "version": strictyaml.Str(),
-            "author": strictyaml.Str(),
-            "email": strictyaml.Str(),
-            "id": strictyaml.Str(),
-        })
+
+        schema = strictyaml.Map(
+            {
+                "caption": strictyaml.Str(),
+                "version": strictyaml.Str(),
+                "author": strictyaml.Str(),
+                "email": strictyaml.Str(),
+                "id": strictyaml.Str(),
+            }
+        )
         plugin_config_file_content = strictyaml.load(yaml_content, schema).data
-        if sys.platform == 'win32':
-            plugin_config_file_content['shared_lib_name'] = f"{plugin_config_file_content['id']}.dll"
+        if sys.platform == "win32":
+            plugin_config_file_content[
+                "shared_lib_name"
+            ] = f"{plugin_config_file_content['id']}.dll"
         else:
-            plugin_config_file_content['shared_lib_name'] = f"lib{plugin_config_file_content['id']}.so"
+            plugin_config_file_content[
+                "shared_lib_name"
+            ] = f"lib{plugin_config_file_content['id']}.so"
         return plugin_config_file_content
 
     @classmethod
@@ -124,9 +138,10 @@ class PluginInfo(object):
         """
         list_of_files = [file.filename for file in plugin_file_zip.filelist]
 
-        plugin_file_str = plugin_file_zip.read('assets/plugin.yaml').decode("utf-8")
+        plugin_file_str = plugin_file_zip.read("assets/plugin.yaml").decode("utf-8")
         plugin_file_content = PluginInfo._load_yaml_file(plugin_file_str)
 
-        if not any(plugin_file_content['shared_lib_name'] in file for file in list_of_files):
+        if not any(plugin_file_content["shared_lib_name"] in file for file in list_of_files):
             raise SharedLibraryNotFoundError(
-                f"{plugin_file_content['shared_lib_name']} could not be found inside the plugin file")
+                f"{plugin_file_content['shared_lib_name']} could not be found inside the plugin file"
+            )

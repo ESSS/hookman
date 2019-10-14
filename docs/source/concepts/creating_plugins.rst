@@ -32,7 +32,7 @@ The arguments are:
 
 - **specs-path**:
     Path to the ``hook_specs.py`` file of the application
-- **plugin-name**: 
+- **plugin-name**:
     Name of the plugin to be displayed
 - **shared-lib-name**:
     The filename of the compiled plugin
@@ -67,15 +67,15 @@ Where:
 
 - **plugin.yaml**:
     File with necessary information about the plugin to the application using this plugin
-- **plugin.c**	
+- **plugin.c**
     The source file of the plugin
-- **hook_specs.h**	
+- **hook_specs.h**
     The header file with all the information necessary to create a plugin for the given application
-- **CMakeLists**	
+- **CMakeLists**
     CMake file with the minimum configuration necessary to build a shared library across different platforms
-- **README**	
+- **README**
     Readme file with the description of the Plugin, to be used by the application.
-- **compile.py**	
+- **compile.py**
     Script file to generate the shared library, this command will create a folder name artifacts.
 
 

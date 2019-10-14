@@ -17,7 +17,7 @@ def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
         plugin_dirs = [plugin_dirs]
 
     for plugin_dir in plugin_dirs:
-        config_files += plugin_dir.glob('**/plugin.yaml')
+        config_files += plugin_dir.glob("**/plugin.yaml")
 
     return config_files
 
@@ -28,7 +28,7 @@ def change_path_env(shared_lib_path: str):
     Change PATH environment adding the shared library path to it.
     """
     old_path = os.environ["PATH"]
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
     try:
         yield
@@ -47,9 +47,11 @@ def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
     try:
         yield plugin_dll
     finally:
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             from _ctypes import FreeLibrary
+
             FreeLibrary(plugin_dll._handle)
         else:
             from _ctypes import dlclose
+
             dlclose(plugin_dll._handle)

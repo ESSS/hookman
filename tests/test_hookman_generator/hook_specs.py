@@ -1,7 +1,7 @@
 from hookman.hooks import HookSpecs
 
 
-def friction_factor(v1: 'int', v2: 'double[2]') -> 'int':
+def friction_factor(v1: "int", v2: "double[2]") -> "int":
     """
     Docs for Friction Factor
         Input:
@@ -11,7 +11,7 @@ def friction_factor(v1: 'int', v2: 'double[2]') -> 'int':
     """
 
 
-def friction_factor_2(v1: 'int', v2: 'double[2]') -> 'int':
+def friction_factor_2(v1: "int", v2: "double[2]") -> "int":
     """
     Docs for Friction Factor 2
         Input:
@@ -24,12 +24,9 @@ def friction_factor_2(v1: 'int', v2: 'double[2]') -> 'int':
 
 
 specs = HookSpecs(
-    project_name='ACME',
-    version='1',
-    pyd_name='_test_hook_man_generator',
-    hooks=[
-        friction_factor,
-        friction_factor_2,
-    ],
-    extra_includes=['custom_include1', 'custom_include2'],
+    project_name="ACME",
+    version="1",
+    pyd_name="_test_hook_man_generator",
+    hooks=[friction_factor, friction_factor_2],
+    extra_includes=["custom_include1", "custom_include2"],
 )

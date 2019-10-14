@@ -10,6 +10,8 @@ dependencies:
     - pytest-datadir
     - pytest-mock
     - pytest-regressions
+    - pre-commit >=1.18.3
+    - black >=19.3b0
 
     # C++ compilation
     - pybind11

@@ -60,9 +60,7 @@ class HookSpecs:
             raise TypeError("It's not possible to create a hook without argument")
 
         annotate_args = {
-            arg: hook_args.annotations[arg]
-            for arg in hook_args.annotations
-            if arg != 'return'
+            arg: hook_args.annotations[arg] for arg in hook_args.annotations if arg != "return"
         }
 
         if len(annotate_args) != len(hook_args.args):
@@ -81,7 +79,7 @@ class HookMan:
         self.specs = specs
         self.plugins_dirs = plugin_dirs
         self.hooks_available = {
-            f'{hook.__name__.lower()}': f'{specs.project_name.lower()}_v{specs.version}_{hook.__name__.lower()}'
+            f"{hook.__name__.lower()}": f"{specs.project_name.lower()}_v{specs.version}_{hook.__name__.lower()}"
             for hook in specs.hooks
         }
 
@@ -103,12 +101,14 @@ class HookMan:
         PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
 
         if dest_path not in self.plugins_dirs:
-            raise InvalidDestinationPathError(f"Invalid destination path, {dest_path} is not one of "
-                                              f"the paths that were informed when the HookMan "
-                                              f"object was initialized: {self.plugins_dirs}.")
+            raise InvalidDestinationPathError(
+                f"Invalid destination path, {dest_path} is not one of "
+                f"the paths that were informed when the HookMan "
+                f"object was initialized: {self.plugins_dirs}."
+            )
 
-        yaml_content = plugin_file_zip.open('assets/plugin.yaml').read().decode('utf-8')
-        plugin_id = PluginInfo._load_yaml_file(yaml_content)['id']
+        yaml_content = plugin_file_zip.open("assets/plugin.yaml").read().decode("utf-8")
+        plugin_id = PluginInfo._load_yaml_file(yaml_content)["id"]
 
         plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 
@@ -131,7 +131,9 @@ class HookMan:
                 shutil.rmtree(plugin.yaml_location.parents[1])
                 break
 
-    def get_plugins_available(self, ignored_plugins: Sequence[str]=()) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(
+        self, ignored_plugins: Sequence[str] = ()
+    ) -> Optional[List[PluginInfo]]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
 
@@ -143,8 +145,14 @@ class HookMan:
         """
         plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
 
-        plugins_available = [PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files]
-        return [plugin_info for plugin_info in plugins_available if plugin_info.id not in ignored_plugins]
+        plugins_available = [
+            PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files
+        ]
+        return [
+            plugin_info
+            for plugin_info in plugins_available
+            if plugin_info.id not in ignored_plugins
+        ]
 
     def get_hook_caller(self, ignored_plugins: Sequence[str] = ()):
         """

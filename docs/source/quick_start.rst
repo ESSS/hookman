@@ -48,7 +48,7 @@ The output from the command above will be the following files:
 - CMakeLists.txt
 
 These files contain all code necessary to make the project ``pybind11_`` integrates with your application, and the CMakeLists file contains a boilerplate
-to compile and generate the binary extensions (``.pyd`` file) 
+to compile and generate the binary extensions (``.pyd`` file)
 
 .. important::
 
@@ -75,7 +75,7 @@ With the files generated, and compiled., it's possible now to get an instance of
     assert friction_factor is not None
     assert env_temperature is None
 
-The object ``hook_caller`` contains all references for the functions implemented in the plugins, 
+The object ``hook_caller`` contains all references for the functions implemented in the plugins,
 you can access these methods directly or pass this reference to another module or a C++ function.
 
 Executing in python
@@ -102,7 +102,7 @@ The example below shows how to execute the method in a python module.
 Executing in C++
 --------------------
 
-As mentioned on the `pybind11 functional documentation`_, the C++11 standard brought the generic polymorphic function wrapper ``std::function<>`` 
+As mentioned on the `pybind11 functional documentation`_, the C++11 standard brought the generic polymorphic function wrapper ``std::function<>``
 , which enable powerful new ways of working with functions.
 
 
@@ -114,12 +114,12 @@ As mentioned on the `pybind11 functional documentation`_, the C++11 standard bro
         return f(10, 2.5);
     }
 
-With the binding code for this function in place, it's possible to pass a function implemented 
+With the binding code for this function in place, it's possible to pass a function implemented
 on one of the plugins directly to C++.
 
 .. code-block:: cpp
    :caption: binding_code.cpp
-   
+
    #include <pybind11/functional.h>
 
     PYBIND11_MODULE(my_cpp_binding_module, m) {
@@ -127,7 +127,7 @@ on one of the plugins directly to C++.
 
     }
 
-The example below shows how to create an object ``hook_caller``, 
+The example below shows how to create an object ``hook_caller``,
 and pass a function implemented on one of the plugins directly to C++ a function.
 
 .. code-block:: python
@@ -146,7 +146,7 @@ and pass a function implemented on one of the plugins directly to C++ a function
 
     # Passing the Friction Factor function to C++
     my_cpp_binding_module.func_friction_factor(friction_factor_function)
-   
+
 
 .. _pybind11: https://github.com/pybind/pybind11
 .. _`pybind11 functional documentation`: https://pybind11.readthedocs.io/en/stable/advanced/cast/functional.html

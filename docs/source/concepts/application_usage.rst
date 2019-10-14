@@ -5,16 +5,13 @@ Application utilities
 
 With ``HookMan`` you can:
 
-- **Install Plugins**: 
+- **Install Plugins**:
     Install a plugun by informing the path to where the ``.hmplugin`` is located.
-- **Remove a Plugin**: 
+- **Remove a Plugin**:
     Remove the plugin by informing the name of the plugin.
-- **List all plugins availables**: 
+- **List all plugins availables**:
     Get a list of plugins with all the plugin details.
-- **Get the status of all plugins**: 
+- **Get the status of all plugins**:
     Check if there are conflicts between them.
 
 The method that list all plugins available return a list of ``PluginInfo``, for more details read the :ref:`plugin-info-api-section` API section.
-
-
-

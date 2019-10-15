@@ -17,9 +17,11 @@ dependencies:
     - cmake >=3.5.2
 
     {% if os.sys.platform != 'win32' %}
-    #- compilers
+    - compilers
     - gxx_impl_linux-64
-    #- gcc
+    - gcc_impl_linux-64
+    - gxx_linux-64
+    - gcc_linux-64
     {% endif %}
 
     {% if os.sys.platform == 'win32' %}

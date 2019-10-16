@@ -5,11 +5,6 @@ set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/artifacts)
 set(PROJECT_NAME hookman)
 set(ARTIFACTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/artifacts)
 
-if(NOT WIN32)
-    set(CMAKE_C_COMPILER    cc)
-    set(CMAKE_CXX_COMPILER  c++)
-endif(NOT WIN32)
-
 project (hookman LANGUAGES CXX C)
 
 include(HookManConfig)

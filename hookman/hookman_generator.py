@@ -589,6 +589,8 @@ class HookManGenerator:
             set(ARTIFACTS_DIR ${{CMAKE_CURRENT_SOURCE_DIR}}/artifacts)
 
             if(NOT WIN32)
+              set(CMAKE_C_COMPILER    cc)
+              set(CMAKE_CXX_COMPILER  c++)
               set(CMAKE_C_FLAGS       "-Wall -std=c99")
               set(CMAKE_C_FLAGS_DEBUG "-g")
             endif(NOT WIN32)

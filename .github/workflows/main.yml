@@ -9,16 +9,7 @@ on:
   schedule:
   - cron: 0 2 * * *
 
-jobs:
-  publish:
-    - uses: actions/checkout@master
-    - uses: seanmiddleditch/gha-setup-ninja@master
-    - run: |
-      mkdir build
-      cd build
-      cmake -G Ninja ..
-    - run: cmake --build build
-      
+jobs:    
   test:
     runs-on: ${{ matrix.os }}
 
@@ -43,6 +34,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install tox codecov
+        if [ "$RUNNER_OS" == "Linux" ]; then
+              apt install ninja-build
+        fi
     - name: Run tests
       run: |
         tox -e ${{matrix.env}}

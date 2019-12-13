@@ -203,6 +203,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
         author_email="acme1",
         author_name="acme2",
         dst_path=Path(tmpdir),
+        extras={'key': 'value', 'key2': 'value2'},
     )
     plugin_dir = Path(tmpdir) / "acme"
 
@@ -235,6 +236,22 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
     assert "assets/plugin.yaml" in list_of_files
     assert "assets/README.md" in list_of_files
     assert f"artifacts/{shared_lib_name}" in list_of_files
+
+    yaml_filename = tmpdir / plugin_id / 'assets' / 'plugin.yaml'
+    with open(yaml_filename, 'r') as f:
+        contents = f.read()
+
+    from textwrap import dedent
+    assert contents == dedent('''\
+    author: 'acme2'
+    caption: 'acme'
+    email: 'acme1'
+    id: 'acme'
+    version: '1.0.0'
+    extras:
+      key: value
+      key2: value2
+    ''')
 
 
 def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker):

@@ -10,6 +10,18 @@ from attr import attrib
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
 
+from strictyaml import Map, MapPattern, Optional, Str
+
+PLUGIN_CONFIG_SCHEMA = Map(
+    {
+        "caption": Str(),
+        "version": Str(),
+        "author": Str(),
+        "email": Str(),
+        "id": Str(),
+        Optional("extras"): MapPattern(Str(), Str()),
+    }
+)
 
 @attr.s(frozen=True)
 class PluginInfo(object):
@@ -28,6 +40,7 @@ class PluginInfo(object):
     shared_lib_name = attrib(type=str, init=False)
     shared_lib_path = attrib(type=Path, init=False)
     version = attrib(type=str, init=False)
+    extras = attrib(attr.Factory(dict), init=False)
 
     def __attrs_post_init__(self):
         plugin_config_file_content = self._load_yaml_file(
@@ -46,6 +59,7 @@ class PluginInfo(object):
         object.__setattr__(self, "caption", plugin_config_file_content["caption"])
         object.__setattr__(self, "email", plugin_config_file_content["email"])
         object.__setattr__(self, "version", plugin_config_file_content["version"])
+        object.__setattr__(self, "extras", plugin_config_file_content.get("extras", {}))
 
         # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
         object.__setattr__(
@@ -110,16 +124,7 @@ class PluginInfo(object):
     def _load_yaml_file(cls, yaml_content):
         import strictyaml
 
-        schema = strictyaml.Map(
-            {
-                "caption": strictyaml.Str(),
-                "version": strictyaml.Str(),
-                "author": strictyaml.Str(),
-                "email": strictyaml.Str(),
-                "id": strictyaml.Str(),
-            }
-        )
-        plugin_config_file_content = strictyaml.load(yaml_content, schema).data
+        plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
         if sys.platform == "win32":
             plugin_config_file_content[
                 "shared_lib_name"

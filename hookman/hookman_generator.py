@@ -302,8 +302,8 @@ class HookManGenerator:
 
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
             extras = extras_defaults.copy()
-            extras.update(contents_dict.get('extras', {}))
-            contents_dict['extras'] = extras
+            extras.update(contents_dict.data.get('extras', {}))
+            contents_dict['extras'] = dict(sorted(extras.items()))
             contents = contents_dict.as_yaml()
 
         with ZipFile(hmplugin_path, "w") as zip_file:

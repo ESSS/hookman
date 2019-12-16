@@ -2,12 +2,17 @@
 History
 =======
 
-0.3.0 (Unreleased)
+0.3.0 (2019-12-16)
 ------------------
 
 - Rename the parameter ``dst_path`` to ``dest_path`` on ``install_plugin`` method.
 - ``install_plugin`` now returns the name of the plugin when the installation is successful.
-- Now the libray path dir is added to ``PATH`` environment variable before load the library (Only on Windows).
+- Now the library path dir is added to ``PATH`` environment variable before load the library (Only on Windows).
+- Added an optional "extras" entry to plugin definition yaml:
+
+  - "extras" is a dictionary for adding (key, value) customized options, accessible in ``PluginInfo.extras``;
+  - Plugin generation accepts a dict of default (key, value) pairs to be added to ``extras``;
+
 
 0.2.0 (2019-02-08)
 ------------------

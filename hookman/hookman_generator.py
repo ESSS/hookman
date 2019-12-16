@@ -4,12 +4,12 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
 from hookman.hooks import HookSpecs
-from hookman.plugin_config import PluginInfo
+from hookman.plugin_config import PluginInfo, PLUGIN_CONFIG_SCHEMA
 
 
 class Hook(NamedTuple):
@@ -139,6 +139,7 @@ class HookManGenerator:
         extra_includes: Optional[List[str]] = None,
         extra_body_lines: Optional[List[str]] = None,
         exclude_hooks: Optional[List[str]] = None,
+        extras: Optional[Dict[str,str]] = None,
     ):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -193,7 +194,7 @@ class HookManGenerator:
             self._plugin_cmake_file_content(plugin_id)
         )
         Path(assets_folder / "plugin.yaml").write_text(
-            self._plugin_config_file_content(caption, plugin_id, author_email, author_name)
+            self._plugin_config_file_content(caption, plugin_id, author_email, author_name, extras)
         )
         Path(assets_folder / "README.md").write_text(
             self._readme_content(caption, author_email, author_name)
@@ -255,7 +256,11 @@ class HookManGenerator:
         self._generate_cmake_files(dst_path)
 
     def generate_plugin_package(
-        self, package_name: str, plugin_dir: Union[Path, str], dst_path: Path = None
+        self,
+        package_name: str,
+        plugin_dir: Union[Path, str],
+        dst_path: Path = None,
+        extras_defaults: Optional[Dict[str, str]] = None,
     ):
         """
         Creates a .hmplugin file using the name provided on package_name argument.
@@ -268,6 +273,9 @@ class HookManGenerator:
 
         Per default, the package will be created inside the folder plugin_dir, however it's possible
         to give another path filling the dst argument
+
+        :param Dict[str,str] extras_defaults:
+            (key, value) entries to be added to "extras" if not defined by the original input yaml.
         """
         plugin_dir = Path(plugin_dir)
         if dst_path is None:
@@ -279,18 +287,32 @@ class HookManGenerator:
 
         self._validate_package_folder(artifacts_dir, assets_dir)
         self._validate_plugin_config_file(assets_dir / "plugin.yaml")
-        version = PluginInfo(assets_dir / "plugin.yaml", hooks_available=None).version
+        plugin_info = PluginInfo(assets_dir / "plugin.yaml", hooks_available=None)
 
         if sys.platform == "win32":
             shared_lib_extension = "*.dll"
-            hmplugin_path = dst_path / f"{package_name}-{version}-win64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-{plugin_info.version}-win64.hmplugin"
         else:
             shared_lib_extension = "*.so"
-            hmplugin_path = dst_path / f"{package_name}-{version}-linux64.hmplugin"
+            hmplugin_path = dst_path / f"{package_name}-{plugin_info.version}-linux64.hmplugin"
+
+        contents = (assets_dir / 'plugin.yaml').read_text()
+        if extras_defaults is not None:
+            import strictyaml
+
+            contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
+            extras = extras_defaults.copy()
+            extras.update(contents_dict.data.get('extras', {}))
+            contents_dict['extras'] = dict(sorted(extras.items()))
+            contents = contents_dict.as_yaml()
 
         with ZipFile(hmplugin_path, "w") as zip_file:
+
             for file in assets_dir.rglob("*"):
-                zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
+                if file.name == 'plugin.yaml':
+                    zip_file.writestr(str(file.relative_to(plugin_dir)), data=contents)
+                else:
+                    zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 
             for file in artifacts_dir.rglob(shared_lib_extension):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
@@ -332,7 +354,8 @@ class HookManGenerator:
         if not assets_dir.joinpath("README.md").is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
 
-    def _validate_plugin_config_file(cls, plugin_config_file: Path):
+
+    def _validate_plugin_config_file(self, plugin_config_file: Path):
         """
         Check if the given plugin_file is valid, by creating a instance of PluginInfo.
         All checks are made in the __init__
@@ -345,6 +368,7 @@ class HookManGenerator:
             raise ValueError(
                 f"Version attribute does not follow semantic version, got {plugin_file_content.version!r}"
             )
+
 
     def _hook_specs_header_content(self, plugin_id) -> str:
         """
@@ -575,7 +599,7 @@ class HookManGenerator:
                 )
 
     def _plugin_config_file_content(
-        self, caption: str, plugin_id: str, author_email: str, author_name: str
+        self, caption: str, plugin_id: str, author_email: str, author_name: str, extras: dict,
     ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin
@@ -589,6 +613,11 @@ class HookManGenerator:
         version: '1.0.0'
         """
         )
+        if extras:
+            import strictyaml
+
+            extras_dict = {'extras': extras}
+            file_content += strictyaml.as_document(extras_dict).as_yaml()
         return file_content
 
     def _readme_content(self, caption: str, author_email: str, author_name: str) -> str:

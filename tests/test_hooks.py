@@ -101,6 +101,7 @@ def test_plugins_available(simple_plugin, simple_plugin_2):
         "shared_lib_name",
         "shared_lib_path",
         "version",
+        "extras",
     ]
 
     plugins = hm.get_plugins_available(ignored_plugins=["simple_plugin_2"])

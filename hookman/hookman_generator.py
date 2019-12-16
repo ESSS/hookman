@@ -301,11 +301,9 @@ class HookManGenerator:
             import strictyaml
 
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
-            if 'extras' not in contents_dict:
-                contents_dict['extras'] = extras_defaults
-            else:
-                for key, value in extras_defaults.items():
-                    contents_dict['extras'][key] = contents_dict['extras'].get(key, value)
+            extras = extras_defaults.copy()
+            extras.update(contents_dict.get('extras', {}))
+            contents_dict['extras'] = extras
             contents = contents_dict.as_yaml()
 
         with ZipFile(hmplugin_path, "w") as zip_file:
@@ -616,10 +614,10 @@ class HookManGenerator:
         """
         )
         if extras:
-            import yaml
+            import strictyaml
 
             extras_dict = {'extras': extras}
-            file_content += yaml.dump(extras_dict)
+            file_content += strictyaml.as_document(extras_dict).as_yaml()
         return file_content
 
     def _readme_content(self, caption: str, author_email: str, author_name: str) -> str:

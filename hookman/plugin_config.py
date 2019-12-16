@@ -23,7 +23,7 @@ PLUGIN_CONFIG_SCHEMA = Map(
     }
 )
 
-@attr.s(frozen=True)
+@attr.s
 class PluginInfo(object):
     """
     Class that holds all information related to the plugin with some auxiliary methods

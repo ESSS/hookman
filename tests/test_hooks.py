@@ -3,6 +3,20 @@ import pytest
 from hookman.hooks import HookMan, HookSpecs, PluginInfo
 
 
+def _get_plugin_id_set(plugin_info_list):
+    """
+    Return a set with the ids from plugin info list.
+    """
+    return {plugin_info.id for plugin_info in plugin_info_list}
+
+
+def _get_names_inside_folder(folder):
+    """
+    Return a set with the names of the elements inside a folder.
+    """
+    return {file.name for file in folder.iterdir()}
+
+
 def test_hook_specs_without_arguments():
     def method_without_arguments() -> "float":
         """
@@ -83,7 +97,7 @@ def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     assert len(env_temperatures) == 0
 
 
-def test_plugins_available(simple_plugin, simple_plugin_2):
+def test_plugins_available_plain(simple_plugin, simple_plugin_2):
     plugin_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dirs)
     plugins = hm.get_plugins_available()
@@ -106,6 +120,54 @@ def test_plugins_available(simple_plugin, simple_plugin_2):
 
     plugins = hm.get_plugins_available(ignored_plugins=["simple_plugin_2"])
     assert len(plugins) == 1
+
+
+def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2):
+    plugin_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
+    hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dirs)
+
+    plugins = hm.get_plugins_available()
+    assert {p.id for p in plugins} == {"simple_plugin", "simple_plugin_2"}
+
+    hm._move_to_trash(datadir / "plugins", "simple_plugin")
+    plugins = hm.get_plugins_available()
+    assert {p.id for p in plugins} == {"simple_plugin_2"}
+
+    hm._move_to_trash(datadir / "plugins", "simple_plugin_2")
+    plugins = hm.get_plugins_available()
+    assert {p.id for p in plugins} == set()
+
+
+def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch):
+    import sys
+
+    # Windows has problems deleting filer/folders in used.
+    win = sys.platform.startswith('win32')
+
+    plugin_dir = datadir / "plugins"
+    trash_folder = plugin_dir / ".trash"
+    hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dir)
+    hm._move_to_trash(plugin_dir, "simple_plugin")
+    (trash_item_dir,) = trash_folder.glob("*")
+    # Change cwd to inside the trash item folder, windows will not be able to delete a directory
+    # in use.
+    monkeypatch.chdir(trash_item_dir)
+    hm._try_clear_trash(plugin_dir)
+    monkeypatch.chdir(datadir)
+    assert trash_item_dir.exists() is win
+    # With the folder not busy it can be removed.
+    hm._try_clear_trash(plugin_dir)
+    assert not trash_item_dir.exists()
+    # Clear trash do not raise if some file is in use, will will not be able to delete a file
+    # is use.
+    some_trash_file = trash_folder / "some_trash_file"
+    some_trash_file.write_text("foobar")
+    with some_trash_file.open("w"):
+        hm._try_clear_trash(plugin_dir)
+    # File not in use is deleted.
+    assert some_trash_file.exists() is win
+    hm._try_clear_trash(plugin_dir)
+    assert not some_trash_file.exists()
 
 
 def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
@@ -162,8 +224,9 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 
-    assert len(hm.get_plugins_available()) == 2
-    assert len(list((datadir / "plugins").iterdir())) == 2
+    assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin", "simple_plugin_2"}
+    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin", "simple_plugin_2"}
     hm.remove_plugin("simple_plugin_2")
-    assert len(hm.get_plugins_available()) == 1
-    assert len(list((datadir / "plugins").iterdir())) == 1
+    assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin"}
+    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin", ".trash"}
+    assert _get_names_inside_folder(datadir / "plugins" / ".trash") == set()

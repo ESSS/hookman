@@ -3,10 +3,12 @@ import os
 import sys
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List, Union
+from typing import List, Sequence, Union
 
 
-def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
+def find_config_files(
+    plugin_dirs: Union[List[Path], Path], *, ignored_sub_dir_names: Sequence[str] = ()
+) -> List[Path]:
     """
     Try to find all configurations files from plugins implementations on the given path (plugins_dirs)
     If in the given there is any plugin, this function will return None
@@ -16,8 +18,16 @@ def find_config_files(plugin_dirs: Union[List[Path], Path]) -> List[Path]:
     if not isinstance(plugin_dirs, list):
         plugin_dirs = [plugin_dirs]
 
+    def is_ignored(filename, ignored_dirs):
+        return any(folder in filename.parents for folder in ignored_dirs)
+
     for plugin_dir in plugin_dirs:
-        config_files += plugin_dir.glob("**/plugin.yaml")
+        ignored_dirs = [plugin_dir / name for name in ignored_sub_dir_names]
+        config_files += (
+            filename
+            for filename in plugin_dir.glob("**/plugin.yaml")
+            if not is_ignored(filename, ignored_dirs)
+        )
 
     return config_files
 

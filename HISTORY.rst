@@ -2,6 +2,12 @@
 History
 =======
 
+Next
+------------------
+
+- When removing plugins they are first moved to a ``.trash`` dir and not directly deleted.
+
+
 0.3.0 (2019-12-16)
 ------------------
 

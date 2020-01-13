@@ -75,6 +75,8 @@ class HookMan:
     Main class of HookMan, this class holds all the information related to the plugins
     """
 
+    _TRASH_DIR_NAME = ".trash"
+
     def __init__(self, *, specs: HookSpecs, plugin_dirs: List[Path]):
         self.specs = specs
         self.plugins_dirs = plugin_dirs
@@ -120,6 +122,37 @@ class HookMan:
         plugin_file_zip.extractall(plugin_destination_folder)
         return plugin_id
 
+    def _move_to_trash(self, root_dir, name):
+        """
+        Move the folder named ``name`` to a trash sub folder in the same ``root_dir``.
+
+        :root_dir: The folder containing ``name`` to be moved to the trash.
+        :name: The name of the folder to be moved.
+        """
+        import os
+        import tempfile
+
+        trash_dir = root_dir / self._TRASH_DIR_NAME
+        trash_dir.mkdir(parents=True, exist_ok=True)
+        src_dir = root_dir / name
+        dst_dir = tempfile.mkdtemp(dir=trash_dir)
+        dst_dir = os.path.join(dst_dir, name)
+        src_dir.rename(dst_dir)
+
+    def _try_clear_trash(self, root_dir):
+        """
+        Clear the trash sub folder from ``root_dir``.
+        """
+        from contextlib import suppress
+
+        trash_dir = root_dir / self._TRASH_DIR_NAME
+        for filename in trash_dir.glob("*"):
+            if filename.is_dir():
+                shutil.rmtree(filename, ignore_errors=True)
+            else:
+                with suppress(OSError):
+                    filename.unlink()
+
     def remove_plugin(self, caption: str):
         """
         This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
@@ -128,7 +161,10 @@ class HookMan:
         """
         for plugin in self.get_plugins_available():
             if plugin.id == caption:
-                shutil.rmtree(plugin.yaml_location.parents[1])
+                plugin_dir = plugin.yaml_location.parents[1]
+                root_dir = plugin_dir.parent
+                self._move_to_trash(root_dir, plugin_dir.name)
+                self._try_clear_trash(root_dir)
                 break
 
     def get_plugins_available(
@@ -143,7 +179,9 @@ class HookMan:
 
         The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
         """
-        plugin_config_files = hookman_utils.find_config_files(self.plugins_dirs)
+        plugin_config_files = hookman_utils.find_config_files(
+            self.plugins_dirs, ignored_sub_dir_names=[self._TRASH_DIR_NAME]
+        )
 
         plugins_available = [
             PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files

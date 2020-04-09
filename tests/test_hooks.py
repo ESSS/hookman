@@ -73,6 +73,9 @@ def test_get_hook_caller(simple_plugin):
     assert len(env_temperatures) == 0
     assert friction_factors[0](1, 2) == 3
 
+    # Call a hook for a specific plugin implementation
+    assert hook_caller.friction_factor_impl("simple_plugin")(1, 2) == 3
+
 
 def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2):
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
@@ -142,7 +145,7 @@ def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch):
     import sys
 
     # Windows has problems deleting filer/folders in used.
-    win = sys.platform.startswith('win32')
+    win = sys.platform.startswith("win32")
 
     plugin_dir = datadir / "plugins"
     trash_folder = plugin_dir / ".trash"

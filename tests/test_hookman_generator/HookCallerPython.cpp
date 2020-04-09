@@ -15,10 +15,12 @@ PYBIND11_MODULE(_test_hook_man_generator, m) {
         .def(py::init<>())
         .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)
         .def("friction_factor_impls", &hookman::HookCaller::friction_factor_impls)
-        .def("append_friction_factor_impl", (void (hookman::HookCaller::*)(uintptr_t)) &hookman::HookCaller::append_friction_factor_impl)
-        .def("append_friction_factor_impl", (void (hookman::HookCaller::*)(std::function<int(int, double[2])>)) &hookman::HookCaller::append_friction_factor_impl)
+        .def("friction_factor_impl", &hookman::HookCaller::friction_factor_impl)
+        .def("append_friction_factor_impl", (void (hookman::HookCaller::*)(uintptr_t, const std::string&)) &hookman::HookCaller::append_friction_factor_impl)
+        .def("append_friction_factor_impl", (void (hookman::HookCaller::*)(std::function<int(int, double[2])>, const std::string&)) &hookman::HookCaller::append_friction_factor_impl)
         .def("friction_factor_2_impls", &hookman::HookCaller::friction_factor_2_impls)
-        .def("append_friction_factor_2_impl", (void (hookman::HookCaller::*)(uintptr_t)) &hookman::HookCaller::append_friction_factor_2_impl)
-        .def("append_friction_factor_2_impl", (void (hookman::HookCaller::*)(std::function<int(int, double[2])>)) &hookman::HookCaller::append_friction_factor_2_impl)
+        .def("friction_factor_2_impl", &hookman::HookCaller::friction_factor_2_impl)
+        .def("append_friction_factor_2_impl", (void (hookman::HookCaller::*)(uintptr_t, const std::string&)) &hookman::HookCaller::append_friction_factor_2_impl)
+        .def("append_friction_factor_2_impl", (void (hookman::HookCaller::*)(std::function<int(int, double[2])>, const std::string&)) &hookman::HookCaller::append_friction_factor_2_impl)
     ;
 }

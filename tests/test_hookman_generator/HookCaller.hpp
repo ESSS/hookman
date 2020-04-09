@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <map>
 
 #ifdef _WIN32
     #include <cstdlib>
@@ -28,23 +29,33 @@ public:
     std::vector<std::function<int(int, double[2])>> friction_factor_impls() {
         return this->_friction_factor_impls;
     }
+    std::function<int(int, double[2])> friction_factor_impl(const std::string &plugin_id) {
+        return this->_friction_factor_map[plugin_id];
+    }
     std::vector<std::function<int(int, double[2])>> friction_factor_2_impls() {
         return this->_friction_factor_2_impls;
     }
+    std::function<int(int, double[2])> friction_factor_2_impl(const std::string &plugin_id) {
+        return this->_friction_factor_2_map[plugin_id];
+    }
 
-    void append_friction_factor_impl(uintptr_t pointer) {
+    void append_friction_factor_impl(uintptr_t pointer, const std::string &plugin_id) {
         this->_friction_factor_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
+        this->_friction_factor_map[plugin_id] = from_c_pointer<int(int, double[2])>((uintptr_t)(pointer));
     }
 
-    void append_friction_factor_impl(std::function<int(int, double[2])> func) {
+    void append_friction_factor_impl(std::function<int(int, double[2])> func, const std::string &plugin_id) {
         this->_friction_factor_impls.push_back(func);
+        this->_friction_factor_map[plugin_id] = func;
     }
-    void append_friction_factor_2_impl(uintptr_t pointer) {
+    void append_friction_factor_2_impl(uintptr_t pointer, const std::string &plugin_id) {
         this->_friction_factor_2_impls.push_back(from_c_pointer<int(int, double[2])>(pointer));
+        this->_friction_factor_2_map[plugin_id] = from_c_pointer<int(int, double[2])>((uintptr_t)(pointer));
     }
 
-    void append_friction_factor_2_impl(std::function<int(int, double[2])> func) {
+    void append_friction_factor_2_impl(std::function<int(int, double[2])> func, const std::string &plugin_id) {
         this->_friction_factor_2_impls.push_back(func);
+        this->_friction_factor_2_map[plugin_id] = func;
     }
 
 #if defined(_WIN32)
@@ -55,7 +66,7 @@ public:
             FreeLibrary(handle);
         }
     }
-    void load_impls_from_library(const std::string& utf8_filename) {
+    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
         auto handle = this->load_dll(w_filename);
         if (handle == NULL) {
@@ -65,12 +76,12 @@ public:
 
         auto p0 = GetProcAddress(handle, "acme_v1_friction_factor");
         if (p0 != nullptr) {
-            this->append_friction_factor_impl((uintptr_t)(p0));
+            this->append_friction_factor_impl((uintptr_t)(p0), plugin_id);
         }
 
         auto p1 = GetProcAddress(handle, "acme_v1_friction_factor_2");
         if (p1 != nullptr) {
-            this->append_friction_factor_2_impl((uintptr_t)(p1));
+            this->append_friction_factor_2_impl((uintptr_t)(p1), plugin_id);
         }
 
     }
@@ -149,7 +160,7 @@ public:
             dlclose(handle);
         }
     }
-    void load_impls_from_library(const std::string& utf8_filename) {
+    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {
         auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);
         if (handle == nullptr) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");
@@ -158,12 +169,12 @@ public:
 
         auto p0 = dlsym(handle, "acme_v1_friction_factor");
         if (p0 != nullptr) {
-            this->append_friction_factor_impl((uintptr_t)(p0));
+            this->append_friction_factor_impl((uintptr_t)(p0), plugin_id);
         }
 
         auto p1 = dlsym(handle, "acme_v1_friction_factor_2");
         if (p1 != nullptr) {
-            this->append_friction_factor_2_impl((uintptr_t)(p1));
+            this->append_friction_factor_2_impl((uintptr_t)(p1), plugin_id);
         }
 
     }
@@ -174,7 +185,9 @@ public:
 
 private:
     std::vector<std::function<int(int, double[2])>> _friction_factor_impls;
+    std::map<std::string, std::function<int(int, double[2])>> _friction_factor_map;
     std::vector<std::function<int(int, double[2])>> _friction_factor_2_impls;
+    std::map<std::string, std::function<int(int, double[2])>> _friction_factor_2_map;
 };
 
 }  // namespace hookman

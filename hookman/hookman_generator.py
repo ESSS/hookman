@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
 from hookman.hooks import HookSpecs
-from hookman.plugin_config import PluginInfo, PLUGIN_CONFIG_SCHEMA
+from hookman.plugin_config import PLUGIN_CONFIG_SCHEMA, PluginInfo
 
 
 class Hook(NamedTuple):
@@ -139,7 +139,7 @@ class HookManGenerator:
         extra_includes: Optional[List[str]] = None,
         extra_body_lines: Optional[List[str]] = None,
         exclude_hooks: Optional[List[str]] = None,
-        extras: Optional[Dict[str,str]] = None,
+        extras: Optional[Dict[str, str]] = None,
     ):
         """
         Generate a template with the necessary files and structure to create a plugin
@@ -223,7 +223,7 @@ class HookManGenerator:
             )
 
         # Check if the list is empty otherwise check if all elements of the list are strings
-        if parameter_value and not all([isinstance(i, str) for i in parameter_value]):
+        if parameter_value and not all(isinstance(i, str) for i in parameter_value):
             raise ValueError(f"All elements of {parameter_name} must be a string")
 
         return parameter_value
@@ -296,20 +296,20 @@ class HookManGenerator:
             shared_lib_extension = "*.so"
             hmplugin_path = dst_path / f"{package_name}-{plugin_info.version}-linux64.hmplugin"
 
-        contents = (assets_dir / 'plugin.yaml').read_text()
+        contents = (assets_dir / "plugin.yaml").read_text()
         if extras_defaults is not None:
             import strictyaml
 
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
             extras = extras_defaults.copy()
-            extras.update(contents_dict.data.get('extras', {}))
-            contents_dict['extras'] = dict(sorted(extras.items()))
+            extras.update(contents_dict.data.get("extras", {}))
+            contents_dict["extras"] = dict(sorted(extras.items()))
             contents = contents_dict.as_yaml()
 
         with ZipFile(hmplugin_path, "w") as zip_file:
 
             for file in assets_dir.rglob("*"):
-                if file.name == 'plugin.yaml':
+                if file.name == "plugin.yaml":
                     zip_file.writestr(str(file.relative_to(plugin_dir)), data=contents)
                 else:
                     zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
@@ -354,7 +354,6 @@ class HookManGenerator:
         if not assets_dir.joinpath("README.md").is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
 
-
     def _validate_plugin_config_file(self, plugin_config_file: Path):
         """
         Check if the given plugin_file is valid, by creating a instance of PluginInfo.
@@ -368,7 +367,6 @@ class HookManGenerator:
             raise ValueError(
                 f"Version attribute does not follow semantic version, got {plugin_file_content.version!r}"
             )
-
 
     def _hook_specs_header_content(self, plugin_id) -> str:
         """
@@ -445,6 +443,7 @@ class HookManGenerator:
             "#include <stdexcept>",
             "#include <string>",
             "#include <vector>",
+            "#include <map>",
             "",
             "#ifdef _WIN32",
             f"    #include <cstdlib>",
@@ -472,20 +471,26 @@ class HookManGenerator:
                 f"    std::vector<std::function<{hook.r_type}({hook.args_type})>> {hook.name}_impls() {{",
                 f"        return this->_{hook.name}_impls;",
                 f"    }}",
+                f"    std::function<{hook.r_type}({hook.args_type})> {hook.name}_impl(const std::string &plugin_id) {{",
+                f"        return this->_{hook.name}_map[plugin_id];",
+                f"    }}",
             ]
             list_with_private_members += [
-                f"    std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;"
+                f"    std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;",
+                f"    std::map<std::string, std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_map;",
             ]
 
             list_with_set_functions += [
                 # uintptr overload
-                f"    void append_{hook.name}_impl(uintptr_t pointer) {{",
+                f"    void append_{hook.name}_impl(uintptr_t pointer, const std::string &plugin_id) {{",
                 f"        this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));",
+                f"        this->_{hook.name}_map[plugin_id] = from_c_pointer<{hook.r_type}({hook.args_type})>((uintptr_t)(pointer));",
                 f"    }}",
                 "",
                 # std::function overload
-                f"    void append_{hook.name}_impl(std::function<{hook.r_type}({hook.args_type})> func) {{",
+                f"    void append_{hook.name}_impl(std::function<{hook.r_type}({hook.args_type})> func, const std::string &plugin_id) {{",
                 f"        this->_{hook.name}_impls.push_back(func);",
+                f"        this->_{hook.name}_map[plugin_id] = func;",
                 f"    }}",
             ]
         content_lines += list_with_hook_calls
@@ -517,7 +522,7 @@ class HookManGenerator:
             "namespace py = pybind11;",
             "",
         ]
-        signatures = set((x.r_type, x.args_type) for x in self.hooks)
+        signatures = {(x.r_type, x.args_type) for x in self.hooks}
         for r_type, args_type in sorted(signatures):
             content_lines.append(
                 f"PYBIND11_MAKE_OPAQUE(std::vector<std::function<{r_type}({args_type})>>);"
@@ -541,13 +546,12 @@ class HookManGenerator:
         ]
         for hook in self.hooks:
             append_ptr = f"&hookman::HookCaller::append_{hook.name}_impl"
-            append_uint_sig = "void (hookman::HookCaller::*)(uintptr_t)"
-            append_function_sig = (
-                f"void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>)"
-            )
+            append_uint_sig = "void (hookman::HookCaller::*)(uintptr_t, const std::string&)"
+            append_function_sig = f"void (hookman::HookCaller::*)(std::function<{hook.r_type}({hook.args_type})>, const std::string&)"
 
             content_lines += [
                 f'        .def("{hook.name}_impls", &hookman::HookCaller::{hook.name}_impls)',
+                f'        .def("{hook.name}_impl", &hookman::HookCaller::{hook.name}_impl)',
                 f'        .def("append_{hook.name}_impl", ({append_uint_sig}) {append_ptr})',
                 f'        .def("append_{hook.name}_impl", ({append_function_sig}) {append_ptr})',
             ]
@@ -616,12 +620,12 @@ class HookManGenerator:
         if extras:
             import strictyaml
 
-            extras_dict = {'extras': extras}
+            extras_dict = {"extras": extras}
             file_content += strictyaml.as_document(extras_dict).as_yaml()
         return file_content
 
     def _readme_content(self, caption: str, author_email: str, author_name: str) -> str:
-        file_content = dedent(
+        return dedent(
             f"""\
         Plugin: '{caption}'
         Author: '{author_name}'
@@ -633,7 +637,6 @@ class HookManGenerator:
         https://guides.github.com/features/mastering-markdown/#syntax
         """
         )
-        return file_content
 
     def _plugin_source_content(
         self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]
@@ -658,8 +661,8 @@ class HookManGenerator:
         )
         return "\n".join(full_content)
 
-    def _plugin_cmake_file_content(self, plugin_id):
-        file_content = dedent(
+    def _plugin_cmake_file_content(self, plugin_id: str) -> str:
+        return dedent(
             f"""\
             cmake_minimum_required(VERSION 3.5.2)
 
@@ -682,23 +685,21 @@ class HookManGenerator:
             add_subdirectory(src)
         """
         )
-        return file_content
 
-    def _plugin_src_cmake_file_content(self, plugin_id):
-        file_content = dedent(
+    def _plugin_src_cmake_file_content(self, plugin_id: str) -> str:
+        return dedent(
             f"""\
             add_library({plugin_id} SHARED {plugin_id}.cpp hook_specs.h)
             target_include_directories({plugin_id} PUBLIC ${{SDK_INCLUDE_DIR}})
             install(TARGETS {plugin_id} EXPORT ${{PROJECT_NAME}}_export DESTINATION ${{ARTIFACTS_DIR}})
         """
         )
-        return file_content
 
-    def _compile_shared_lib_python_script_content(self, plugin_id):
+    def _compile_shared_lib_python_script_content(self, plugin_id: str) -> str:
         lib_name_win = f"{plugin_id}.dll"
         lib_name_linux = f"lib{plugin_id}.so"
 
-        file_content = dedent(
+        return dedent(
             f"""\
             import os
             import shutil
@@ -740,10 +741,9 @@ class HookManGenerator:
             shutil.copy2(src=shared_lib_path, dst=package_dir)
         """
         )
-        return file_content
 
 
-def _generate_load_function(hooks):
+def _generate_load_function(hooks: List[Hook]) -> List[str]:
     result = ["#if defined(_WIN32)", ""]
     result += _generate_windows_body(hooks)
     result += ["", "#elif defined(__linux__)", ""]
@@ -752,7 +752,7 @@ def _generate_load_function(hooks):
     return result
 
 
-def _generate_windows_body(hooks):
+def _generate_windows_body(hooks: List[Hook]) -> List[str]:
     """Generate Windows specific functions.
 
     At the moment it implements load_impls_from_library, class destructor, and an utility function
@@ -771,7 +771,7 @@ def _generate_windows_body(hooks):
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string& utf8_filename) {{",
+        f"    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {{",
         f"        std::wstring w_filename = utf8_to_wstring(utf8_filename);",
         f"        auto handle = this->load_dll(w_filename);",
         f"        if (handle == NULL) {{",
@@ -785,7 +785,7 @@ def _generate_windows_body(hooks):
         result += [
             f'        auto p{index} = GetProcAddress(handle, "{hook.function_name}");',
             f"        if (p{index} != nullptr) {{",
-            f"            this->append_{hook.name}_impl((uintptr_t)(p{index}));",
+            f"            this->append_{hook.name}_impl((uintptr_t)(p{index}), plugin_id);",
             f"        }}",
             "",
         ]
@@ -859,7 +859,7 @@ def _generate_windows_body(hooks):
     return result
 
 
-def _generate_linux_body(hooks):
+def _generate_linux_body(hooks: List[Hook]) -> List[str]:
     """
     Generate linux specific functions.
 
@@ -881,7 +881,7 @@ def _generate_linux_body(hooks):
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string& utf8_filename) {{",
+        f"    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {{",
         f"        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);",
         f"        if (handle == nullptr) {{",
         f'            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");',
@@ -894,7 +894,7 @@ def _generate_linux_body(hooks):
         result += [
             f'        auto p{index} = dlsym(handle, "{hook.function_name}");',
             f"        if (p{index} != nullptr) {{",
-            f"            this->append_{hook.name}_impl((uintptr_t)(p{index}));",
+            f"            this->append_{hook.name}_impl((uintptr_t)(p{index}), plugin_id);",
             f"        }}",
             "",
         ]

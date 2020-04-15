@@ -203,5 +203,5 @@ class HookMan:
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
         for plugin in self.get_plugins_available(ignored_plugins):
-            hook_caller.load_impls_from_library(str(plugin.shared_lib_path))
+            hook_caller.load_impls_from_library(str(plugin.shared_lib_path), plugin.id)
         return hook_caller

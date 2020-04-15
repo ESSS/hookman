@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <map>
 
 #ifdef _WIN32
     #include <cstdlib>
@@ -33,7 +34,7 @@ public:
             FreeLibrary(handle);
         }
     }
-    void load_impls_from_library(const std::string& utf8_filename) {
+    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
         auto handle = this->load_dll(w_filename);
         if (handle == NULL) {
@@ -117,7 +118,7 @@ public:
             dlclose(handle);
         }
     }
-    void load_impls_from_library(const std::string& utf8_filename) {
+    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {
         auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);
         if (handle == nullptr) {
             throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");

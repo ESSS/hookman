@@ -2,10 +2,14 @@
 History
 =======
 
-Next
+0.5.0 (Unreleased)
+------------------
+
+0.4.0 (2020-10-23)
 ------------------
 
 - When removing plugins they are first moved to a ``.trash`` dir and not directly deleted.
+- Allow HookManager to call hooks of a specific plugin
 
 
 0.3.0 (2019-12-16)

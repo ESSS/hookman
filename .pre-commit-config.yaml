@@ -1,12 +1,13 @@
+exclude: 'test_hookman_generator/*'
 repos:
 -   repo: https://github.com/ambv/black
-    rev: 19.3b0
+    rev: 20.8b1
     hooks:
     -   id: black
         args: [--safe, --quiet]
         language_version: python3
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v3.3.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer

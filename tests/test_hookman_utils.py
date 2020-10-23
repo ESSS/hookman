@@ -9,13 +9,13 @@ def test_find_config_files(datadir):
     config_files = find_config_files(datadir)
     assert len(config_files) == 2
 
-    config_files = find_config_files(datadir, ignored_sub_dir_names=['fizzbuzz'])
+    config_files = find_config_files(datadir, ignored_sub_dir_names=["fizzbuzz"])
     assert len(config_files) == 2
 
-    config_files = find_config_files(datadir, ignored_sub_dir_names=['foo'])
+    config_files = find_config_files(datadir, ignored_sub_dir_names=["foo"])
     assert len(config_files) == 1
 
-    config_files = find_config_files(datadir, ignored_sub_dir_names=['foo', 'bar'])
+    config_files = find_config_files(datadir, ignored_sub_dir_names=["foo", "bar"])
     assert len(config_files) == 0
 
     config_files = find_config_files([datadir / "non_existing_folder"])

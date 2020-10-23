@@ -1,5 +1,8 @@
 coverage
 pybind11
+invoke
+strictyaml
+attrs
 pytest
 pytest-cov
 pytest-datadir

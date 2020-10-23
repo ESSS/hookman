@@ -23,6 +23,7 @@ PLUGIN_CONFIG_SCHEMA = Map(
     }
 )
 
+
 @attr.s
 class PluginInfo(object):
     """

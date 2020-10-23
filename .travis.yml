@@ -25,9 +25,9 @@ jobs:
       deploy:
         provider: pypi
         distributions: sdist bdist_wheel
-        user: williamjamir
+        user: "__token__"
         password:
-          secure: U1LXcIkHPY7/8mYNX2ZM/KybtLbNKi9rxhMrw7PNgDPI8nH+2rpRPFTuoy8vlW4oxTJmq+TQorPfL7Gfnp5JbqSY17QiL9SS2DYqPtJecu7RHlb5DFOC8yl3xToZViBgOvdK2FbV0PkEySW2cJLNsQI2Xv/sVD5nLJPNyBwymCve4T8YZ4H6iGgg5cjXI/lAVnAniCnGFb1ppMixqgyJ6VtCNjP80/ZmJz+LSqCkq66QCDbpAaJn5CtZQfH5KeYy0nepeQL5mpm7q5I8uaxX7+AyhNwGjqjPmexmLLWOmLLVankOVxoUpjK6lLMWzwSzWYE14tVZHs3Ew5AaGLGFOx+RtHTeIWWRwwvGCRUr4tHl224Inha175i7ajRnidCiKaO7HqKcVn7sJ7gJnU1cGKsEB/HR+9h4IHAl/zCEl0pG6ocMiz6sjR6oAOyPL2pwjFan9n2hisSnm1hyCJcMKop2hedhguDlQGmuKlhR9CXaVLXqL0/im4m81zo5NFmI3ZN09PYdHjYZwwupZEFTgAiC0Dpqmlcte43GAWpVx96hWtdnrNoTgQOToIQ9485kgF3Q8ttr0IyeMMUI/2o7lnjfMoTE4Lfqe9fGYQUHTNjdwBvluCkAGbAR8Q4IPR13/lWu0p94V4FD3ENJn9nKgVfPCGVeV9ld28pjoDQkhDY=
+          secure: aplC5LMgM31ptr+HDw6o2owfIo+H+wt8ZrIs5kNOWHrVyoDQttwFAfJmvFc4SOq90UXwWQoC8lZQ6U3czON0bNYI05N7zkF8tMosz2W1riUJnbqQ2UEYrei5RJeogJ26DbPgVXU8P1OCPw0YGbof1lxL7H7vIa7eWG3VY/9IYndHwVOMvI/Ov7Pc0jGs/Sfl74WhC4kvvNPaskkD8/kGsaKSv1rHTrdMBXw/pYYQoeYH5/+tyPX63Au6yTBqpO4uBsLZJxnIpX6YkqJ6vEznAAmDu/a94wBrr0ptXTcL96ayiKlTO7MDCkPLWn/XUEI6lDMUlySoh6fSOI6k6o2huASEsRmJWi7Ffjkul2CYpPo1kMM4wJXUO17xipg0fLSygjgS+gmBdPWECCmLSSLoIEK63qSl0ZRHzVKHWlGjzo/a0othcMPf23ZesOfdQtzx/BkY7N/bjTBJoE/IeBbsuHGuzt4vpvV9ETdMprstzcsCN2v+9+jCW35548WW9A4U0P2RybELzR+e/W3bWnHz/qimoqHAUk+p0CkxkJf9PQtOr+Tfyyf75ucF7M/fVk772D/po85C/clbD0d66y88N0I8nvDaa1OAEHJyFTeLFlmw9pBEtB5DVp/fpIBu8Dd7wJOfykSUGddvbp5Sopg5swzUhpCvYo4cuba9ZTOi8ls=
         on:
           tags: true
           repo: ESSS/hookman

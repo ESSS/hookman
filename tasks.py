@@ -122,8 +122,8 @@ def compile_build_files(ctx):
                 os.path.expandvars(
                     r"${PROGRAMFILES(X86)}\Microsoft Visual Studio\2017\WDExpress\VC\Auxiliary\Build\vcvarsall.bat"
                 ),
-                # On AppVeyor the variable PROGRAMFILES is not defined
-                r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat",
+                # Path for vcvars on GithubAction
+                r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat",
             )
             for msvc_path in paths:
                 if os.path.isfile(msvc_path):

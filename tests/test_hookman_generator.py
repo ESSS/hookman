@@ -203,7 +203,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
         author_email="acme1",
         author_name="acme2",
         dst_path=Path(tmpdir),
-        extras={'key': 'override', 'key2': 'value2'},
+        extras={"key": "override", "key2": "value2"},
     )
     plugin_dir = Path(tmpdir) / "acme"
 
@@ -218,7 +218,7 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
     hg.generate_plugin_package(
         package_name="acme",
         plugin_dir=plugin_dir,
-        extras_defaults={'key': 'default', 'key3': 'default'}
+        extras_defaults={"key": "default", "key3": "default"},
     )
 
     from hookman.plugin_config import PluginInfo
@@ -241,11 +241,13 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
     assert "assets/README.md" in list_of_files
     assert f"artifacts/{shared_lib_name}" in list_of_files
 
-    with plugin_file_zip.open('assets/plugin.yaml', 'r') as f:
-        contents = f.read().decode('utf-8')
+    with plugin_file_zip.open("assets/plugin.yaml", "r") as f:
+        contents = f.read().decode("utf-8")
 
     from textwrap import dedent
-    assert contents == dedent('''\
+
+    assert contents == dedent(
+        """\
     author: acme2
     caption: acme
     email: acme1
@@ -255,7 +257,8 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
       key: override
       key2: value2
       key3: default
-    ''')
+    """
+    )
 
 
 def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker):

@@ -603,7 +603,12 @@ class HookManGenerator:
                 )
 
     def _plugin_config_file_content(
-        self, caption: str, plugin_id: str, author_email: str, author_name: str, extras: dict,
+        self,
+        caption: str,
+        plugin_id: str,
+        author_email: str,
+        author_name: str,
+        extras: dict,
     ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin

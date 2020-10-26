@@ -3,6 +3,8 @@ name: "Hookman - CI"
 on:
   push:
     branches: [master, rb-*]
+    tags:
+      - v*
   pull_request:
    branches: [master]
 

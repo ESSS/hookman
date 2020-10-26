@@ -11,14 +11,11 @@ Hookman
 .. image:: https://img.shields.io/pypi/pyversions/python-hookman.svg
     :target: https://pypi.org/project/python-hookman
 
-.. image:: https://img.shields.io/travis/ESSS/hookman.svg
-    :target: https://travis-ci.org/ESSS/hookman
-
-.. image:: https://ci.appveyor.com/api/projects/status/w472d1cm0w37ka3l/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/ESSS/hookman/?branch=master&svg=true
-
 .. image:: https://codecov.io/gh/ESSS/hookman/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/ESSS/hookman
+
+.. image:: https://github.com/ESSS/hookman/workflows/Hookman%20-%20CI/badge.svg
+    :target: https://github.com/ESSS/hookman/actions
 
 .. image:: https://readthedocs.org/projects/hookman/badge/?version=latest
     :target: https://hookman.readthedocs.io/en/latest/?badge=latest

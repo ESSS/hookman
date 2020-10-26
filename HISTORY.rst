@@ -2,18 +2,15 @@
 History
 =======
 
-0.5.0 (Unreleased)
-------------------
-
 0.4.0 (2020-10-23)
-------------------
+==================
 
 - When removing plugins they are first moved to a ``.trash`` dir and not directly deleted.
 - Allow HookManager to call hooks of a specific plugin
 
 
 0.3.0 (2019-12-16)
-------------------
+==================
 
 - Rename the parameter ``dst_path`` to ``dest_path`` on ``install_plugin`` method.
 - ``install_plugin`` now returns the name of the plugin when the installation is successful.
@@ -25,7 +22,7 @@ History
 
 
 0.2.0 (2019-02-08)
-------------------
+==================
 
 - Moved load hook function code to ``HookCaller.load_impls_from_library`` function implemented in C++. This
   enables using hook functionality in projects which don't use Python as their entry point.
@@ -60,45 +57,45 @@ History
 - The ``INIT_HOOKS`` macro has been removed as it didn't have any useful function.
 
 0.1.7 (2018-08-23)
-------------------
+==================
 
 - First Release on PyPI.
 
 0.1.6 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 
 0.1.5 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 
 
 0.1.4 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 
 0.1.3 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 
 
 0.1.2 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 
 
 0.1.1 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.
 - Dropping bumperversion and using setuptool_scm
 
 0.1.0 (2018-08-23)
-------------------
+==================
 
 - Never released, deployment error.

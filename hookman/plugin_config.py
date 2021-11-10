@@ -6,11 +6,13 @@ from zipfile import ZipFile
 
 import attr
 from attr import attrib
+from strictyaml import Map
+from strictyaml import MapPattern
+from strictyaml import Optional
+from strictyaml import Str
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
-
-from strictyaml import Map, MapPattern, Optional, Str
 
 PLUGIN_CONFIG_SCHEMA = Map(
     {

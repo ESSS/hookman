@@ -3,7 +3,9 @@ import os
 import sys
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List, Sequence, Union
+from typing import List
+from typing import Sequence
+from typing import Union
 
 
 def find_config_files(

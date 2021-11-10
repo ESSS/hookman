@@ -4,12 +4,20 @@ import re
 import sys
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import NamedTuple
+from typing import Optional
+from typing import Union
 from zipfile import ZipFile
 
-from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
+from hookman.exceptions import ArtifactsDirNotFoundError
+from hookman.exceptions import AssetsDirNotFoundError
+from hookman.exceptions import HookmanError
 from hookman.hooks import HookSpecs
-from hookman.plugin_config import PLUGIN_CONFIG_SCHEMA, PluginInfo
+from hookman.plugin_config import PLUGIN_CONFIG_SCHEMA
+from hookman.plugin_config import PluginInfo
 
 
 class Hook(NamedTuple):

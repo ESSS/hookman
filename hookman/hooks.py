@@ -1,11 +1,15 @@
 import inspect
 import shutil
 from pathlib import Path
-from typing import Callable, List, Optional, Sequence
+from typing import Callable
+from typing import List
+from typing import Optional
+from typing import Sequence
 from zipfile import ZipFile
 
 from hookman import hookman_utils
-from hookman.exceptions import InvalidDestinationPathError, PluginAlreadyInstalledError
+from hookman.exceptions import InvalidDestinationPathError
+from hookman.exceptions import PluginAlreadyInstalledError
 from hookman.plugin_config import PluginInfo
 
 

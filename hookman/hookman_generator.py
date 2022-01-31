@@ -836,7 +836,7 @@ def _generate_windows_body(hooks: List[Hook]) -> List[str]:
         f"        explicit PathGuard(std::wstring filename)",
         f"            : path_env{{ get_path() }}",
         f"        {{",
-        fr'            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");',
+        rf'            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");',
         f'            std::wstring new_path_env = path_env + L";" + filename.substr(0, dir_name_size);',
         f'            _wputenv_s(L"PATH", new_path_env.c_str());',
         f"        }}",

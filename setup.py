@@ -36,6 +36,9 @@ setup(
     packages=find_packages(include=["hookman"]),
     url="https://github.com/esss/hookman",
     use_scm_version=True,
-    setup_requires=["setuptools_scm"],
+    setup_requires=[
+        "setuptools_scm<7.0; python_version<'3.7'",
+        "setuptools_scm; python_version>='3.7'",
+    ],
     zip_safe=False,
 )

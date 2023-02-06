@@ -315,7 +315,6 @@ class HookManGenerator:
             contents = contents_dict.as_yaml()
 
         with ZipFile(hmplugin_path, "w") as zip_file:
-
             for file in assets_dir.rglob("*"):
                 if file.name == "plugin.yaml":
                     zip_file.writestr(str(file.relative_to(plugin_dir)), data=contents)

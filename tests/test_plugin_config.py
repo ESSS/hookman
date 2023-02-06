@@ -4,7 +4,6 @@ from hookman.plugin_config import PluginInfo
 
 
 def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
-
     mocker.patch.object(PluginInfo, "_get_hooks_implemented", return_value=["a"])
 
     hooks_available = {
@@ -21,7 +20,6 @@ def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
 
 
 def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll):
-
     mocker.patch("sys.platform", "linux")
 
     expected_path = datadir / "artifacts/libname_of_the_shared_lib.so"

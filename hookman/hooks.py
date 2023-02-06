@@ -44,7 +44,6 @@ class HookSpecs:
         hooks: List[Callable],
         extra_includes: List[str] = (),
     ) -> None:
-
         for hook in hooks:
             self._check_hook_arguments(hook)
         self.project_name = project_name

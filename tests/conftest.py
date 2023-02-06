@@ -20,7 +20,6 @@ def acme_hook_specs_file():
 
 @pytest.fixture
 def acme_hook_specs(acme_hook_specs_file):
-
     # Load the hook_specs.py (inside the test folder) into plugin_specs
     import importlib
 

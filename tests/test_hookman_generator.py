@@ -194,7 +194,8 @@ def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, t
         )
 
 
-def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll):
+@pytest.mark.parametrize('package_name_extra', [None, 'foo'])
+def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll, package_name_extra):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = "acme"
     hg.generate_plugin_template(
@@ -219,15 +220,21 @@ def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_fr
         package_name="acme",
         plugin_dir=plugin_dir,
         extras_defaults={"key": "default", "key3": "default"},
+        package_name_suffix=package_name_extra,
     )
 
     from hookman.plugin_config import PluginInfo
 
     version = PluginInfo(Path(tmpdir / "acme/assets/plugin.yaml"), None).version
 
-    win_plugin_name = f"{plugin_id}-{version}-win64.hmplugin"
-    linux_plugin_name = f"{plugin_id}-{version}-linux64.hmplugin"
-    hm_plugin_name = win_plugin_name if sys.platform == "win32" else linux_plugin_name
+    base_plugin_name_components = [plugin_id, version]
+    if package_name_extra is not None:
+        base_plugin_name_components.append(package_name_extra)
+    if sys.platform == "win32":
+        base_plugin_name_components.append("win64")
+    else:
+        base_plugin_name_components.append("linux64")
+    hm_plugin_name = "-".join(base_plugin_name_components) + ".hmplugin"
 
     compressed_plugin = plugin_dir / hm_plugin_name
     assert compressed_plugin.exists()

@@ -269,6 +269,7 @@ class HookManGenerator:
         plugin_dir: Union[Path, str],
         dst_path: Path = None,
         extras_defaults: Optional[Dict[str, str]] = None,
+        package_name_suffix: Optional[str] = None,
     ):
         """
         Creates a .hmplugin file using the name provided on package_name argument.
@@ -284,6 +285,9 @@ class HookManGenerator:
 
         :param Dict[str,str] extras_defaults:
             (key, value) entries to be added to "extras" if not defined by the original input yaml.
+
+        :param Optional[str] package_name_suffix:
+            If not `None` this string is inserted after the plugin version in the filename.
         """
         plugin_dir = Path(plugin_dir)
         if dst_path is None:
@@ -297,13 +301,6 @@ class HookManGenerator:
         self._validate_plugin_config_file(assets_dir / "plugin.yaml")
         plugin_info = PluginInfo(assets_dir / "plugin.yaml", hooks_available=None)
 
-        if sys.platform == "win32":
-            shared_lib_extension = "*.dll"
-            hmplugin_path = dst_path / f"{package_name}-{plugin_info.version}-win64.hmplugin"
-        else:
-            shared_lib_extension = "*.so"
-            hmplugin_path = dst_path / f"{package_name}-{plugin_info.version}-linux64.hmplugin"
-
         contents = (assets_dir / "plugin.yaml").read_text()
         if extras_defaults is not None:
             import strictyaml
@@ -314,6 +311,18 @@ class HookManGenerator:
             contents_dict["extras"] = dict(sorted(extras.items()))
             contents = contents_dict.as_yaml()
 
+        hmplugin_base_name_components = [package_name, plugin_info.version]
+        if package_name_suffix is not None:
+            hmplugin_base_name_components.append(package_name_suffix)
+
+        if sys.platform == "win32":  # pragma: no cover (apparently merge reports of the same files)
+            shared_lib_extension = "*.dll"
+            hmplugin_base_name_components.append("win64")
+        else:
+            shared_lib_extension = "*.so"
+            hmplugin_base_name_components.append("linux64")
+
+        hmplugin_path = dst_path / ("-".join(hmplugin_base_name_components) + ".hmplugin")
         with ZipFile(hmplugin_path, "w") as zip_file:
             for file in assets_dir.rglob("*"):
                 if file.name == "plugin.yaml":

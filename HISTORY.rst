@@ -2,7 +2,7 @@
 History
 =======
 
-0.5.0 (UNRELEASED)
+0.5.0 (2023-02-10)
 ==================
 
 - Allow to add some extra text to created hmplugin file.

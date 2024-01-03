@@ -18,13 +18,8 @@ dependencies:
     - ninja
     - cmake >=3.5.2
 
-    {% if os.sys.platform != 'win32' %}
-    - clangdev>=6.0.0
-    {% endif %}
-
-    {% if os.sys.platform == 'win32' %}
-    - vs2015_runtime
-    {% endif %}
+    - clangdev>=6.0.0  # [linux]
+    - vs2015_runtime  # [win]
 
 
 

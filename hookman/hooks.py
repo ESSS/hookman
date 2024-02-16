@@ -10,6 +10,7 @@ from zipfile import ZipFile
 from hookman import hookman_utils
 from hookman.exceptions import InvalidDestinationPathError
 from hookman.exceptions import PluginAlreadyInstalledError
+from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
 
 
@@ -206,5 +207,6 @@ class HookMan:
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
         for plugin in self.get_plugins_available(ignored_plugins):
-            hook_caller.load_impls_from_library(str(plugin.shared_lib_path), plugin.id)
+            with change_path_env(str(plugin.shared_lib_path)):
+                hook_caller.load_impls_from_library(str(plugin.shared_lib_path), plugin.id)
         return hook_caller

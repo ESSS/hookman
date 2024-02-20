@@ -52,7 +52,6 @@ def change_path_env(shared_lib_path: str):
             handle.close()
 
 
-
 @contextmanager
 def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
     """

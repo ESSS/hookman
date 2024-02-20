@@ -52,7 +52,6 @@ def change_path_env(shared_lib_path: str):
             handle.close() # pragma: no cover - team decided that was hard make a test capable of getting this
 
 
-
 @contextmanager
 def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
     """

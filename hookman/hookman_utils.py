@@ -43,13 +43,15 @@ def change_path_env(shared_lib_path: str):
     handle = None
     if sys.platform.startswith("win"):
         os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
-        handle = os.add_dll_directory(os.path.dirname(shared_lib_path)) # pragma: no cover - team decided that was hard make a test capable of getting this
+        handle = os.add_dll_directory(
+            os.path.dirname(shared_lib_path)
+        )  # pragma: no cover - team decided that was hard make a test capable of getting this
     try:
         yield
     finally:
         os.environ["PATH"] = old_path
         if handle is not None:
-            handle.close() # pragma: no cover - team decided that was hard make a test capable of getting this
+            handle.close()  # pragma: no cover - team decided that was hard make a test capable of getting this
 
 
 @contextmanager

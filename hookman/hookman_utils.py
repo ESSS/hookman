@@ -44,9 +44,7 @@ def change_path_env(shared_lib_path: str):
     if sys.platform.startswith("win"):
         # We explict opted to not cover this on windows.
         os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
-        handle = os.add_dll_directory(
-            os.path.dirname(shared_lib_path)
-        )  # pragma: no cover
+        handle = os.add_dll_directory(os.path.dirname(shared_lib_path))  # pragma: no cover
     try:
         yield
     finally:

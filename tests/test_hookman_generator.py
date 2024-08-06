@@ -194,8 +194,10 @@ def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, t
         )
 
 
-@pytest.mark.parametrize('package_name_extra', [None, 'foo'])
-def test_generate_plugin_package(acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll, package_name_extra):
+@pytest.mark.parametrize("package_name_extra", [None, "foo"])
+def test_generate_plugin_package(
+    acme_hook_specs_file, tmpdir, mock_plugin_id_from_dll, package_name_extra
+):
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
     plugin_id = "acme"
     hg.generate_plugin_template(
@@ -299,7 +301,7 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     # -- Without a shared library binary
     shared_lib_extension = "*.dll" if sys.platform == "win32" else "*.so"
-    string_to_match = fr"Unable to locate a shared library ({shared_lib_extension}) in"
+    string_to_match = rf"Unable to locate a shared library ({shared_lib_extension}) in"
     import re
 
     with pytest.raises(FileNotFoundError, match=re.escape(string_to_match)):

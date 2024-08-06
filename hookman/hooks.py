@@ -1,10 +1,10 @@
 import inspect
 import shutil
+from collections.abc import Callable
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Callable
 from typing import List
 from typing import Optional
-from typing import Sequence
 from zipfile import ZipFile
 
 from hookman import hookman_utils

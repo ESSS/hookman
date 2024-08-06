@@ -1,10 +1,10 @@
 import ctypes
 import os
 import sys
+from collections.abc import Sequence
 from contextlib import contextmanager
 from pathlib import Path
 from typing import List
-from typing import Sequence
 from typing import Union
 
 

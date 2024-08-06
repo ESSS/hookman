@@ -1,7 +1,7 @@
-exclude: 'test_hookman_generator/*'
+exclude: 'test_hookman_generator/.*'
 repos:
 -   repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 24.8.0
     hooks:
     -   id: black
         args: [--safe, --quiet]
@@ -16,7 +16,7 @@ repos:
     rev: v3.13.0
     hooks:
     -   id: reorder-python-imports
-        args: ['--application-directories=.:src', --py36-plus]
+        args: ['--application-directories=.:src', --py310-plus]
 -   repo: local
     hooks:
     -   id: rst

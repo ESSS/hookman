@@ -161,6 +161,7 @@ class HookManGenerator:
                 assets/
                     - plugin.yaml
                     - README.md
+                    - CHANGELOG.rst
                 src/
                     - hook_specs.h
                     - {plugin_id}.cpp
@@ -207,6 +208,7 @@ class HookManGenerator:
         Path(assets_folder / "README.md").write_text(
             self._readme_content(caption, author_email, author_name)
         )
+        Path(assets_folder / "CHANGELOG.rst").write_text(self._changelog_content(caption))
         Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
         Path(source_folder / f"{plugin_id}.cpp").write_text(
             self._plugin_source_content(extra_includes, extra_body_lines, exclude_hooks)
@@ -279,6 +281,7 @@ class HookManGenerator:
             - plugin.yml
             - shared library (.ddl or .so)
             - readme.md
+            - changelog.rst
 
         Per default, the package will be created inside the folder plugin_dir, however it's possible
         to give another path filling the dst argument
@@ -345,6 +348,7 @@ class HookManGenerator:
 
             - The assets folder needs to contain:
                 - Readme.md
+                - changelog.rst
                 - plugin.yaml
 
             - The artifacts folder need to contain:
@@ -369,6 +373,9 @@ class HookManGenerator:
 
         if not assets_dir.joinpath("README.md").is_file():
             raise FileNotFoundError(f"Unable to locate the file README.md in {assets_dir}")
+
+        if not assets_dir.joinpath("CHANGELOG.rst").is_file():
+            raise FileNotFoundError(f"Unable to locate the file CHANGELOG.rst in {assets_dir}")
 
     def _validate_plugin_config_file(self, plugin_config_file: Path):
         """
@@ -656,6 +663,29 @@ class HookManGenerator:
 
         You can find an overview of the valid tags that can be used to write the content of this file on the following link:
         https://guides.github.com/features/mastering-markdown/#syntax
+        """
+        )
+
+    def _generate_rst_title(self, caption: str) -> str:
+        complement = " Changelog"
+        title = caption + complement
+        border = "=" * (len(title))
+        return f"""{border}
+        {title}
+        {border}
+        """
+
+    def _changelog_content(self, caption: str) -> str:
+        return dedent(
+            f"""\
+        {self._generate_rst_title(caption)}
+        1.0.0 (Unreleased)
+        ==================
+
+        Major highlights
+        ------------------
+
+        * Example feature A
         """
         )
 

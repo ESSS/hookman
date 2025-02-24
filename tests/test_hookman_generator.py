@@ -69,6 +69,11 @@ def test_generate_plugin_template(datadir, file_regression):
     obtained_readme = datadir / "test_generate_plugin_template/acme/assets/README.md"
     file_regression.check(obtained_readme.read_text(), basename="generate_README", extension=".md")
 
+    obtained_changelog = datadir / "test_generate_plugin_template/acme/assets/CHANGELOG.rst"
+    file_regression.check(
+        obtained_changelog.read_text(), basename="generate_CHANGELOG", extension=".rst"
+    )
+
     obtained_cmake_list = datadir / "test_generate_plugin_template/acme/CMakeLists.txt"
     file_regression.check(
         obtained_cmake_list.read_text(), basename="generate_CMakeLists", extension=".txt"
@@ -335,6 +340,13 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
 
     readme_file = asset_dir / "README.md"
     readme_file.write_text("")
+
+    # -- Without changelog file
+    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file CHANGELOG.rst in"):
+        hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
+
+    changelog_file = asset_dir / "CHANGELOG.rst"
+    changelog_file.write_text("")
 
     # # -- With a invalid shared_library name on config_file
     acme_lib_name = "acme.dll" if sys.platform == "win32" else "libacme.so"

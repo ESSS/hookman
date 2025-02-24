@@ -675,7 +675,7 @@ class HookManGenerator:
     def _changelog_content(self, caption: str) -> str:
         return dedent(
             f"""\
-        {self.generate_rst_title(caption)}
+        {self._generate_rst_title(caption)}
 
         1.0.0 (Unreleased)
         ==================

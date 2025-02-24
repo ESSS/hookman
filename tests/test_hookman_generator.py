@@ -69,6 +69,11 @@ def test_generate_plugin_template(datadir, file_regression):
     obtained_readme = datadir / "test_generate_plugin_template/acme/assets/README.md"
     file_regression.check(obtained_readme.read_text(), basename="generate_README", extension=".md")
 
+    obtained_changelog = datadir / "test_generate_plugin_template/acme/assets/CHANGELOG.rst"
+    file_regression.check(
+        obtained_changelog.read_text(), basename="generate_CHANGELOG", extension=".rst"
+    )
+
     obtained_cmake_list = datadir / "test_generate_plugin_template/acme/CMakeLists.txt"
     file_regression.check(
         obtained_cmake_list.read_text(), basename="generate_CMakeLists", extension=".txt"

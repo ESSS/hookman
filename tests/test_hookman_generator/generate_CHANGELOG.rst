@@ -1,5 +1,5 @@
 =====================
-Acme Plugin changelog
+Acme Changelog
 =====================
 
 1.0.0 (Unreleased)

@@ -667,10 +667,10 @@ class HookManGenerator:
         )
 
     def _generate_rst_title(self, caption: str) -> str:
-        complement = " Plugin Changelog"
+        complement = " Changelog"
         title = caption + complement
         border = "=" * (len(title))
-        return f"{border}\n{caption}\n{border}"
+        return f"{border}\n{title}\n{border}"
 
     def _changelog_content(self, caption: str) -> str:
         return dedent(

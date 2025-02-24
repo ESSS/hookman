@@ -670,13 +670,15 @@ class HookManGenerator:
         complement = " Changelog"
         title = caption + complement
         border = "=" * (len(title))
-        return f"{border}\n{title}\n{border}"
+        return f"""{border}
+        {title}
+        {border}
+        """
 
     def _changelog_content(self, caption: str) -> str:
         return dedent(
             f"""\
         {self._generate_rst_title(caption)}
-
         1.0.0 (Unreleased)
         ==================
 

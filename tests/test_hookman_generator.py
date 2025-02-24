@@ -341,6 +341,13 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     readme_file = asset_dir / "README.md"
     readme_file.write_text("")
 
+    # -- Without changelog file
+    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file CHANGELOG.rst in"):
+        hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
+
+    changelog_file = asset_dir / "CHANGELOG.rst"
+    changelog_file.write_text("")
+
     # # -- With a invalid shared_library name on config_file
     acme_lib_name = "acme.dll" if sys.platform == "win32" else "libacme.so"
     hm_plugin_name = (

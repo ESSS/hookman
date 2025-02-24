@@ -6,6 +6,7 @@ UNRELEASED
 ==========
 
 - Dropped support for old Python versions, requiring Python 3.10+.
+- Add CHANGELOG.rst to plugin generator
 
 0.5.0 (2023-02-10)
 ==================

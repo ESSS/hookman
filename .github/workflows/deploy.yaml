@@ -1,0 +1,38 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+
+  deploy:
+
+    if: startsWith(github.event.ref, 'refs/tags')
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write  # For PyPI trusted publishers.
+      contents: write  # For GitHub release.
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: "3.x"
+      - name: Install build
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build package
+        run: |
+          python -m build
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.4
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

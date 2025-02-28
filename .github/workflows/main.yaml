@@ -3,8 +3,6 @@ name: "Hookman - CI"
 on:
   push:
     branches: [master, rb-*]
-    tags:
-      - v*
   pull_request:
    branches: [master]
 
@@ -39,30 +37,3 @@ jobs:
       run: |
         tox -e py
         codecov -t  ${{secrets.CODECOV_TOKEN}} -X gcov -f coverage.xml
-
-  deploy:
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && github.repository == 'ESSS/hookman'
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.x"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install --upgrade wheel setuptools tox
-    - name: Build package
-      run: |
-        python setup.py sdist bdist_wheel
-    - name: Publish package to PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_token }}

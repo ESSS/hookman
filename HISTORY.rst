@@ -5,6 +5,11 @@ History
 UNRELEASED
 ==========
 
+-
+
+0.6.0 (2025-02-28)
+==================
+
 - Dropped support for old Python versions, requiring Python 3.10+.
 - Add CHANGELOG.rst to plugin generator
 

@@ -1,11 +1,6 @@
-Releasing procedure
--------------------
-
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
-
-$ git tag vX.Y.Z (where the X.Y.Z numbers should follow the semantic versioning, for more details read https://semver.org/)
-$ git push
-$ git push --tags
-
-Travis will then deploy to PyPI if tests pass.
+Here are the steps on how to make a new release.
+1. Create a ``release-VERSION`` branch from ``upstream/master``.
+2. Update ``CHANGELOG.rst``.
+3. Push a branch with the changes.
+4. Once all builds pass, push a ``VERSION`` tag to ``upstream``.
+5. Merge the PR.

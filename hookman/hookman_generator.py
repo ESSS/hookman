@@ -325,7 +325,9 @@ class HookManGenerator:
         else:
             shared_lib_extension = "*.so"
             shared_lib_versioned_extension = "*.so.[0-9]*"
-            shared_lib_files = list(artifacts_dir.rglob(shared_lib_extension)) + list(artifacts_dir.rglob(shared_lib_versioned_extension))
+            shared_lib_files = list(artifacts_dir.rglob(shared_lib_extension)) + list(
+                artifacts_dir.rglob(shared_lib_versioned_extension)
+            )
             hmplugin_base_name_components.append("linux64")
 
         hmplugin_path = dst_path / ("-".join(hmplugin_base_name_components) + ".hmplugin")
@@ -335,7 +337,7 @@ class HookManGenerator:
                     zip_file.writestr(str(file.relative_to(plugin_dir)), data=contents)
                 else:
                     zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
-            
+
             for file in shared_lib_files:
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 

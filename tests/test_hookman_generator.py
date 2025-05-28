@@ -220,8 +220,12 @@ def test_generate_plugin_package(
     import sys
 
     shared_lib_name = f"{plugin_id}.dll" if sys.platform == "win32" else f"lib{plugin_id}.so"
-    shared_lib_path = artifacts_dir / shared_lib_name
-    shared_lib_path.write_text("")
+    shared_dependency_name = f"{plugin_id}_dep.dll" if sys.platform == "win32" else f"lib{plugin_id}_dep.so.2"
+    shared_libs = [shared_lib_name, shared_dependency_name]
+
+    for lib_name in shared_libs:
+        shared_lib_path = artifacts_dir / lib_name
+        shared_lib_path.write_text("")
 
     hg.generate_plugin_package(
         package_name="acme",
@@ -253,7 +257,8 @@ def test_generate_plugin_package(
 
     assert "assets/plugin.yaml" in list_of_files
     assert "assets/README.md" in list_of_files
-    assert f"artifacts/{shared_lib_name}" in list_of_files
+    for lib_name in shared_libs:
+        assert f"artifacts/{lib_name}" in list_of_files
 
     with plugin_file_zip.open("assets/plugin.yaml", "r") as f:
         contents = f.read().decode("utf-8")

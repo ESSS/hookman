@@ -332,7 +332,7 @@ class HookManGenerator:
                     zip_file.writestr(str(file.relative_to(plugin_dir)), data=contents)
                 else:
                     zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
-            
+
             for file in artifacts_dir.rglob(shared_lib_versioned_extension):
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 

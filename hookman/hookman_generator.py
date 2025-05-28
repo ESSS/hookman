@@ -321,8 +321,11 @@ class HookManGenerator:
         if sys.platform == "win32":  # pragma: no cover (apparently merge reports of the same files)
             shared_lib_extension = "*.dll"
             hmplugin_base_name_components.append("win64")
+            shared_lib_files = artifacts_dir.rglob(shared_lib_extension)
         else:
-            shared_lib_extension = "*.so.[0-9]*"
+            shared_lib_extension = "*.so"
+            shared_lib_versioned_extension = "*.so.[0-9]*"
+            shared_lib_files = list(artifacts_dir.rglob(shared_lib_extension)) + list(artifacts_dir.rglob(shared_lib_versioned_extension))
             hmplugin_base_name_components.append("linux64")
 
         hmplugin_path = dst_path / ("-".join(hmplugin_base_name_components) + ".hmplugin")
@@ -333,7 +336,7 @@ class HookManGenerator:
                 else:
                     zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
             
-            for file in artifacts_dir.rglob(shared_lib_extension):
+            for file in shared_lib_files:
                 zip_file.write(filename=file, arcname=file.relative_to(plugin_dir))
 
             for file in python_dir.rglob("*"):

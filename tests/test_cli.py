@@ -8,8 +8,12 @@ from hookman import __main__
 
 def test_help(datadir):
     runner = CliRunner()
-    result = runner.invoke(__main__.cli)
-    assert result.exit_code == 0, result.output
+    # Ensure the CLI help works correctly and lists the available commands.
+    # Note: without any argument, linux and windows behave differently.
+    result = runner.invoke(__main__.cli, ["--help"])
+    assert result.exit_code == 0
+    assert "Usage:" in result.output
+
     matcher = LineMatcher(result.output.splitlines())
     matcher.fnmatch_lines(
         [

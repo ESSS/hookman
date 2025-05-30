@@ -24,14 +24,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      env:
-        PYBIND11_GLOBAL_SDIST: 1
       run: |
         python -m pip install --upgrade pip
-        pip install tox codecov
-        # CMake configuration files missing for PyPi install
-        # https://github.com/pybind/pybind11/issues/1628#issuecomment-697346676
-        python -m pip install https://github.com/pybind/pybind11/archive/master.zip
+        pip install tox codecov pybind11[global]
 
     - name: Run tests
       run: |

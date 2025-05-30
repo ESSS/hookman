@@ -5,7 +5,7 @@ History
 UNRELEASED
 ==========
 
--
+- Add support for packaging Linux libraries with version suffixes (e.g. `libhookman.so.1.0.0`).
 
 0.6.0 (2025-02-28)
 ==================

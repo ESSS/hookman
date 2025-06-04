@@ -3,5 +3,4 @@ version: '1.0.0'
 
 author: 'simple_plugin_author'
 email: 'simple_plugin_author@simple_plugin_author.com'
-
 id: 'simple_plugin'

@@ -112,15 +112,17 @@ def test_plugins_available_plain(simple_plugin, simple_plugin_2):
     assert list(attr.asdict(plugins[0]).keys()) == [
         "yaml_location",
         "hooks_available",
-        "author",
         "description",
+        "author",
         "email",
         "hooks_implemented",
         "caption",
         "shared_lib_name",
         "shared_lib_path",
         "version",
+        "requirements",
         "extras",
+        "id",
     ]
 
     plugins = hm.get_plugins_available(ignored_plugins=["simple_plugin_2"])

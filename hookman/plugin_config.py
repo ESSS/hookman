@@ -6,10 +6,11 @@ from zipfile import ZipFile
 
 from attr import define
 from attr import field
-from strictyaml import Map, YAML
+from strictyaml import Map
 from strictyaml import MapPattern
 from strictyaml import Optional
 from strictyaml import Str
+from strictyaml import YAML
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib

@@ -1,15 +1,16 @@
 import ctypes
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List
 from zipfile import ZipFile
 
-import attr
-from attr import attrib
+from attr import define
+from attr import field
 from strictyaml import Map
 from strictyaml import MapPattern
 from strictyaml import Optional
 from strictyaml import Str
+from strictyaml import YAML
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
@@ -21,31 +22,34 @@ PLUGIN_CONFIG_SCHEMA = Map(
         "author": Str(),
         "email": Str(),
         "id": Str(),
+        Optional("requirements"): MapPattern(Str(), Str()),
         Optional("extras"): MapPattern(Str(), Str()),
     }
 )
 
 
-@attr.s
-class PluginInfo(object):
+@define
+class PluginInfo:
     """
     Class that holds all information related to the plugin with some auxiliary methods
     """
 
-    yaml_location = attrib(type=Path)
-    hooks_available = attrib(validator=attr.validators.optional(attr.validators.instance_of(dict)))
+    yaml_location: Path
+    hooks_available: dict | None = None
 
-    author = attrib(type=str, init=False)
-    description = attrib(type=str, default="Could not find a description", init=False)
-    email = attrib(type=str, init=False)
-    hooks_implemented = attrib(type=list, init=False)
-    caption = attrib(type=str, init=False)
-    shared_lib_name = attrib(type=str, init=False)
-    shared_lib_path = attrib(type=Path, init=False)
-    version = attrib(type=str, init=False)
-    extras = attrib(attr.Factory(dict), init=False)
+    description: str = field(init=False)
+    author: str = field(init=False)
+    email: str = field(init=False)
+    hooks_implemented: Sequence[str] = field(init=False)
+    caption: str = field(init=False)
+    shared_lib_name: str = field(init=False)
+    shared_lib_path: Path = field(init=False)
+    version: str = field(init=False)
+    requirements: dict[str, str] = field(init=False)
+    extras: dict = field(init=False)
+    id: str = field(init=False)
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         plugin_config_file_content = self._load_yaml_file(
             self.yaml_location.read_text(encoding="utf-8")
         )
@@ -53,28 +57,27 @@ class PluginInfo(object):
         name = plugin_config_file_content["id"]
         shared_lib_name = f"{name}.dll" if sys.platform == "win32" else f"lib{name}.so"
 
-        object.__setattr__(self, "shared_lib_name", shared_lib_name)
-        object.__setattr__(
-            self, "shared_lib_path", self.yaml_location.parents[1] / "artifacts" / shared_lib_name
-        )
-
-        object.__setattr__(self, "author", plugin_config_file_content["author"])
-        object.__setattr__(self, "caption", plugin_config_file_content["caption"])
-        object.__setattr__(self, "email", plugin_config_file_content["email"])
-        object.__setattr__(self, "version", plugin_config_file_content["version"])
-        object.__setattr__(self, "extras", plugin_config_file_content.get("extras", {}))
+        self.shared_lib_name = shared_lib_name
+        self.shared_lib_path = self.yaml_location.parents[1] / "artifacts" / shared_lib_name
+        self.author = plugin_config_file_content["author"]
+        self.caption = plugin_config_file_content["caption"]
+        self.email = plugin_config_file_content["email"]
+        self.version = plugin_config_file_content["version"]
+        self.requirements = plugin_config_file_content.get("requirements", {})
+        self.extras = plugin_config_file_content.get("extras", {})
 
         # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
-        object.__setattr__(
-            self, "id", self._get_plugin_id_from_dll(plugin_config_file_content["id"])
+        self.id = self._get_plugin_id_from_dll(plugin_config_file_content["id"])
+
+        readme_file = self.yaml_location.parent / "README.md"
+        self.description = (
+            readme_file.read_text(encoding="utf-8")
+            if readme_file.is_file()
+            else "Could not find a description"
         )
 
         if not self.hooks_available is None:
-            object.__setattr__(self, "hooks_implemented", self._get_hooks_implemented())
-
-        readme_file = self.yaml_location.parent / "README.md"
-        if readme_file.exists():
-            object.__setattr__(self, "description", readme_file.read_text())
+            self.hooks_implemented = self._get_hooks_implemented()
 
     def _check_if_shared_lib_exists(self):
         if not self.shared_lib_path.is_file():
@@ -95,11 +98,14 @@ class PluginInfo(object):
                 raise RuntimeError(msg)
             return plugin_id_from_shared_lib
 
-    def _get_hooks_implemented(self) -> List[str]:
+    def _get_hooks_implemented(self) -> Sequence[str]:
         """
         Return a list of which hooks from "hooks_available" the shared library implements
         """
         self._check_if_shared_lib_exists()
+        if self.hooks_available is None:
+            return []
+
         with load_shared_lib(str(self.shared_lib_path)) as plugin_dll:
             hooks_implemented = [
                 hook_name
@@ -124,7 +130,7 @@ class PluginInfo(object):
         return True
 
     @classmethod
-    def _load_yaml_file(cls, yaml_content):
+    def _load_yaml_file(cls, yaml_content: str) -> YAML:
         import strictyaml
 
         plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
@@ -139,7 +145,7 @@ class PluginInfo(object):
         return plugin_config_file_content
 
     @classmethod
-    def validate_plugin_file(cls, plugin_file_zip: ZipFile):
+    def validate_plugin_file(cls, plugin_file_zip: ZipFile) -> None:
         """
         Check if the given plugin_file is valid,
         currently the only check that this method do is to verify if the id is available

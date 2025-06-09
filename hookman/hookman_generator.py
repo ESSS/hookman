@@ -2,6 +2,7 @@ import importlib
 import inspect
 import re
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
@@ -144,11 +145,12 @@ class HookManGenerator:
         author_email: str,
         author_name: str,
         dst_path: Path,
-        extra_includes: Optional[List[str]] = None,
-        extra_body_lines: Optional[List[str]] = None,
-        exclude_hooks: Optional[List[str]] = None,
-        extras: Optional[Dict[str, str]] = None,
-    ):
+        extra_includes: list[str] | None = None,
+        extra_body_lines: list[str] | None = None,
+        exclude_hooks: list[str] | None = None,
+        extras: Mapping[str, str] | None = None,
+        requirements: Mapping[str, str] | None = None,
+    ) -> None:
         """
         Generate a template with the necessary files and structure to create a plugin
 
@@ -169,6 +171,9 @@ class HookManGenerator:
 
         :param extra_includes:
             Extras include to be added on {plugin_id}.cpp as "default", as an example is the includes for a SDK.
+
+        :param requirements:
+            The requirements needed to create the plugin template.
 
         :param extra_body_lines:
             Extras lines to be added on {plugin_id}.cpp on the body, used for default implementations of hooks
@@ -203,7 +208,9 @@ class HookManGenerator:
             self._plugin_cmake_file_content(plugin_id)
         )
         Path(assets_folder / "plugin.yaml").write_text(
-            self._plugin_config_file_content(caption, plugin_id, author_email, author_name, extras)
+            self._plugin_config_file_content(
+                caption, plugin_id, author_email, author_name, extras, requirements
+            )
         )
         Path(assets_folder / "README.md").write_text(
             self._readme_content(caption, author_email, author_name)
@@ -268,10 +275,11 @@ class HookManGenerator:
     def generate_plugin_package(
         self,
         package_name: str,
-        plugin_dir: Union[Path, str],
+        plugin_dir: Path | str,
         dst_path: Path = None,
-        extras_defaults: Optional[Dict[str, str]] = None,
-        package_name_suffix: Optional[str] = None,
+        extras_defaults: Mapping[str, str] | None = None,
+        requirements: Mapping[str, str] | None = None,
+        package_name_suffix: str | None = None,
     ):
         """
         Creates a .hmplugin file using the name provided on package_name argument.
@@ -289,9 +297,14 @@ class HookManGenerator:
         :param Dict[str,str] extras_defaults:
             (key, value) entries to be added to "extras" if not defined by the original input yaml.
 
+        :param requirements:
+            The requirements necessary to generate the plugin.
+
         :param Optional[str] package_name_suffix:
             If not `None` this string is inserted after the plugin version in the filename.
         """
+        import strictyaml
+
         plugin_dir = Path(plugin_dir)
         if dst_path is None:
             dst_path = plugin_dir
@@ -306,12 +319,15 @@ class HookManGenerator:
 
         contents = (assets_dir / "plugin.yaml").read_text()
         if extras_defaults is not None:
-            import strictyaml
-
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
             extras = extras_defaults.copy()
             extras.update(contents_dict.data.get("extras", {}))
             contents_dict["extras"] = dict(sorted(extras.items()))
+            contents = contents_dict.as_yaml()
+
+        if requirements is not None:
+            contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
+            contents_dict["requirements"] = dict(sorted(requirements.items()))
             contents = contents_dict.as_yaml()
 
         hmplugin_base_name_components = [package_name, plugin_info.version]
@@ -382,21 +398,21 @@ class HookManGenerator:
         if not assets_dir.joinpath("CHANGELOG.rst").is_file():
             raise FileNotFoundError(f"Unable to locate the file CHANGELOG.rst in {assets_dir}")
 
-    def _validate_plugin_config_file(self, plugin_config_file: Path):
+    def _validate_plugin_config_file(self, plugin_config_file: Path) -> None:
         """
         Check if the given plugin_file is valid, by creating a instance of PluginInfo.
         All checks are made in the __init__
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
-        semantic_version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)")  # Ex.: 1.0.0
+        semantic_version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)")  # Ex.: 1.0.0 or 2025.1.0
         version = semantic_version_re.match(plugin_file_content.version)
 
         if not version:
             raise ValueError(
-                f"Version attribute does not follow semantic version, got {plugin_file_content.version!r}"
+                f"Version attribute does not follow the calendar or semantic versioning, got {plugin_file_content.version!r}"
             )
 
-    def _hook_specs_header_content(self, plugin_id) -> str:
+    def _hook_specs_header_content(self, plugin_id: str) -> str:
         """
         Create a C header file with the content informed on the hook_specs
         """
@@ -636,11 +652,14 @@ class HookManGenerator:
         plugin_id: str,
         author_email: str,
         author_name: str,
-        extras: dict,
+        extras: dict[str, str] | None,
+        requirements: dict[str, str] | None,
     ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin
         """
+        import strictyaml
+
         file_content = dedent(
             f"""\
         author: '{author_name}'
@@ -650,11 +669,14 @@ class HookManGenerator:
         version: '1.0.0'
         """
         )
-        if extras:
-            import strictyaml
-
+        if extras is not None:
             extras_dict = {"extras": extras}
             file_content += strictyaml.as_document(extras_dict).as_yaml()
+
+        if requirements is not None:
+            requirement_dict = {"requirements": dict(sorted(requirements.items()))}
+            file_content += strictyaml.as_document(requirement_dict).as_yaml()
+
         return file_content
 
     def _readme_content(self, caption: str, author_email: str, author_name: str) -> str:

@@ -236,6 +236,7 @@ def test_generate_plugin_package(
         package_name="acme",
         plugin_dir=plugin_dir,
         extras_defaults={"key": "default", "key3": "default"},
+        requirements={"C": ">=3.10", "A": ">=1.1.0;<=1.3.0", "B": ">=2.0"},
         package_name_suffix=package_name_extra,
     )
 
@@ -281,6 +282,10 @@ def test_generate_plugin_package(
       key: override
       key2: value2
       key3: default
+    requirements:
+      A: '>=1.1.0;<=1.3.0'
+      B: '>=2.0'
+      C: '>=3.10'
     """
     )
 
@@ -336,10 +341,8 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
             f"""\
             caption: 'ACME'
             version: '1.0.0'
-
             author: 'acme_author'
             email: 'acme_email'
-
             id: 'acme'
         """
         )
@@ -398,6 +401,7 @@ def test_generate_plugin_package_invalid_version(
     )
 
     with pytest.raises(
-        ValueError, match="Version attribute does not follow semantic version, got '1'"
+        ValueError,
+        match="Version attribute does not follow the calendar or semantic versioning, got '1'",
     ):
         hg.generate_plugin_package(plugin_id, plugin_dir=tmp_path / plugin_id)

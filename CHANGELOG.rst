@@ -2,9 +2,10 @@
 History
 =======
 
-UNRELEASED
-==========
+0.7.0 (2025-06-10)
+==================
 
+- Add a new ``requirements`` property which allows specifying any additional requirements for plugins.
 - Add support for packaging Linux libraries with version suffixes (e.g. `libhookman.so.1.0.0`).
 
 0.6.0 (2025-02-28)

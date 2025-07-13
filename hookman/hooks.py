@@ -7,12 +7,21 @@ from typing import List
 from typing import Optional
 from zipfile import ZipFile
 
+from dataclasses import dataclass
+
 from hookman import hookman_utils
 from hookman.exceptions import InvalidDestinationPathError
 from hookman.exceptions import PluginAlreadyInstalledError
 from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
 
+@dataclass(frozen=True)
+class InstalledPluginInfo:
+    """
+    Responsible to stores the information about the installed plugin.
+    """
+    id: str
+    version: str
 
 class HookSpecs:
     """
@@ -89,10 +98,10 @@ class HookMan:
             for hook in specs.hooks
         }
 
-    def install_plugin(self, plugin_file_path: Path, dest_path: Path) -> str:
+    def install_plugin(self, plugin_file_path: Path, dest_path: Path) -> InstalledPluginInfo:
         """
         Extract the content of the zip file into dest_path.
-        If the installation occurs successfully the name of the installed plugin will be returned.
+        If the installation occurs successfully a InstalledPluginInfo will be returned.
 
         The following checks will be executed to validate the consistency of the inputs:
 
@@ -100,8 +109,11 @@ class HookMan:
 
             2. The plugins_dirs cannot have two plugins with the same name.
 
-        :plugin_file_path: The Path for the ``.hmplugin``
-        :dest_path: The destination to where the plugin should be placed.
+        :param: plugin_file_path:
+            The Path for the ``.hmplugin``
+
+        :param dest_path:
+            The destination to where the plugin should be placed.
         """
         plugin_file_zip = ZipFile(plugin_file_path)
         PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
@@ -114,17 +126,20 @@ class HookMan:
             )
 
         yaml_content = plugin_file_zip.open("assets/plugin.yaml").read().decode("utf-8")
-        plugin_id = PluginInfo._load_yaml_file(yaml_content)["id"]
+
+        plugin_id: str = PluginInfo._load_yaml_file(yaml_content)["id"]
+        plugin_version: str = PluginInfo._load_yaml_file(yaml_content)["version"]
+        plugin_id_version = f"{plugin_id}-{plugin_version}"
 
         plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 
-        if plugin_id in [x.name for x in plugins_dirs]:
+        if plugin_id_version in [x.name for x in plugins_dirs]:
             raise PluginAlreadyInstalledError("Plugin already installed")
 
-        plugin_destination_folder = dest_path / plugin_id
+        plugin_destination_folder = dest_path / plugin_id_version
         plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
-        return plugin_id
+        return InstalledPluginInfo(version=plugin_version, id=plugin_id)
 
     def _move_to_trash(self, root_dir, name):
         """
@@ -157,14 +172,18 @@ class HookMan:
                 with suppress(OSError):
                     filename.unlink()
 
-    def remove_plugin(self, caption: str):
+    def remove_plugin(self, caption: str, version: str) -> None:
         """
         This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
 
-        :caption: Name of the plugin to be removed
+        :param caption:
+            Name of the plugin to be removed.
+
+        :param version:
+            Version of the plugin to be removed.
         """
         for plugin in self.get_plugins_available():
-            if plugin.id == caption:
+            if plugin.id == caption and plugin.version == version:
                 plugin_dir = plugin.yaml_location.parents[1]
                 root_dir = plugin_dir.parent
                 self._move_to_trash(root_dir, plugin_dir.name)

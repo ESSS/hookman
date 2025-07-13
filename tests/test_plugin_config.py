@@ -50,8 +50,8 @@ def test_plugin_id_conflict(simple_plugin, datadir):
     yaml_file.write_text(new_content)
 
     expected_msg = (
-        'Error, the plugin_id inside plugin.yaml is "ACME" '
-        f"while the plugin_id inside the {acme_lib_name} is simple_plugin"
+        'Error, the id inside plugin.yaml is "ACME" '
+        f"while the id inside the {acme_lib_name} is simple_plugin"
     )
     with pytest.raises(RuntimeError, match=expected_msg):
         PluginInfo(yaml_file, None)

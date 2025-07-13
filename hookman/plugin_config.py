@@ -66,7 +66,7 @@ class PluginInfo:
         self.requirements = plugin_config_file_content.get("requirements", {})
         self.extras = plugin_config_file_content.get("extras", {})
 
-        # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
+        # The id bellow guarantee to me that the id to be used in the application was not changed by a config file.
         self.id = self._get_plugin_id_from_dll(plugin_config_file_content["id"])
 
         readme_file = self.yaml_location.parent / "README.md"
@@ -92,8 +92,8 @@ class PluginInfo:
             plugin_id_from_shared_lib = plugin_dll.get_plugin_id().decode("utf-8")
             if plugin_id_from_shared_lib != plugin_id_from_plugin_yaml:
                 msg = (
-                    f'Error, the plugin_id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
-                    f"while the plugin_id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}"
+                    f'Error, the id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
+                    f"while the id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}"
                 )
                 raise RuntimeError(msg)
             return plugin_id_from_shared_lib

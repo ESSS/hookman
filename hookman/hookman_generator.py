@@ -330,7 +330,7 @@ class HookManGenerator:
             contents_dict["requirements"] = dict(sorted(requirements.items()))
             contents = contents_dict.as_yaml()
 
-        hmplugin_base_name_components = [package_name, plugin_info.version]
+        hmplugin_base_name_components = [package_name, plugin_info.version.base_version]
         if package_name_suffix is not None:
             hmplugin_base_name_components.append(package_name_suffix)
 
@@ -404,12 +404,13 @@ class HookManGenerator:
         All checks are made in the __init__
         """
         plugin_file_content = PluginInfo(plugin_config_file, hooks_available=None)
+        content_version = plugin_file_content.version.base_version
         semantic_version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)")  # Ex.: 1.0.0 or 2025.1.0
-        version = semantic_version_re.match(plugin_file_content.version)
+        version = semantic_version_re.match(content_version)
 
         if not version:
             raise ValueError(
-                f"Version attribute does not follow the calendar or semantic versioning, got {plugin_file_content.version!r}"
+                f"Version attribute does not follow the calendar or semantic versioning, got {content_version!r}"
             )
 
     def _hook_specs_header_content(self, plugin_id: str) -> str:

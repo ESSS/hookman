@@ -1,7 +1,11 @@
 import pytest
+from pytest_mock import MockerFixture
 
 from hookman.plugin_config import PluginInfo
-
+from pathlib import Path
+from textwrap import dedent
+from strictyaml import YAMLValidationError
+import re
 
 def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
     mocker.patch.object(PluginInfo, "_get_hooks_implemented", return_value=["a"])
@@ -50,8 +54,38 @@ def test_plugin_id_conflict(simple_plugin, datadir):
     yaml_file.write_text(new_content)
 
     expected_msg = (
-        'Error, the id inside plugin.yaml is "ACME" '
-        f"while the id inside the {acme_lib_name} is simple_plugin"
+        'Error, the plugin_id inside plugin.yaml is "ACME" '
+        f"while the plugin_id inside the {acme_lib_name} is simple_plugin"
     )
     with pytest.raises(RuntimeError, match=expected_msg):
         PluginInfo(yaml_file, None)
+
+def testPluginInfoInvalidSchema(tmp_path: Path, mocker: MockerFixture) -> None:
+    invalid_yaml_content = f"""\
+            caption: 'Plugin'
+            version: '1.0.0'
+            author: 'ESSS'
+            developer: 'Developer 1'
+            email: 'alfasim-dev@esss.co'
+            id: 'plugin'
+            """
+
+    invalid_yaml_file = tmp_path / "config.yaml"
+    invalid_yaml_file.write_text(invalid_yaml_content)
+
+    mocker.patch.object(PluginInfo,'_check_if_shared_lib_exists', autospec=True)
+    mocker.patch.object(PluginInfo,'_get_plugin_id_from_dll', autospc=True, return_value='plugin')
+
+    current_schema = dedent("""\
+    caption : Str()
+    version : Str()
+    author : Str()
+    email : Str()
+    id : Str()
+    Optional("requirements") : MapPattern(Str(), Str())
+    Optional("extras") : MapPattern(Str(), Str())
+    """).strip()
+    expected_message = f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_schema}"
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
+        info = PluginInfo(invalid_yaml_file)
+

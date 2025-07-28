@@ -63,7 +63,7 @@ def generate_build_files(ctx):
 
         # Copy all the plugins to the build dir
         for plugin_dir in plugins_dirs:
-            plugin_name, _ = plugin_dir.name.split("-")
+            plugin_name, _ = plugin_dir.name.rsplit("-", maxsplit=1)
             plugin_dir_build = project_dir_for_build / f"plugin/{plugin_dir.name}"
             shutil.copytree(src=plugin_dir, dst=plugin_dir_build)
             (plugin_dir_build / "src/hook_specs.h").write_text(
@@ -169,7 +169,7 @@ def _package_plugins(ctx):
 
         for plugin in plugins_dirs:
             (plugin / "artifacts").mkdir()
-            name, _ = plugin.name.split("-")
+            name, _ = plugin.name.rsplit("-",maxsplit=1)
             if sys.platform == "win32":
                 shutil.copy2(src=artifacts_dir / f"{name}.dll", dst=plugin / "artifacts")
             else:

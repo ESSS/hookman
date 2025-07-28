@@ -2,11 +2,13 @@ import ctypes
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from textwrap import dedent
 from zipfile import ZipFile
 
 from attr import define
 from attr import field
-from strictyaml import Map
+from packaging.version import Version
+from strictyaml import Map, YAMLValidationError
 from strictyaml import MapPattern
 from strictyaml import Optional
 from strictyaml import Str
@@ -44,7 +46,7 @@ class PluginInfo:
     caption: str = field(init=False)
     shared_lib_name: str = field(init=False)
     shared_lib_path: Path = field(init=False)
-    version: str = field(init=False)
+    version: Version = field(init=False)
     requirements: dict[str, str] = field(init=False)
     extras: dict = field(init=False)
     id: str = field(init=False)
@@ -62,7 +64,7 @@ class PluginInfo:
         self.author = plugin_config_file_content["author"]
         self.caption = plugin_config_file_content["caption"]
         self.email = plugin_config_file_content["email"]
-        self.version = plugin_config_file_content["version"]
+        self.version = Version(plugin_config_file_content["version"])
         self.requirements = plugin_config_file_content.get("requirements", {})
         self.extras = plugin_config_file_content.get("extras", {})
 
@@ -92,8 +94,8 @@ class PluginInfo:
             plugin_id_from_shared_lib = plugin_dll.get_plugin_id().decode("utf-8")
             if plugin_id_from_shared_lib != plugin_id_from_plugin_yaml:
                 msg = (
-                    f'Error, the id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
-                    f"while the id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}"
+                    f'Error, the plugin_id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '
+                    f"while the plugin_id inside the {self.shared_lib_name} is {plugin_id_from_shared_lib}"
                 )
                 raise RuntimeError(msg)
             return plugin_id_from_shared_lib
@@ -133,7 +135,12 @@ class PluginInfo:
     def _load_yaml_file(cls, yaml_content: str) -> YAML:
         import strictyaml
 
-        plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
+        try:
+            plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
+        except YAMLValidationError:
+            current_plugin_schema = "\n".join(f"{key} : {value}" for key, value in PLUGIN_CONFIG_SCHEMA._validator.items())
+            raise ValueError(f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_plugin_schema}")
+
         if sys.platform == "win32":
             plugin_config_file_content["shared_lib_name"] = (
                 f"{plugin_config_file_content['id']}.dll"

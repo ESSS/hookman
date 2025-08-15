@@ -169,7 +169,7 @@ def _package_plugins(ctx):
 
         for plugin in plugins_dirs:
             (plugin / "artifacts").mkdir()
-            name, _ = plugin.name.rsplit("-",maxsplit=1)
+            name, _ = plugin.name.rsplit("-", maxsplit=1)
             if sys.platform == "win32":
                 shutil.copy2(src=artifacts_dir / f"{name}.dll", dst=plugin / "artifacts")
             else:

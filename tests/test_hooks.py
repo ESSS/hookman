@@ -1,9 +1,10 @@
 import pytest
+from packaging.version import Version
 
 from hookman.hooks import HookMan
 from hookman.hooks import HookSpecs
 from hookman.hooks import PluginInfo
-from packaging.version import Version
+
 
 def _get_plugin_id_set(plugin_info_list):
     """
@@ -232,7 +233,10 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 
     assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin", "simple_plugin_2"}
-    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin-1.0.0", "simple_plugin_2-1.0.0"}
+    assert _get_names_inside_folder(datadir / "plugins") == {
+        "simple_plugin-1.0.0",
+        "simple_plugin_2-1.0.0",
+    }
     hm.remove_plugin("simple_plugin_2", Version("1.0.0"))
     assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin"}
     assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin-1.0.0", ".trash"}

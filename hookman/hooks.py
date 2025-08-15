@@ -2,12 +2,12 @@ import inspect
 import shutil
 from collections.abc import Callable
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 from typing import Optional
 from zipfile import ZipFile
 
-from dataclasses import dataclass
 from packaging.version import Version
 
 from hookman import hookman_utils
@@ -16,13 +16,16 @@ from hookman.exceptions import PluginAlreadyInstalledError
 from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
 
+
 @dataclass(frozen=True)
 class InstalledPluginInfo:
     """
     Responsible to store the information about an installed plugin.
     """
+
     id: str
     version: Version
+
 
 class HookSpecs:
     """

@@ -8,11 +8,12 @@ from zipfile import ZipFile
 from attr import define
 from attr import field
 from packaging.version import Version
-from strictyaml import Map, YAMLValidationError
+from strictyaml import Map
 from strictyaml import MapPattern
 from strictyaml import Optional
 from strictyaml import Str
 from strictyaml import YAML
+from strictyaml import YAMLValidationError
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
@@ -138,8 +139,12 @@ class PluginInfo:
         try:
             plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
         except YAMLValidationError:
-            current_plugin_schema = "\n".join(f"{key} : {value}" for key, value in PLUGIN_CONFIG_SCHEMA._validator.items())
-            raise ValueError(f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_plugin_schema}")
+            current_plugin_schema = "\n".join(
+                f"{key} : {value}" for key, value in PLUGIN_CONFIG_SCHEMA._validator.items()
+            )
+            raise ValueError(
+                f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_plugin_schema}"
+            )
 
         if sys.platform == "win32":
             plugin_config_file_content["shared_lib_name"] = (

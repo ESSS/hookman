@@ -52,11 +52,13 @@ def get_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
         from hookman.plugin_config import PluginInfo
 
         version = PluginInfo(plugin_dir / "assets/plugin.yaml", hooks_available=None).version
-        name = f"{plugin_name}-{version}"
+        name, version = plugin_name.rsplit("-", maxsplit=1)
         import sys
 
         hm_plugin_name = (
-            f"{name}-win64.hmplugin" if sys.platform == "win32" else f"{name}-linux64.hmplugin"
+            f"{plugin_name}-win64.hmplugin"
+            if sys.platform == "win32"
+            else f"{plugin_name}-linux64.hmplugin"
         )
         plugin_zip_path = plugins_zip_folder / hm_plugin_name
 
@@ -67,12 +69,12 @@ def get_plugin(datadir, plugins_folder, plugins_zip_folder, acme_hook_specs):
 
 @pytest.fixture
 def simple_plugin(get_plugin):
-    return get_plugin("simple_plugin")
+    return get_plugin("simple_plugin-1.0.0")
 
 
 @pytest.fixture
 def simple_plugin_2(get_plugin):
-    return get_plugin("simple_plugin_2")
+    return get_plugin("simple_plugin_2-1.0.0")
 
 
 @pytest.fixture

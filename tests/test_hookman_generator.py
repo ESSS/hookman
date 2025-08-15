@@ -242,7 +242,7 @@ def test_generate_plugin_package(
 
     from hookman.plugin_config import PluginInfo
 
-    version = PluginInfo(Path(tmpdir / "acme/assets/plugin.yaml"), None).version
+    version = PluginInfo(Path(tmpdir / "acme/assets/plugin.yaml"), None).version.base_version
 
     base_plugin_name_components = [plugin_id, version]
     if package_name_extra is not None:

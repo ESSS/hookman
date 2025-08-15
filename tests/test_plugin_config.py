@@ -1,4 +1,10 @@
+import re
+from pathlib import Path
+from textwrap import dedent
+
 import pytest
+from pytest_mock import MockerFixture
+from strictyaml import YAMLValidationError
 
 from hookman.plugin_config import PluginInfo
 
@@ -55,3 +61,35 @@ def test_plugin_id_conflict(simple_plugin, datadir):
     )
     with pytest.raises(RuntimeError, match=expected_msg):
         PluginInfo(yaml_file, None)
+
+
+def testPluginInfoInvalidSchema(tmp_path: Path, mocker: MockerFixture) -> None:
+    invalid_yaml_content = f"""\
+            caption: 'Plugin'
+            version: '1.0.0'
+            author: 'ESSS'
+            developer: 'Developer 1'
+            email: 'alfasim-dev@esss.co'
+            id: 'plugin'
+            """
+
+    invalid_yaml_file = tmp_path / "config.yaml"
+    invalid_yaml_file.write_text(invalid_yaml_content)
+
+    mocker.patch.object(PluginInfo, "_check_if_shared_lib_exists", autospec=True)
+    mocker.patch.object(PluginInfo, "_get_plugin_id_from_dll", autospc=True, return_value="plugin")
+
+    current_schema = dedent(
+        """\
+    caption : Str()
+    version : Str()
+    author : Str()
+    email : Str()
+    id : Str()
+    Optional("requirements") : MapPattern(Str(), Str())
+    Optional("extras") : MapPattern(Str(), Str())
+    """
+    ).strip()
+    expected_message = f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_schema}"
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
+        info = PluginInfo(invalid_yaml_file)

@@ -2,16 +2,29 @@ import inspect
 import shutil
 from collections.abc import Callable
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 from typing import Optional
 from zipfile import ZipFile
+
+from packaging.version import Version
 
 from hookman import hookman_utils
 from hookman.exceptions import InvalidDestinationPathError
 from hookman.exceptions import PluginAlreadyInstalledError
 from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
+
+
+@dataclass(frozen=True)
+class InstalledPluginInfo:
+    """
+    Responsible to store the information about an installed plugin.
+    """
+
+    id: str
+    version: Version
 
 
 class HookSpecs:
@@ -89,19 +102,22 @@ class HookMan:
             for hook in specs.hooks
         }
 
-    def install_plugin(self, plugin_file_path: Path, dest_path: Path) -> str:
+    def install_plugin(self, plugin_file_path: Path, dest_path: Path) -> InstalledPluginInfo:
         """
         Extract the content of the zip file into dest_path.
-        If the installation occurs successfully the name of the installed plugin will be returned.
+        If the installation occurs successfully a InstalledPluginInfo will be returned.
 
         The following checks will be executed to validate the consistency of the inputs:
 
             1. The destination Path should be one of the paths informed during the initialization of HookMan (plugins_dirs field).
 
-            2. The plugins_dirs cannot have two plugins with the same name.
+            2. The plugins_dirs cannot have two plugins with the same name and version.
 
-        :plugin_file_path: The Path for the ``.hmplugin``
-        :dest_path: The destination to where the plugin should be placed.
+        :param: plugin_file_path:
+            The Path for the ``.hmplugin``
+
+        :param dest_path:
+            The destination to where the plugin should be placed.
         """
         plugin_file_zip = ZipFile(plugin_file_path)
         PluginInfo.validate_plugin_file(plugin_file_zip=plugin_file_zip)
@@ -114,17 +130,21 @@ class HookMan:
             )
 
         yaml_content = plugin_file_zip.open("assets/plugin.yaml").read().decode("utf-8")
-        plugin_id = PluginInfo._load_yaml_file(yaml_content)["id"]
+
+        yaml_data = PluginInfo._load_yaml_file(yaml_content)
+        plugin_id: str = yaml_data["id"]
+        plugin_version: str = yaml_data["version"]
+        plugin_id_version = f"{plugin_id}-{plugin_version}"
 
         plugins_dirs = [x for x in dest_path.iterdir() if x.is_dir()]
 
-        if plugin_id in [x.name for x in plugins_dirs]:
+        if plugin_id_version in [x.name for x in plugins_dirs]:
             raise PluginAlreadyInstalledError("Plugin already installed")
 
-        plugin_destination_folder = dest_path / plugin_id
+        plugin_destination_folder = dest_path / plugin_id_version
         plugin_destination_folder.mkdir(parents=True)
         plugin_file_zip.extractall(plugin_destination_folder)
-        return plugin_id
+        return InstalledPluginInfo(version=Version(plugin_version), id=plugin_id)
 
     def _move_to_trash(self, root_dir, name):
         """
@@ -157,16 +177,29 @@ class HookMan:
                 with suppress(OSError):
                     filename.unlink()
 
-    def remove_plugin(self, caption: str):
+    def remove_plugin(self, caption: str, version: Version | None = None) -> None:
         """
-        This method receives the name of the plugin as input, and will remove completely the plugin from ``plugin_dirs``.
+        This method receives the name and version of plugin as input, and will remove completely the
+        plugin from ``plugin_dirs``.
 
-        :caption: Name of the plugin to be removed
+        :param caption:
+            Name of the plugin to be removed.
+
+        :param version:
+            Optional parameter used to remove a specific version of plugin. Case it is not specified,
+            all versions of a given plugin will be removed.
         """
         for plugin in self.get_plugins_available():
-            if plugin.id == caption:
-                plugin_dir = plugin.yaml_location.parents[1]
-                root_dir = plugin_dir.parent
+            plugin_dir = plugin.yaml_location.parents[1]
+            root_dir = plugin_dir.parent
+            remove_plugin = False
+
+            if version is None and caption in plugin_dir.name:
+                remove_plugin = True
+            elif plugin.id == caption and version == plugin.version:
+                remove_plugin = True
+
+            if remove_plugin:
                 self._move_to_trash(root_dir, plugin_dir.name)
                 self._try_clear_trash(root_dir)
                 break

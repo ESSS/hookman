@@ -1,4 +1,5 @@
 import pytest
+from packaging.version import Version
 
 from hookman.hooks import HookMan
 from hookman.hooks import HookSpecs
@@ -136,11 +137,11 @@ def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2)
     plugins = hm.get_plugins_available()
     assert {p.id for p in plugins} == {"simple_plugin", "simple_plugin_2"}
 
-    hm._move_to_trash(datadir / "plugins", "simple_plugin")
+    hm._move_to_trash(datadir / "plugins", "simple_plugin-1.0.0")
     plugins = hm.get_plugins_available()
     assert {p.id for p in plugins} == {"simple_plugin_2"}
 
-    hm._move_to_trash(datadir / "plugins", "simple_plugin_2")
+    hm._move_to_trash(datadir / "plugins", "simple_plugin_2-1.0.0")
     plugins = hm.get_plugins_available()
     assert {p.id for p in plugins} == set()
 
@@ -154,7 +155,7 @@ def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch):
     plugin_dir = datadir / "plugins"
     trash_folder = plugin_dir / ".trash"
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dir)
-    hm._move_to_trash(plugin_dir, "simple_plugin")
+    hm._move_to_trash(plugin_dir, "simple_plugin-1.0.0")
     (trash_item_dir,) = trash_folder.glob("*")
     # Change cwd to inside the trash item folder, windows will not be able to delete a directory
     # in use.
@@ -209,9 +210,9 @@ def test_install_plugin_duplicate(simple_plugin):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"].parent])
     import os
 
-    os.makedirs(simple_plugin["path"] / "simple_plugin")
+    os.makedirs(simple_plugin["path"] / "simple_plugin-1.0.0")
 
-    # Trying to install the plugin in a folder that already has a folder with the same name as the plugin
+    # Trying to install the plugin in a folder that already has a folder with the same name and version of plugin.
     from hookman.exceptions import PluginAlreadyInstalledError
 
     with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
@@ -222,9 +223,9 @@ def test_install_plugin_duplicate(simple_plugin):
 
 def test_install_plugin(datadir, simple_plugin):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
-    assert (simple_plugin["path"] / "simple_plugin").exists() == False
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == False
     hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
-    assert (simple_plugin["path"] / "simple_plugin").exists() == True
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == True
 
 
 def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
@@ -232,8 +233,14 @@ def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 
     assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin", "simple_plugin_2"}
-    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin", "simple_plugin_2"}
-    hm.remove_plugin("simple_plugin_2")
+    assert _get_names_inside_folder(datadir / "plugins") == {
+        "simple_plugin-1.0.0",
+        "simple_plugin_2-1.0.0",
+    }
+    hm.remove_plugin("simple_plugin_2", Version("1.0.0"))
     assert _get_plugin_id_set(hm.get_plugins_available()) == {"simple_plugin"}
-    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin", ".trash"}
+    assert _get_names_inside_folder(datadir / "plugins") == {"simple_plugin-1.0.0", ".trash"}
     assert _get_names_inside_folder(datadir / "plugins" / ".trash") == set()
+
+    hm.remove_plugin("simple_plugin")
+    assert _get_plugin_id_set(hm.get_plugins_available()) == set()

@@ -2,15 +2,18 @@ import ctypes
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from textwrap import dedent
 from zipfile import ZipFile
 
 from attr import define
 from attr import field
+from packaging.version import Version
 from strictyaml import Map
 from strictyaml import MapPattern
 from strictyaml import Optional
 from strictyaml import Str
 from strictyaml import YAML
+from strictyaml import YAMLValidationError
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib
@@ -44,7 +47,7 @@ class PluginInfo:
     caption: str = field(init=False)
     shared_lib_name: str = field(init=False)
     shared_lib_path: Path = field(init=False)
-    version: str = field(init=False)
+    version: Version = field(init=False)
     requirements: dict[str, str] = field(init=False)
     extras: dict = field(init=False)
     id: str = field(init=False)
@@ -62,11 +65,11 @@ class PluginInfo:
         self.author = plugin_config_file_content["author"]
         self.caption = plugin_config_file_content["caption"]
         self.email = plugin_config_file_content["email"]
-        self.version = plugin_config_file_content["version"]
+        self.version = Version(plugin_config_file_content["version"])
         self.requirements = plugin_config_file_content.get("requirements", {})
         self.extras = plugin_config_file_content.get("extras", {})
 
-        # The id bellow guarantee to me that the plugin_id to be used in the application was not changed by a config file.
+        # The id bellow guarantee to me that the id to be used in the application was not changed by a config file.
         self.id = self._get_plugin_id_from_dll(plugin_config_file_content["id"])
 
         readme_file = self.yaml_location.parent / "README.md"
@@ -133,7 +136,16 @@ class PluginInfo:
     def _load_yaml_file(cls, yaml_content: str) -> YAML:
         import strictyaml
 
-        plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
+        try:
+            plugin_config_file_content = strictyaml.load(yaml_content, PLUGIN_CONFIG_SCHEMA).data
+        except YAMLValidationError:
+            current_plugin_schema = "\n".join(
+                f"{key} : {value}" for key, value in PLUGIN_CONFIG_SCHEMA._validator.items()
+            )
+            raise ValueError(
+                f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_plugin_schema}"
+            )
+
         if sys.platform == "win32":
             plugin_config_file_content["shared_lib_name"] = (
                 f"{plugin_config_file_content['id']}.dll"

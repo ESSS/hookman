@@ -7,7 +7,13 @@ with open("README.rst") as readme_file:
 with open("CHANGELOG.rst") as history_file:
     history = history_file.read()
 
-requirements = ["Click>=7.0", "strictyaml", "invoke", "attrs"]
+requirements = [
+    "attrs",
+    "click>=7.0",
+    "invoke",
+    "packaging",
+    "strictyaml",
+]
 
 setup(
     author="ESSS",

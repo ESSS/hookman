@@ -1,6 +1,9 @@
 =======
 History
 =======
+0.8.0 (2025-08-18)
+==================
+- Allow install multiple versions of the same plugin.
 
 0.7.0 (2025-06-10)
 ==================

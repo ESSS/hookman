@@ -4,7 +4,6 @@ from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 from zipfile import ZipFile
 
 from packaging.version import Version

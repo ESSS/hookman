@@ -5,8 +5,6 @@ from collections.abc import Iterator
 from collections.abc import Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List
-from typing import Union
 
 
 def find_config_files(

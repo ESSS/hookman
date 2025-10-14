@@ -6,9 +6,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
-from typing import List
 from typing import NamedTuple
-from typing import Union
 from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError
@@ -61,7 +59,7 @@ class HookManGenerator:
     Class to assist in the process of creating necessary files for the hookman
     """
 
-    def __init__(self, hook_spec_file_path: Union[Path, str]) -> None:
+    def __init__(self, hook_spec_file_path: Path | str) -> None:
         """
         Receives a path to a hooks specification file.
         if the Path provided is not a file an exception FileNotFoundError is raised.
@@ -229,9 +227,7 @@ class HookManGenerator:
             self._plugin_src_cmake_file_content(plugin_id)
         )
 
-    def _validate_parameter(
-        self, parameter_name: str, parameter_value: Any
-    ) -> Union[List, List[str]]:
+    def _validate_parameter(self, parameter_name: str, parameter_value: Any) -> list[str]:
         """
         Check if the given parameter is a list and if all elements of this list are strings
         """
@@ -250,7 +246,7 @@ class HookManGenerator:
 
         return parameter_value
 
-    def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]) -> None:
+    def generate_hook_specs_header(self, plugin_id: str, dst_path: str | Path) -> None:
         """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
 
         :param plugin_id: short name of the generated shared library
@@ -260,7 +256,7 @@ class HookManGenerator:
         source_folder.mkdir(parents=True, exist_ok=True)
         Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
 
-    def generate_project_files(self, dst_path: Union[Path, str]) -> None:
+    def generate_project_files(self, dst_path: Path | str) -> None:
         """
         Generate the following files on the dst_path:
         - HookCaller.hpp
@@ -724,7 +720,7 @@ class HookManGenerator:
         )
 
     def _plugin_source_content(
-        self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]
+        self, extra_includes: list[str], extra_body_lines: list[str], exclude_hooks: list[str]
     ) -> str:
         """
         Create a C header file with the content informed on the hook_specs
@@ -828,7 +824,7 @@ class HookManGenerator:
         )
 
 
-def _generate_load_function(hooks: List[Hook]) -> List[str]:
+def _generate_load_function(hooks: list[Hook]) -> list[str]:
     result = ["#if defined(_WIN32)", ""]
     result += _generate_windows_body(hooks)
     result += ["", "#elif defined(__linux__)", ""]
@@ -837,7 +833,7 @@ def _generate_load_function(hooks: List[Hook]) -> List[str]:
     return result
 
 
-def _generate_windows_body(hooks: List[Hook]) -> List[str]:
+def _generate_windows_body(hooks: list[Hook]) -> list[str]:
     """Generate Windows specific functions.
 
     At the moment it implements load_impls_from_library, class destructor, and an utility function
@@ -944,7 +940,7 @@ def _generate_windows_body(hooks: List[Hook]) -> List[str]:
     return result
 
 
-def _generate_linux_body(hooks: List[Hook]) -> List[str]:
+def _generate_linux_body(hooks: list[Hook]) -> list[str]:
     """
     Generate linux specific functions.
 

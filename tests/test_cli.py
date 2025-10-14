@@ -1,3 +1,4 @@
+# mypy: allow-untyped-defs
 import sys
 
 from _pytest.pytester import LineMatcher
@@ -6,7 +7,7 @@ from click.testing import CliRunner
 from hookman import __main__
 
 
-def test_help(datadir):
+def test_help(datadir) -> None:
     runner = CliRunner()
     # Ensure the CLI help works correctly and lists the available commands.
     # Note: without any argument, linux and windows behave differently.
@@ -25,7 +26,7 @@ def test_help(datadir):
     )
 
 
-def test_generate_project_files(datadir):
+def test_generate_project_files(datadir) -> None:
     runner = CliRunner()
     hook_spec_file = str(datadir / "hook_specs.py")
     result = runner.invoke(
@@ -37,7 +38,7 @@ def test_generate_project_files(datadir):
     assert (datadir / "binding" / "HookCallerPython.cpp").is_file()
 
 
-def test_generate_plugin_template(datadir):
+def test_generate_plugin_template(datadir) -> None:
     runner = CliRunner()
     hook_spec_file = str(datadir / "hook_specs.py")
     result = runner.invoke(
@@ -60,7 +61,7 @@ def test_generate_plugin_template(datadir):
     assert (datadir / "my_plugin" / "src" / "hook_specs.h").is_file()
 
 
-def test_generate_hook_specs_h(datadir):
+def test_generate_hook_specs_h(datadir) -> None:
     runner = CliRunner()
     hook_spec_file = str(datadir / "hook_specs.py")
     result = runner.invoke(
@@ -71,7 +72,7 @@ def test_generate_hook_specs_h(datadir):
     assert (datadir / "my_plugin" / "src" / "hook_specs.h").is_file()
 
 
-def test_package_plugin(datadir, mock_plugin_id_from_dll):
+def test_package_plugin(datadir, mock_plugin_id_from_dll) -> None:
     runner = CliRunner()
     hook_spec_file = str(datadir / "hook_specs.py")
     result = runner.invoke(

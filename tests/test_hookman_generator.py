@@ -1,3 +1,4 @@
+# mypy: allow-untyped-defs
 from pathlib import Path
 
 import pytest
@@ -5,14 +6,17 @@ import pytest
 from hookman.hookman_generator import HookManGenerator
 
 
-def test_hook_man_generator(datadir, file_regression):
+def test_hook_man_generator(datadir, file_regression) -> None:
     # Pass a folder
     with pytest.raises(FileNotFoundError, match=f"File not found: *"):
         HookManGenerator(hook_spec_file_path=datadir)
 
     # Pass a invalid hook_spec_file (without specs)
     Path(datadir / "invalid_spec.py").touch()
-    with pytest.raises(RuntimeError, match="Invalid file, specs not defined."):
+    with pytest.raises(
+        RuntimeError,
+        match="Invalid module <module 'hook_specs' .*invalid_spec.py'>, 'specs' variable not defined.",
+    ):
         HookManGenerator(hook_spec_file_path=Path(datadir / "invalid_spec.py"))
 
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
@@ -28,7 +32,7 @@ def test_hook_man_generator(datadir, file_regression):
     )
 
 
-def test_hook_man_generator_no_pyd(datadir, file_regression):
+def test_hook_man_generator_no_pyd(datadir, file_regression) -> None:
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs_no_pyd.py"))
     hg.generate_project_files(dst_path=datadir)
 
@@ -39,7 +43,7 @@ def test_hook_man_generator_no_pyd(datadir, file_regression):
     assert not (datadir / "binding").is_dir()
 
 
-def test_generate_plugin_template(datadir, file_regression):
+def test_generate_plugin_template(datadir, file_regression) -> None:
     plugin_dir = datadir / "test_generate_plugin_template"
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
@@ -90,7 +94,9 @@ def test_generate_plugin_template(datadir, file_regression):
     )
 
 
-def test_generate_plugin_template_source_content_with_extra_includes(datadir, file_regression):
+def test_generate_plugin_template_source_content_with_extra_includes(
+    datadir, file_regression
+) -> None:
     plugin_dir = datadir / "test_generate_plugin_template_with_extra_include"
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
@@ -113,7 +119,9 @@ def test_generate_plugin_template_source_content_with_extra_includes(datadir, fi
     )
 
 
-def test_generate_plugin_template_source_content_with_default_impls(datadir, file_regression):
+def test_generate_plugin_template_source_content_with_default_impls(
+    datadir, file_regression
+) -> None:
     plugin_dir = datadir / "test_generate_plugin_template_source_content_with_default_impls"
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
@@ -138,7 +146,7 @@ def test_generate_plugin_template_source_content_with_default_impls(datadir, fil
     )
 
 
-def test_generate_plugin_template_source_wrong_arguments(datadir):
+def test_generate_plugin_template_source_wrong_arguments(datadir) -> None:
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
 
     with pytest.raises(ValueError, match="extra_includes parameter must be a list, got int"):
@@ -148,7 +156,7 @@ def test_generate_plugin_template_source_wrong_arguments(datadir):
         hg._validate_parameter("extra_includes", ["xx", 1])
 
 
-def test_generate_hook_specs_header(datadir, file_regression):
+def test_generate_hook_specs_header(datadir, file_regression) -> None:
     plugin_dir = datadir / "my-plugin"
 
     hg = HookManGenerator(hook_spec_file_path=Path(datadir / "hook_specs.py"))
@@ -166,7 +174,7 @@ def test_generate_hook_specs_header(datadir, file_regression):
     )
 
 
-def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, tmpdir):
+def test_generate_plugin_package_invalid_shared_lib_name(acme_hook_specs_file, tmpdir) -> None:
     hg = HookManGenerator(hook_spec_file_path=acme_hook_specs_file)
 
     from hookman.exceptions import HookmanError
@@ -290,7 +298,7 @@ def test_generate_plugin_package(
     )
 
 
-def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker):
+def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker) -> None:
     import sys
     from textwrap import dedent
     from hookman.exceptions import (

@@ -1,10 +1,11 @@
-import importlib
+import importlib.util
 import inspect
 import re
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 from textwrap import dedent
+from types import ModuleType
 from typing import Any
 from typing import Dict
 from typing import List
@@ -71,12 +72,12 @@ class HookManGenerator:
         """
         hook_spec_file_path = Path(hook_spec_file_path)
         if hook_spec_file_path.is_file():
-            hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
-            self._populate_local_variables(hook_spec_module.specs)
+            specs = self._import_hook_specs_from_module(hook_spec_file_path)
+            self._populate_local_variables(specs)
         else:
             raise FileNotFoundError(f"File not found: {hook_spec_file_path}")
 
-    def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HookSpecs:
+    def _import_hook_specs_from_module(self, hook_spec_file_path: Path) -> HookSpecs:
         """
         Returns the "HookSpecs" object that defines the hook specification provide from the project.
         The file is considered valid if the importlib can access the object called "specs"
@@ -85,16 +86,23 @@ class HookManGenerator:
         :return: A Python module that represent specification from the given file
         """
         spec = importlib.util.spec_from_file_location("hook_specs", hook_spec_file_path)
+        assert spec is not None, f"Could not find spec for {hook_spec_file_path}"
+        assert spec.loader is not None, f"Loader cannot be None for {hook_spec_file_path}"
         module = importlib.util.module_from_spec(spec)
+        assert module is not None, f"Could not find module for {hook_spec_file_path}"
         spec.loader.exec_module(module)
         try:
-            getattr(module, "specs")
+            specs = getattr(module, "specs")
         except AttributeError:
-            raise RuntimeError("Invalid file, specs not defined.")
+            raise RuntimeError(f"Invalid module {module}, 'specs' variable not defined.")
+        else:
+            if not isinstance(specs, HookSpecs):
+                raise RuntimeError(
+                    f"{module}.specs is {specs!r}, expected type '{HookSpecs.__name__}'"
+                )
+            return specs
 
-        return module
-
-    def _populate_local_variables(self, hook_specs: HookSpecs):
+    def _populate_local_variables(self, hook_specs: HookSpecs) -> None:
         """
         Populate the self.hooks property with the given hook specification.
         See the docstring from the Hook type for more details about the self.hooks
@@ -103,7 +111,7 @@ class HookManGenerator:
         self.pyd_name = hook_specs.pyd_name
         self.version = f"v{hook_specs.version}"
 
-        def get_arg_with_type(arg):
+        def get_arg_with_type(arg: str) -> str:
             arg_type = hook_types[arg]
             array_type_pattern = (
                 r"(?P<array_type>.+)"  # `double ` in `double [ 2 ]`
@@ -121,7 +129,7 @@ class HookManGenerator:
         self.extra_includes = hook_specs.extra_includes
         self.hooks = []
         for hook_spec in hook_specs.hooks:
-            hook_documentation = inspect.getdoc(hook_spec)
+            hook_documentation = inspect.getdoc(hook_spec) or ""
             hook_arg_spec = inspect.getfullargspec(hook_spec)
             hook_arguments = hook_arg_spec.args
             hook_types = hook_arg_spec.annotations
@@ -245,7 +253,7 @@ class HookManGenerator:
 
         return parameter_value
 
-    def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
+    def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]) -> None:
         """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
 
         :param plugin_id: short name of the generated shared library
@@ -255,18 +263,19 @@ class HookManGenerator:
         source_folder.mkdir(parents=True, exist_ok=True)
         Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
 
-    def generate_project_files(self, dst_path: Union[Path, str]):
+    def generate_project_files(self, dst_path: Union[Path, str]) -> None:
         """
         Generate the following files on the dst_path:
         - HookCaller.hpp
         - HookCallerPython.cpp
         """
-        hook_caller_hpp = Path(dst_path) / "cpp" / "HookCaller.hpp"
+        dst_path = Path(dst_path)
+        hook_caller_hpp = dst_path / "cpp/HookCaller.hpp"
         hook_caller_hpp.parent.mkdir(exist_ok=True, parents=True)
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
 
         if self.pyd_name:
-            hook_caller_python = Path(dst_path / "binding" / "HookCallerPython.cpp")
+            hook_caller_python = dst_path / "binding/HookCallerPython.cpp"
             hook_caller_python.parent.mkdir(exist_ok=True, parents=True)
             hook_caller_python.write_text(self._hook_caller_python_content())
 
@@ -276,11 +285,11 @@ class HookManGenerator:
         self,
         package_name: str,
         plugin_dir: Path | str,
-        dst_path: Path = None,
+        dst_path: Path | None = None,
         extras_defaults: Mapping[str, str] | None = None,
         requirements: Mapping[str, str] | None = None,
         package_name_suffix: str | None = None,
-    ):
+    ) -> None:
         """
         Creates a .hmplugin file using the name provided on package_name argument.
         The file `.hmplugin` will be created with the content from the folder assets and artifacts.
@@ -320,7 +329,7 @@ class HookManGenerator:
         contents = (assets_dir / "plugin.yaml").read_text()
         if extras_defaults is not None:
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
-            extras = extras_defaults.copy()
+            extras = dict(extras_defaults)
             extras.update(contents_dict.data.get("extras", {}))
             contents_dict["extras"] = dict(sorted(extras.items()))
             contents = contents_dict.as_yaml()
@@ -361,7 +370,7 @@ class HookManGenerator:
                 dst_filename = Path("artifacts" / file.relative_to(plugin_dir / "src/python"))
                 zip_file.write(filename=file, arcname=dst_filename)
 
-    def _validate_package_folder(self, artifacts_dir, assets_dir):
+    def _validate_package_folder(self, artifacts_dir: Path, assets_dir: Path) -> None:
         """
         Method to ensure that the plugin folder has the following criteria:
             - An "assets" folder should be present
@@ -605,7 +614,7 @@ class HookManGenerator:
         content_lines.append("")
         return "\n".join(content_lines)
 
-    def _generate_cmake_files(self, dst_path: Path):
+    def _generate_cmake_files(self, dst_path: Path) -> None:
         from textwrap import dedent
 
         hook_caller_hpp = Path(dst_path / "cpp" / "CMakeLists.txt")
@@ -653,8 +662,8 @@ class HookManGenerator:
         plugin_id: str,
         author_email: str,
         author_name: str,
-        extras: dict[str, str] | None,
-        requirements: dict[str, str] | None,
+        extras: Mapping[str, str] | None,
+        requirements: Mapping[str, str] | None,
     ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin

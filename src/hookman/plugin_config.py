@@ -1,12 +1,11 @@
 import ctypes
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
-from textwrap import dedent
 from zipfile import ZipFile
 
-from attr import define
-from attr import field
 from packaging.version import Version
 from strictyaml import Map
 from strictyaml import MapPattern
@@ -31,7 +30,7 @@ PLUGIN_CONFIG_SCHEMA = Map(
 )
 
 
-@define
+@dataclass
 class PluginInfo:
     """
     Class that holds all information related to the plugin with some auxiliary methods
@@ -52,7 +51,7 @@ class PluginInfo:
     extras: dict = field(init=False)
     id: str = field(init=False)
 
-    def __attrs_post_init__(self) -> None:
+    def __post_init__(self) -> None:
         plugin_config_file_content = self._load_yaml_file(
             self.yaml_location.read_text(encoding="utf-8")
         )
@@ -82,7 +81,7 @@ class PluginInfo:
         if not self.hooks_available is None:
             self.hooks_implemented = self._get_hooks_implemented()
 
-    def _check_if_shared_lib_exists(self):
+    def _check_if_shared_lib_exists(self) -> None:
         if not self.shared_lib_path.is_file():
             raise SharedLibraryNotFoundError(
                 f"{self.shared_lib_name} could not be found in {self.shared_lib_path.parent}"
@@ -92,7 +91,7 @@ class PluginInfo:
         self._check_if_shared_lib_exists()
         with load_shared_lib(str(self.shared_lib_path)) as plugin_dll:
             plugin_dll.get_plugin_id.restype = ctypes.c_char_p
-            plugin_id_from_shared_lib = plugin_dll.get_plugin_id().decode("utf-8")
+            plugin_id_from_shared_lib = str(plugin_dll.get_plugin_id().decode("UTF-8"))
             if plugin_id_from_shared_lib != plugin_id_from_plugin_yaml:
                 msg = (
                     f'Error, the plugin_id inside plugin.yaml is "{plugin_id_from_plugin_yaml}" '

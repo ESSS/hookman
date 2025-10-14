@@ -1,3 +1,4 @@
+# mypy: allow-untyped-defs
 import re
 from pathlib import Path
 from textwrap import dedent
@@ -9,7 +10,7 @@ from strictyaml import YAMLValidationError
 from hookman.plugin_config import PluginInfo
 
 
-def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
+def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll) -> None:
     mocker.patch.object(PluginInfo, "_get_hooks_implemented", return_value=["a"])
 
     hooks_available = {
@@ -25,7 +26,7 @@ def test_load_config_content(datadir, mocker, mock_plugin_id_from_dll):
         PluginInfo(datadir / "NonValid", hooks_available)
 
 
-def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll):
+def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll) -> None:
     mocker.patch("sys.platform", "linux")
 
     expected_path = datadir / "artifacts/libname_of_the_shared_lib.so"
@@ -39,7 +40,7 @@ def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll):
     assert plugin_config.shared_lib_path == expected_path
 
 
-def test_plugin_id_conflict(simple_plugin, datadir):
+def test_plugin_id_conflict(simple_plugin, datadir) -> None:
     yaml_file = simple_plugin["path"] / "assets/plugin.yaml"
     assert PluginInfo(yaml_file, None)
 

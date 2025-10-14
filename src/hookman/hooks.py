@@ -9,6 +9,7 @@ from typing import Optional
 from zipfile import ZipFile
 
 from packaging.version import Version
+from pluggy import HookCaller
 
 from hookman import hookman_utils
 from hookman.exceptions import InvalidDestinationPathError
@@ -54,9 +55,9 @@ class HookSpecs:
         *,
         project_name: str,
         version: str,
-        pyd_name: str = None,
-        hooks: List[Callable],
-        extra_includes: List[str] = (),
+        pyd_name: str | None = None,
+        hooks: Sequence[Callable],
+        extra_includes: Sequence[str] = (),
     ) -> None:
         for hook in hooks:
             self._check_hook_arguments(hook)
@@ -66,7 +67,7 @@ class HookSpecs:
         self.hooks = hooks
         self.extra_includes = list(extra_includes)
 
-    def _check_hook_arguments(self, hook: Callable):
+    def _check_hook_arguments(self, hook: Callable) -> None:
         """
         Check if the arguments of the hooks are valid.
         If an error is found, a TypeError exception will be raised
@@ -94,7 +95,7 @@ class HookMan:
 
     _TRASH_DIR_NAME = ".trash"
 
-    def __init__(self, *, specs: HookSpecs, plugin_dirs: List[Path]):
+    def __init__(self, *, specs: HookSpecs, plugin_dirs: Sequence[Path]) -> None:
         self.specs = specs
         self.plugins_dirs = plugin_dirs
         self.hooks_available = {
@@ -146,7 +147,7 @@ class HookMan:
         plugin_file_zip.extractall(plugin_destination_folder)
         return InstalledPluginInfo(version=Version(plugin_version), id=plugin_id)
 
-    def _move_to_trash(self, root_dir, name):
+    def _move_to_trash(self, root_dir: Path, name: str) -> None:
         """
         Move the folder named ``name`` to a trash sub folder in the same ``root_dir``.
 
@@ -163,7 +164,7 @@ class HookMan:
         dst_dir = os.path.join(dst_dir, name)
         src_dir.rename(dst_dir)
 
-    def _try_clear_trash(self, root_dir):
+    def _try_clear_trash(self, root_dir: Path) -> None:
         """
         Clear the trash sub folder from ``root_dir``.
         """
@@ -204,9 +205,7 @@ class HookMan:
                 self._try_clear_trash(root_dir)
                 break
 
-    def get_plugins_available(
-        self, ignored_plugins: Sequence[str] = ()
-    ) -> Optional[List[PluginInfo]]:
+    def get_plugins_available(self, ignored_plugins: Sequence[str] = ()) -> Sequence[PluginInfo]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
 
@@ -229,7 +228,7 @@ class HookMan:
             if plugin_info.id not in ignored_plugins
         ]
 
-    def get_hook_caller(self, ignored_plugins: Sequence[str] = ()):
+    def get_hook_caller(self, ignored_plugins: Sequence[str] = ()) -> HookCaller:
         """
         Return a HookCaller class that holds all references for the functions implemented
         on the plugins.
@@ -237,6 +236,7 @@ class HookMan:
         When informed, the `ignored_plugins` must be a list with the names of the plugins (same as shared_lib_name)
         instead of the plugin caption.
         """
+        assert self.specs.pyd_name is not None, f"Specs {self.specs!r}.pyd_name must be set"
         _hookman = __import__(self.specs.pyd_name)
         hook_caller = _hookman.HookCaller()
         for plugin in self.get_plugins_available(ignored_plugins):

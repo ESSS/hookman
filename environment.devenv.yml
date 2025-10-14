@@ -21,8 +21,6 @@ dependencies:
     - clangdev>=6.0.0  # [linux]
     - vs2015_runtime  # [win]
 
-
-
 environment:
   PYTHONPATH:
     - {{ root }}/src
@@ -31,3 +29,5 @@ environment:
     - {{ root }}/build/artifacts
   PATH:
     - {{ root }}/build/artifacts
+  MYPYPATH:
+    - {{ root }}/src

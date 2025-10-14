@@ -8,7 +8,6 @@ with open("CHANGELOG.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "attrs",
     "click>=7.0",
     "invoke",
     "packaging",

@@ -1,9 +1,10 @@
+# mypy: allow-untyped-defs
 import sys
 
 import pytest
 
 
-def test_find_config_files(datadir):
+def test_find_config_files(datadir) -> None:
     from hookman.hookman_utils import find_config_files
 
     config_files = find_config_files(datadir)
@@ -25,7 +26,7 @@ def test_find_config_files(datadir):
 @pytest.mark.skipif(
     not sys.platform.startswith("win"), reason="path only needs changing on Windows"
 )
-def test_change_path_env(simple_plugin_dll):
+def test_change_path_env(simple_plugin_dll) -> None:
     import os
     from hookman.hookman_utils import change_path_env
 
@@ -39,10 +40,10 @@ def test_change_path_env(simple_plugin_dll):
 @pytest.mark.skipif(
     not sys.platform.startswith("win"), reason="path only needs changing on Windows"
 )
-def test_path_change_when_load_library(simple_plugin_dll, mocker):
-    mocker.patch("hookman.hookman_utils.change_path_env")
-    from hookman.hookman_utils import change_path_env, load_shared_lib
+def test_path_change_when_load_library(simple_plugin_dll, mocker) -> None:
+    mocked = mocker.patch("hookman.hookman_utils.change_path_env")
+    from hookman.hookman_utils import load_shared_lib
 
     with load_shared_lib(str(simple_plugin_dll)):
         pass
-    change_path_env.assert_called_once()
+    mocked.assert_called_once()

@@ -8,7 +8,7 @@ from hookman.hookman_generator import HookManGenerator
 
 def test_hook_man_generator(datadir, file_regression) -> None:
     # Pass a folder
-    with pytest.raises(FileNotFoundError, match=f"File not found: *"):
+    with pytest.raises(FileNotFoundError, match="File not found: *"):
         HookManGenerator(hook_spec_file_path=datadir)
 
     # Pass a invalid hook_spec_file (without specs)
@@ -340,13 +340,13 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
     shared_library_file.write_text("")
 
     # -- Without Config file
-    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file plugin.yaml in"):
+    with pytest.raises(FileNotFoundError, match="Unable to locate the file plugin.yaml in"):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
     config_file = asset_dir / "plugin.yaml"
     config_file.write_text(
         dedent(
-            f"""\
+            """\
             caption: 'ACME'
             version: '1.0.0'
             author: 'acme_author'
@@ -356,14 +356,14 @@ def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpd
         )
     )
     # -- Without Readme file
-    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file README.md in"):
+    with pytest.raises(FileNotFoundError, match="Unable to locate the file README.md in"):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
     readme_file = asset_dir / "README.md"
     readme_file.write_text("")
 
     # -- Without changelog file
-    with pytest.raises(FileNotFoundError, match=f"Unable to locate the file CHANGELOG.rst in"):
+    with pytest.raises(FileNotFoundError, match="Unable to locate the file CHANGELOG.rst in"):
         hg.generate_plugin_package(package_name="acme", plugin_dir=plugin_dir)
 
     changelog_file = asset_dir / "CHANGELOG.rst"

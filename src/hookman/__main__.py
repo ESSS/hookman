@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Console script for hookman."""
+
 import sys
 from pathlib import Path
 

@@ -78,7 +78,7 @@ class PluginInfo:
             else "Could not find a description"
         )
 
-        if not self.hooks_available is None:
+        if self.hooks_available is not None:
             self.hooks_implemented = self._get_hooks_implemented()
 
     def _check_if_shared_lib_exists(self) -> None:

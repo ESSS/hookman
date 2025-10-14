@@ -41,9 +41,7 @@ def generate_build_files(ctx):
 
     # CMakeList.txt that includes all sub_directory with tests to be compiled
     root_cmake_list = directory_to_build_tests / "CMakeLists.txt"
-    cmake_file_of_test_build_dir = [
-        f"add_subdirectory({i.parent.name })\n" for i in hook_spec_paths
-    ]
+    cmake_file_of_test_build_dir = [f"add_subdirectory({i.parent.name})\n" for i in hook_spec_paths]
     root_cmake_list.write_text("".join(cmake_file_of_test_build_dir))
 
     # For each hook_specs, create a directory for the compilation and generate the files

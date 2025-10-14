@@ -31,10 +31,10 @@ def test_change_path_env(simple_plugin_dll) -> None:
     from hookman.hookman_utils import change_path_env
 
     dll_dir = str(simple_plugin_dll.parent)
-    assert not dll_dir in os.environ["PATH"]
+    assert dll_dir not in os.environ["PATH"]
     with change_path_env(str(simple_plugin_dll)):
         assert dll_dir in os.environ["PATH"]
-    assert not dll_dir in os.environ["PATH"]
+    assert dll_dir not in os.environ["PATH"]
 
 
 @pytest.mark.skipif(

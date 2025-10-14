@@ -32,7 +32,7 @@ def test_hook_specs_without_arguments() -> None:
 
     # A hook must have parameters
     with pytest.raises(TypeError, match="It's not possible to create a hook without argument"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme", version="1", pyd_name="_acme", hooks=[method_without_arguments]
         )
 
@@ -44,9 +44,9 @@ def test_hook_specs_with_missing_type_on_argument() -> None:
         """
         return 0.0
 
-    # A arguments of the hook must inform the type
+    # All arguments of the hook must inform the type.
     with pytest.raises(TypeError, match="All hooks arguments must have the type informed"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme",
             version="1",
             pyd_name="_acme",
@@ -59,7 +59,7 @@ def test_hook_specs_without_docs_arguments() -> None:
         return 0
 
     with pytest.raises(TypeError, match="All hooks must have documentation"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme", version="1", pyd_name="_acme", hooks=[method_with_docs_missing]
         )
 
@@ -204,7 +204,7 @@ def test_install_with_invalid_dest_path(simple_plugin) -> None:
     # Trying to install in the plugin on an different path informed on the construction of the HookMan object
     from hookman.exceptions import InvalidDestinationPathError
 
-    with pytest.raises(InvalidDestinationPathError, match=f"Invalid destination path"):
+    with pytest.raises(InvalidDestinationPathError, match="Invalid destination path"):
         hm.install_plugin(
             plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"] / "INVALID_PATH"
         )
@@ -219,7 +219,7 @@ def test_install_plugin_duplicate(simple_plugin) -> None:
     # Trying to install the plugin in a folder that already has a folder with the same name and version of plugin.
     from hookman.exceptions import PluginAlreadyInstalledError
 
-    with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
+    with pytest.raises(PluginAlreadyInstalledError, match="Plugin already installed"):
         hm.install_plugin(
             plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"].parent
         )
@@ -227,9 +227,9 @@ def test_install_plugin_duplicate(simple_plugin) -> None:
 
 def test_install_plugin(datadir, simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
-    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == False
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() is False
     hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
-    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == True
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() is True
 
 
 def test_remove_plugin(datadir, simple_plugin, simple_plugin_2) -> None:

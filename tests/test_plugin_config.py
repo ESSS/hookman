@@ -5,7 +5,6 @@ from textwrap import dedent
 
 import pytest
 from pytest_mock import MockerFixture
-from strictyaml import YAMLValidationError
 
 from hookman.plugin_config import PluginInfo
 
@@ -46,7 +45,7 @@ def test_plugin_id_conflict(simple_plugin, datadir) -> None:
 
     import sys
 
-    shared_lib_name = f"simple_plugin.dll" if sys.platform == "win32" else f"libsimple_plugin.so"
+    shared_lib_name = "simple_plugin.dll" if sys.platform == "win32" else "libsimple_plugin.so"
     shared_lib_executable = simple_plugin["path"] / f"artifacts/{shared_lib_name}"
 
     acme_lib_name = shared_lib_name.replace("simple_plugin", "ACME")
@@ -65,7 +64,7 @@ def test_plugin_id_conflict(simple_plugin, datadir) -> None:
 
 
 def testPluginInfoInvalidSchema(tmp_path: Path, mocker: MockerFixture) -> None:
-    invalid_yaml_content = f"""\
+    invalid_yaml_content = """\
             caption: 'Plugin'
             version: '1.0.0'
             author: 'ESSS'
@@ -93,4 +92,4 @@ def testPluginInfoInvalidSchema(tmp_path: Path, mocker: MockerFixture) -> None:
     ).strip()
     expected_message = f"The plugin.yaml does not follow the PLUGIN_CONFIG_SCHEMA: {current_schema}"
     with pytest.raises(ValueError, match=re.escape(expected_message)):
-        info = PluginInfo(invalid_yaml_file)
+        _ = PluginInfo(invalid_yaml_file)

@@ -9,4 +9,3 @@ pytest-datadir
 pytest-mock
 pytest-regressions
 pytest-runner
-wheel

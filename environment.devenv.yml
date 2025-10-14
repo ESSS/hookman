@@ -25,7 +25,7 @@ dependencies:
 
 environment:
   PYTHONPATH:
-    - {{ root }}
+    - {{ root }}/src
     - {{ root }}/build/artifacts
   LD_LIBRARY_PATH:
     - {{ root }}/build/artifacts

@@ -8,7 +8,6 @@ with open("CHANGELOG.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "attrs",
     "click>=7.0",
     "invoke",
     "packaging",
@@ -38,7 +37,8 @@ setup(
     keywords="hookman",
     name="python-hookman",
     python_requires=">=3.10",
-    packages=find_packages(include=["hookman"]),
+    packages=find_packages("src", include=["hookman"]),
+    package_dir={"": "src"},
     url="https://github.com/esss/hookman",
     use_scm_version=True,
     setup_requires=["setuptools_scm"],

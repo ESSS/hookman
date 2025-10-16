@@ -1,6 +1,12 @@
 =======
 History
 =======
+
+UNRELEASED
+==========
+
+- Added full type annotations and exported types (via ``py.typed``).
+
 0.8.0 (2025-08-18)
 ==================
 - Allow install multiple versions of the same plugin.

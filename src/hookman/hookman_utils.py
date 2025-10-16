@@ -1,26 +1,25 @@
 import ctypes
 import os
 import sys
+from collections.abc import Iterator
 from collections.abc import Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List
-from typing import Union
 
 
 def find_config_files(
-    plugin_dirs: Union[List[Path], Path], *, ignored_sub_dir_names: Sequence[str] = ()
-) -> List[Path]:
+    plugin_dirs: Sequence[Path] | Path, *, ignored_sub_dir_names: Sequence[str] = ()
+) -> Sequence[Path]:
     """
     Try to find all configurations files from plugins implementations on the given path (plugins_dirs)
     If in the given there is any plugin, this function will return None
     """
-    config_files = []
+    config_files: list[Path] = []
 
-    if not isinstance(plugin_dirs, list):
+    if not isinstance(plugin_dirs, Sequence):
         plugin_dirs = [plugin_dirs]
 
-    def is_ignored(filename, ignored_dirs):
+    def is_ignored(filename: Path, ignored_dirs: Sequence[Path]) -> bool:
         return any(folder in filename.parents for folder in ignored_dirs)
 
     for plugin_dir in plugin_dirs:
@@ -35,7 +34,7 @@ def find_config_files(
 
 
 @contextmanager
-def change_path_env(shared_lib_path: str):
+def change_path_env(shared_lib_path: str) -> Iterator[None]:
     """
     Change PATH environment adding the shared library path to it.
     """
@@ -54,7 +53,7 @@ def change_path_env(shared_lib_path: str):
 
 
 @contextmanager
-def load_shared_lib(shared_lib_path: str) -> ctypes.CDLL:
+def load_shared_lib(shared_lib_path: str) -> Iterator[ctypes.CDLL]:
     """
     Load a shared library using ctypes freeing the resource at end.
     """

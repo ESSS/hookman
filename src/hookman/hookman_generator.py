@@ -1,4 +1,4 @@
-import importlib
+import importlib.util
 import inspect
 import re
 import sys
@@ -6,11 +6,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import NamedTuple
-from typing import Optional
-from typing import Union
 from zipfile import ZipFile
 
 from hookman.exceptions import ArtifactsDirNotFoundError
@@ -63,7 +59,7 @@ class HookManGenerator:
     Class to assist in the process of creating necessary files for the hookman
     """
 
-    def __init__(self, hook_spec_file_path: Union[Path, str]) -> None:
+    def __init__(self, hook_spec_file_path: Path | str) -> None:
         """
         Receives a path to a hooks specification file.
         if the Path provided is not a file an exception FileNotFoundError is raised.
@@ -71,12 +67,12 @@ class HookManGenerator:
         """
         hook_spec_file_path = Path(hook_spec_file_path)
         if hook_spec_file_path.is_file():
-            hook_spec_module = self._import_hook_specification_file(hook_spec_file_path)
-            self._populate_local_variables(hook_spec_module.specs)
+            specs = self._import_hook_specs_from_module(hook_spec_file_path)
+            self._populate_local_variables(specs)
         else:
             raise FileNotFoundError(f"File not found: {hook_spec_file_path}")
 
-    def _import_hook_specification_file(self, hook_spec_file_path: Path) -> HookSpecs:
+    def _import_hook_specs_from_module(self, hook_spec_file_path: Path) -> HookSpecs:
         """
         Returns the "HookSpecs" object that defines the hook specification provide from the project.
         The file is considered valid if the importlib can access the object called "specs"
@@ -85,16 +81,23 @@ class HookManGenerator:
         :return: A Python module that represent specification from the given file
         """
         spec = importlib.util.spec_from_file_location("hook_specs", hook_spec_file_path)
+        assert spec is not None, f"Could not find spec for {hook_spec_file_path}"
+        assert spec.loader is not None, f"Loader cannot be None for {hook_spec_file_path}"
         module = importlib.util.module_from_spec(spec)
+        assert module is not None, f"Could not find module for {hook_spec_file_path}"
         spec.loader.exec_module(module)
         try:
-            getattr(module, "specs")
+            specs = getattr(module, "specs")
         except AttributeError:
-            raise RuntimeError("Invalid file, specs not defined.")
+            raise RuntimeError(f"Invalid module {module}, 'specs' variable not defined.")
+        else:
+            if not isinstance(specs, HookSpecs):
+                raise RuntimeError(
+                    f"{module}.specs is {specs!r}, expected type '{HookSpecs.__name__}'"
+                )
+            return specs
 
-        return module
-
-    def _populate_local_variables(self, hook_specs: HookSpecs):
+    def _populate_local_variables(self, hook_specs: HookSpecs) -> None:
         """
         Populate the self.hooks property with the given hook specification.
         See the docstring from the Hook type for more details about the self.hooks
@@ -103,7 +106,7 @@ class HookManGenerator:
         self.pyd_name = hook_specs.pyd_name
         self.version = f"v{hook_specs.version}"
 
-        def get_arg_with_type(arg):
+        def get_arg_with_type(arg: str) -> str:
             arg_type = hook_types[arg]
             array_type_pattern = (
                 r"(?P<array_type>.+)"  # `double ` in `double [ 2 ]`
@@ -121,7 +124,7 @@ class HookManGenerator:
         self.extra_includes = hook_specs.extra_includes
         self.hooks = []
         for hook_spec in hook_specs.hooks:
-            hook_documentation = inspect.getdoc(hook_spec)
+            hook_documentation = inspect.getdoc(hook_spec) or ""
             hook_arg_spec = inspect.getfullargspec(hook_spec)
             hook_arguments = hook_arg_spec.args
             hook_types = hook_arg_spec.annotations
@@ -224,9 +227,7 @@ class HookManGenerator:
             self._plugin_src_cmake_file_content(plugin_id)
         )
 
-    def _validate_parameter(
-        self, parameter_name: str, parameter_value: Any
-    ) -> Union[List, List[str]]:
+    def _validate_parameter(self, parameter_name: str, parameter_value: Any) -> list[str]:
         """
         Check if the given parameter is a list and if all elements of this list are strings
         """
@@ -245,7 +246,7 @@ class HookManGenerator:
 
         return parameter_value
 
-    def generate_hook_specs_header(self, plugin_id: str, dst_path: Union[str, Path]):
+    def generate_hook_specs_header(self, plugin_id: str, dst_path: str | Path) -> None:
         """Generates the "hook_specs.h" file which is consumed by plugins to implement the hooks.
 
         :param plugin_id: short name of the generated shared library
@@ -255,18 +256,19 @@ class HookManGenerator:
         source_folder.mkdir(parents=True, exist_ok=True)
         Path(source_folder / "hook_specs.h").write_text(self._hook_specs_header_content(plugin_id))
 
-    def generate_project_files(self, dst_path: Union[Path, str]):
+    def generate_project_files(self, dst_path: Path | str) -> None:
         """
         Generate the following files on the dst_path:
         - HookCaller.hpp
         - HookCallerPython.cpp
         """
-        hook_caller_hpp = Path(dst_path) / "cpp" / "HookCaller.hpp"
+        dst_path = Path(dst_path)
+        hook_caller_hpp = dst_path / "cpp/HookCaller.hpp"
         hook_caller_hpp.parent.mkdir(exist_ok=True, parents=True)
         hook_caller_hpp.write_text(self._hook_caller_hpp_content())
 
         if self.pyd_name:
-            hook_caller_python = Path(dst_path / "binding" / "HookCallerPython.cpp")
+            hook_caller_python = dst_path / "binding/HookCallerPython.cpp"
             hook_caller_python.parent.mkdir(exist_ok=True, parents=True)
             hook_caller_python.write_text(self._hook_caller_python_content())
 
@@ -276,11 +278,11 @@ class HookManGenerator:
         self,
         package_name: str,
         plugin_dir: Path | str,
-        dst_path: Path = None,
+        dst_path: Path | None = None,
         extras_defaults: Mapping[str, str] | None = None,
         requirements: Mapping[str, str] | None = None,
         package_name_suffix: str | None = None,
-    ):
+    ) -> None:
         """
         Creates a .hmplugin file using the name provided on package_name argument.
         The file `.hmplugin` will be created with the content from the folder assets and artifacts.
@@ -320,7 +322,7 @@ class HookManGenerator:
         contents = (assets_dir / "plugin.yaml").read_text()
         if extras_defaults is not None:
             contents_dict = strictyaml.load(contents, PLUGIN_CONFIG_SCHEMA)
-            extras = extras_defaults.copy()
+            extras = dict(extras_defaults)
             extras.update(contents_dict.data.get("extras", {}))
             contents_dict["extras"] = dict(sorted(extras.items()))
             contents = contents_dict.as_yaml()
@@ -361,7 +363,7 @@ class HookManGenerator:
                 dst_filename = Path("artifacts" / file.relative_to(plugin_dir / "src/python"))
                 zip_file.write(filename=file, arcname=dst_filename)
 
-    def _validate_package_folder(self, artifacts_dir, assets_dir):
+    def _validate_package_folder(self, artifacts_dir: Path, assets_dir: Path) -> None:
         """
         Method to ensure that the plugin folder has the following criteria:
             - An "assets" folder should be present
@@ -491,10 +493,10 @@ class HookManGenerator:
             "#include <map>",
             "",
             "#ifdef _WIN32",
-            f"    #include <cstdlib>",
-            f"    #include <windows.h>",
+            "    #include <cstdlib>",
+            "    #include <windows.h>",
             "#else",
-            f"    #include <dlfcn.h>",
+            "    #include <dlfcn.h>",
             "#endif",
             "",
         ]
@@ -504,7 +506,7 @@ class HookManGenerator:
             "namespace hookman {",
             "",
             "template <typename F_TYPE> std::function<F_TYPE> from_c_pointer(uintptr_t p) {",
-            f"    return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
+            "    return std::function<F_TYPE>(reinterpret_cast<F_TYPE *>(p));",
             "}",
             "",
             "class HookCaller {",
@@ -515,10 +517,10 @@ class HookManGenerator:
             list_with_hook_calls += [
                 f"    std::vector<std::function<{hook.r_type}({hook.args_type})>> {hook.name}_impls() {{",
                 f"        return this->_{hook.name}_impls;",
-                f"    }}",
+                "    }",
                 f"    std::function<{hook.r_type}({hook.args_type})> {hook.name}_impl(const std::string &plugin_id) {{",
                 f"        return this->_{hook.name}_map[plugin_id];",
-                f"    }}",
+                "    }",
             ]
             list_with_private_members += [
                 f"    std::vector<std::function<{hook.r_type}({hook.args_type})>> _{hook.name}_impls;",
@@ -530,13 +532,13 @@ class HookManGenerator:
                 f"    void append_{hook.name}_impl(uintptr_t pointer, const std::string &plugin_id) {{",
                 f"        this->_{hook.name}_impls.push_back(from_c_pointer<{hook.r_type}({hook.args_type})>(pointer));",
                 f"        this->_{hook.name}_map[plugin_id] = from_c_pointer<{hook.r_type}({hook.args_type})>((uintptr_t)(pointer));",
-                f"    }}",
+                "    }",
                 "",
                 # std::function overload
                 f"    void append_{hook.name}_impl(std::function<{hook.r_type}({hook.args_type})> func, const std::string &plugin_id) {{",
                 f"        this->_{hook.name}_impls.push_back(func);",
                 f"        this->_{hook.name}_map[plugin_id] = func;",
-                f"    }}",
+                "    }",
             ]
         content_lines += list_with_hook_calls
         content_lines.append("")
@@ -585,9 +587,9 @@ class HookManGenerator:
         content_lines.append("")
 
         content_lines += [
-            f'    py::class_<hookman::HookCaller>(m, "HookCaller")',
-            f"        .def(py::init<>())",
-            f'        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
+            '    py::class_<hookman::HookCaller>(m, "HookCaller")',
+            "        .def(py::init<>())",
+            '        .def("load_impls_from_library", &hookman::HookCaller::load_impls_from_library)',
         ]
         for hook in self.hooks:
             append_ptr = f"&hookman::HookCaller::append_{hook.name}_impl"
@@ -600,12 +602,12 @@ class HookManGenerator:
                 f'        .def("append_{hook.name}_impl", ({append_uint_sig}) {append_ptr})',
                 f'        .def("append_{hook.name}_impl", ({append_function_sig}) {append_ptr})',
             ]
-        content_lines.append(f"    ;")
+        content_lines.append("    ;")
         content_lines.append("}")
         content_lines.append("")
         return "\n".join(content_lines)
 
-    def _generate_cmake_files(self, dst_path: Path):
+    def _generate_cmake_files(self, dst_path: Path) -> None:
         from textwrap import dedent
 
         hook_caller_hpp = Path(dst_path / "cpp" / "CMakeLists.txt")
@@ -653,8 +655,8 @@ class HookManGenerator:
         plugin_id: str,
         author_email: str,
         author_name: str,
-        extras: dict[str, str] | None,
-        requirements: dict[str, str] | None,
+        extras: Mapping[str, str] | None,
+        requirements: Mapping[str, str] | None,
     ) -> str:
         """
         Return a string that represent the content of a valid configuration for a plugin
@@ -718,7 +720,7 @@ class HookManGenerator:
         )
 
     def _plugin_source_content(
-        self, extra_includes: List[str], extra_body_lines: List[str], exclude_hooks: List[str]
+        self, extra_includes: list[str], extra_body_lines: list[str], exclude_hooks: list[str]
     ) -> str:
         """
         Create a C header file with the content informed on the hook_specs
@@ -822,16 +824,16 @@ class HookManGenerator:
         )
 
 
-def _generate_load_function(hooks: List[Hook]) -> List[str]:
+def _generate_load_function(hooks: list[Hook]) -> list[str]:
     result = ["#if defined(_WIN32)", ""]
     result += _generate_windows_body(hooks)
     result += ["", "#elif defined(__linux__)", ""]
     result += _generate_linux_body(hooks)
-    result += ["", "#else", f'    #error "unknown platform"', "#endif", ""]
+    result += ["", "#else", '    #error "unknown platform"', "#endif", ""]
     return result
 
 
-def _generate_windows_body(hooks: List[Hook]) -> List[str]:
+def _generate_windows_body(hooks: list[Hook]) -> list[str]:
     """Generate Windows specific functions.
 
     At the moment it implements load_impls_from_library, class destructor, and an utility function
@@ -841,22 +843,22 @@ def _generate_windows_body(hooks: List[Hook]) -> List[str]:
     # generate destructor to free the library handles opened by load_from_library()
     result = [
         "public:",
-        f"    ~HookCaller() {{",
-        f"        for (auto handle : this->handles) {{",
-        f"            FreeLibrary(handle);",
-        f"        }}",
-        f"    }}",
+        "    ~HookCaller() {",
+        "        for (auto handle : this->handles) {",
+        "            FreeLibrary(handle);",
+        "        }",
+        "    }",
     ]
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {{",
-        f"        std::wstring w_filename = utf8_to_wstring(utf8_filename);",
-        f"        auto handle = this->load_dll(w_filename);",
-        f"        if (handle == NULL) {{",
-        f'            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
-        f"        }}",
-        f"        this->handles.push_back(handle);",
+        "    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {",
+        "        std::wstring w_filename = utf8_to_wstring(utf8_filename);",
+        "        auto handle = this->load_dll(w_filename);",
+        "        if (handle == NULL) {",
+        '            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));',
+        "        }",
+        "        this->handles.push_back(handle);",
         "",
     ]
 
@@ -865,7 +867,7 @@ def _generate_windows_body(hooks: List[Hook]) -> List[str]:
             f'        auto p{index} = GetProcAddress(handle, "{hook.function_name}");',
             f"        if (p{index} != nullptr) {{",
             f"            this->append_{hook.name}_impl((uintptr_t)(p{index}), plugin_id);",
-            f"        }}",
+            "        }",
             "",
         ]
     result.append("    }")
@@ -874,71 +876,71 @@ def _generate_windows_body(hooks: List[Hook]) -> List[str]:
         "",
         "",
         "private:",
-        f"    std::wstring utf8_to_wstring(const std::string& s) {{",
-        f"        int flags = 0;",
-        f"        int required_size = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, nullptr, 0);",
-        f"        std::wstring result;",
-        f"        if (required_size == 0) {{",
-        f"            return result;",
-        f"        }}",
-        f"        result.resize(required_size);",
-        f"        int err = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, &result[0], required_size);",
-        f"        if (err == 0) {{",
-        f"            // error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value",
-        f"            switch (GetLastError()) {{",
-        f'                case ERROR_INSUFFICIENT_BUFFER: throw std::runtime_error("utf8_to_wstring: ERROR_INSUFFICIENT_BUFFER");',
-        f'                case ERROR_INVALID_FLAGS: throw std::runtime_error("utf8_to_wstring: ERROR_INVALID_FLAGS");',
-        f'                case ERROR_INVALID_PARAMETER: throw std::runtime_error("utf8_to_wstring: ERROR_INVALID_PARAMETER");',
-        f'                case ERROR_NO_UNICODE_TRANSLATION: throw std::runtime_error("utf8_to_wstring: ERROR_NO_UNICODE_TRANSLATION");',
-        f'                default: throw std::runtime_error("Undefined error: " + std::to_string(GetLastError()));',
-        f"            }}",
-        f"        }}",
-        f"        return result;",
-        f"    }}",
-        f"",
-        f"",
-        f"    class PathGuard {{",
-        f"    public:",
-        f"        explicit PathGuard(std::wstring filename)",
-        f"            : path_env{{ get_path() }}",
-        f"        {{",
-        rf'            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");',
-        f'            std::wstring new_path_env = path_env + L";" + filename.substr(0, dir_name_size);',
-        f'            _wputenv_s(L"PATH", new_path_env.c_str());',
-        f"        }}",
-        f"",
-        f"        ~PathGuard() {{",
-        f'            _wputenv_s(L"PATH", path_env.c_str());',
-        f"        }}",
-        f"",
-        f"    private:",
-        f"        static std::wstring get_path() {{",
-        f"            rsize_t _len = 0;",
-        f"            wchar_t *buf;",
-        f'            _wdupenv_s(&buf, &_len, L"PATH");',
-        f"            std::wstring path_env{{ buf }};",
-        f"            free(buf);",
-        f"            return path_env;",
-        f"        }} ",
-        f"",
-        f"        std::wstring path_env;",
-        f"    }};",
-        f"",
-        f"    HMODULE load_dll(const std::wstring& filename) {{",
-        f"        // Path Modifier",
-        f"        PathGuard path_guard{{ filename }};",
-        f"        // Load library (DLL)",
-        f"        return LoadLibraryW(filename.c_str());",
-        f"    }}",
-        f"",
-        f"",
-        f"private:",
-        f"    std::vector<HMODULE> handles;",
+        "    std::wstring utf8_to_wstring(const std::string& s) {",
+        "        int flags = 0;",
+        "        int required_size = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, nullptr, 0);",
+        "        std::wstring result;",
+        "        if (required_size == 0) {",
+        "            return result;",
+        "        }",
+        "        result.resize(required_size);",
+        "        int err = MultiByteToWideChar(CP_UTF8, flags, s.c_str(), -1, &result[0], required_size);",
+        "        if (err == 0) {",
+        "            // error handling: https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar#return-value",
+        "            switch (GetLastError()) {",
+        '                case ERROR_INSUFFICIENT_BUFFER: throw std::runtime_error("utf8_to_wstring: ERROR_INSUFFICIENT_BUFFER");',
+        '                case ERROR_INVALID_FLAGS: throw std::runtime_error("utf8_to_wstring: ERROR_INVALID_FLAGS");',
+        '                case ERROR_INVALID_PARAMETER: throw std::runtime_error("utf8_to_wstring: ERROR_INVALID_PARAMETER");',
+        '                case ERROR_NO_UNICODE_TRANSLATION: throw std::runtime_error("utf8_to_wstring: ERROR_NO_UNICODE_TRANSLATION");',
+        '                default: throw std::runtime_error("Undefined error: " + std::to_string(GetLastError()));',
+        "            }",
+        "        }",
+        "        return result;",
+        "    }",
+        "",
+        "",
+        "    class PathGuard {",
+        "    public:",
+        "        explicit PathGuard(std::wstring filename)",
+        "            : path_env{ get_path() }",
+        "        {",
+        r'            std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");',
+        '            std::wstring new_path_env = path_env + L";" + filename.substr(0, dir_name_size);',
+        '            _wputenv_s(L"PATH", new_path_env.c_str());',
+        "        }",
+        "",
+        "        ~PathGuard() {",
+        '            _wputenv_s(L"PATH", path_env.c_str());',
+        "        }",
+        "",
+        "    private:",
+        "        static std::wstring get_path() {",
+        "            rsize_t _len = 0;",
+        "            wchar_t *buf;",
+        '            _wdupenv_s(&buf, &_len, L"PATH");',
+        "            std::wstring path_env{ buf };",
+        "            free(buf);",
+        "            return path_env;",
+        "        } ",
+        "",
+        "        std::wstring path_env;",
+        "    };",
+        "",
+        "    HMODULE load_dll(const std::wstring& filename) {",
+        "        // Path Modifier",
+        "        PathGuard path_guard{ filename };",
+        "        // Load library (DLL)",
+        "        return LoadLibraryW(filename.c_str());",
+        "    }",
+        "",
+        "",
+        "private:",
+        "    std::vector<HMODULE> handles;",
     ]
     return result
 
 
-def _generate_linux_body(hooks: List[Hook]) -> List[str]:
+def _generate_linux_body(hooks: list[Hook]) -> list[str]:
     """
     Generate linux specific functions.
 
@@ -947,25 +949,25 @@ def _generate_linux_body(hooks: List[Hook]) -> List[str]:
     """
     # generate destructor to free the library handles opened by load_from_library()
     result = [
-        f"private:",
-        f"    std::vector<void*> handles;",
+        "private:",
+        "    std::vector<void*> handles;",
         "",
         "public:",
-        f"    ~HookCaller() {{",
-        f"        for (auto handle : this->handles) {{",
-        f"            dlclose(handle);",
-        f"        }}",
-        f"    }}",
+        "    ~HookCaller() {",
+        "        for (auto handle : this->handles) {",
+        "            dlclose(handle);",
+        "        }",
+        "    }",
     ]
 
     # generate load_impls_from_library()
     result += [
-        f"    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {{",
-        f"        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);",
-        f"        if (handle == nullptr) {{",
-        f'            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");',
-        f"        }}",
-        f"        this->handles.push_back(handle);",
+        "    void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {",
+        "        auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);",
+        "        if (handle == nullptr) {",
+        '            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");',
+        "        }",
+        "        this->handles.push_back(handle);",
         "",
     ]
 
@@ -974,7 +976,7 @@ def _generate_linux_body(hooks: List[Hook]) -> List[str]:
             f'        auto p{index} = dlsym(handle, "{hook.function_name}");',
             f"        if (p{index} != nullptr) {{",
             f"            this->append_{hook.name}_impl((uintptr_t)(p{index}), plugin_id);",
-            f"        }}",
+            "        }",
             "",
         ]
     result.append("    }")

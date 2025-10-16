@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Console script for hookman."""
+
 import sys
 from pathlib import Path
 
@@ -9,14 +9,14 @@ from hookman.hookman_generator import HookManGenerator
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command()
 @click.argument("specs_path", type=click.Path(exists=True))
 @click.option("--dst-path", default="./", help="Path to where the files will be written")
-def generate_project_files(specs_path, dst_path):
+def generate_project_files(specs_path: str, dst_path: str) -> int:
     """
     Generate hooks_pecs.h, HookCaller c++ class and bindings.
 
@@ -52,7 +52,7 @@ def generate_plugin_template(
     author_email: str,
     author_name: str,
     dst_path: Path,
-):
+) -> int:
     """
     Generate a plugin starting template with the necessary structure and files to create a plugin.
 
@@ -79,7 +79,7 @@ def generate_plugin_template(
 @click.argument("package_name")
 @click.argument("plugin_dir")
 @click.option("--dst-path", default="./", help="Path to where the files will be written")
-def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path: Path):
+def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path: Path) -> int:
     """
     Creates a PACKAGE_NAME for distribution on the current directory from the given PLUGIN_DIR for the project.
 
@@ -100,7 +100,7 @@ def package_plugin(specs_path: str, package_name: str, plugin_dir: str, dst_path
 @click.argument("specs_path", type=click.Path(exists=True))
 @click.argument("plugin_id")
 @click.option("--dst-path", default="./", help="Path to where the files will be written")
-def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path):
+def generate_hook_specs_h(specs_path: str, plugin_id: str, dst_path: Path) -> int:
     """
     Generates or update the hook_specs.h header file.
 

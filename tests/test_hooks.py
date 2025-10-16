@@ -1,3 +1,6 @@
+# mypy: allow-untyped-defs
+import dataclasses
+
 import pytest
 from packaging.version import Version
 
@@ -20,28 +23,30 @@ def _get_names_inside_folder(folder):
     return {file.name for file in folder.iterdir()}
 
 
-def test_hook_specs_without_arguments():
+def test_hook_specs_without_arguments() -> None:
     def method_without_arguments() -> "float":
         """
         test_method_without_arguments
         """
+        return 0.0
 
     # A hook must have parameters
     with pytest.raises(TypeError, match="It's not possible to create a hook without argument"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme", version="1", pyd_name="_acme", hooks=[method_without_arguments]
         )
 
 
-def test_hook_specs_with_missing_type_on_argument():
+def test_hook_specs_with_missing_type_on_argument() -> None:
     def method_with_missing_type_on_argument(a: "int", b) -> "float":
         """
         fail_method_with_missing_type_on_argument
         """
+        return 0.0
 
-    # A arguments of the hook must inform the type
+    # All arguments of the hook must inform the type.
     with pytest.raises(TypeError, match="All hooks arguments must have the type informed"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme",
             version="1",
             pyd_name="_acme",
@@ -49,17 +54,17 @@ def test_hook_specs_with_missing_type_on_argument():
         )
 
 
-def test_hook_specs_without_docs_arguments():
+def test_hook_specs_without_docs_arguments() -> None:
     def method_with_docs_missing(a: "int") -> "int":
-        pass  # pragma: no cover
+        return 0
 
     with pytest.raises(TypeError, match="All hooks must have documentation"):
-        specs = HookSpecs(
+        _specs = HookSpecs(
             project_name="acme", version="1", pyd_name="_acme", hooks=[method_with_docs_missing]
         )
 
 
-def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
+def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2) -> None:
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
     hc = hm.get_hook_caller()
@@ -67,7 +72,7 @@ def test_get_hook_caller_with_conflict(simple_plugin, simple_plugin_2):
     assert len(hc.env_temperature_impls()) == 1
 
 
-def test_get_hook_caller(simple_plugin):
+def test_get_hook_caller(simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
     hook_caller = hm.get_hook_caller()
     friction_factors = hook_caller.friction_factor_impls()
@@ -80,7 +85,7 @@ def test_get_hook_caller(simple_plugin):
     assert hook_caller.friction_factor_impl("simple_plugin")(1, 2) == 3
 
 
-def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2):
+def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_plugin_2) -> None:
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 
@@ -94,7 +99,7 @@ def test_get_hook_caller_passing_ignored_plugins(datadir, simple_plugin, simple_
     assert len(env_temperatures) == 0
 
 
-def test_get_hook_caller_without_plugin(datadir, simple_plugin):
+def test_get_hook_caller_without_plugin(datadir, simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[datadir / "some_non_existing_folder"])
     hook_caller = hm.get_hook_caller()
     friction_factors = hook_caller.friction_factor_impls()
@@ -103,14 +108,13 @@ def test_get_hook_caller_without_plugin(datadir, simple_plugin):
     assert len(env_temperatures) == 0
 
 
-def test_plugins_available_plain(simple_plugin, simple_plugin_2):
+def test_plugins_available_plain(simple_plugin, simple_plugin_2) -> None:
     plugin_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dirs)
     plugins = hm.get_plugins_available()
     assert len(plugins) == 2
-    import attr
 
-    assert list(attr.asdict(plugins[0]).keys()) == [
+    assert list(dataclasses.asdict(plugins[0]).keys()) == [
         "yaml_location",
         "hooks_available",
         "description",
@@ -130,7 +134,7 @@ def test_plugins_available_plain(simple_plugin, simple_plugin_2):
     assert len(plugins) == 1
 
 
-def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2):
+def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2) -> None:
     plugin_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugin_dirs)
 
@@ -146,7 +150,7 @@ def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2)
     assert {p.id for p in plugins} == set()
 
 
-def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch):
+def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch) -> None:
     import sys
 
     # Windows has problems deleting filer/folders in used.
@@ -178,7 +182,7 @@ def test_try_clean_cache_ignore_os_errors(datadir, simple_plugin, monkeypatch):
     assert not some_trash_file.exists()
 
 
-def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
+def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
 
     mocked_config_content = {"shared_lib_name": "NON_VALID_SHARED_LIB"}
@@ -194,19 +198,19 @@ def test_install_plugin_without_lib(mocker, simple_plugin, plugins_zip_folder):
         hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
 
 
-def test_install_with_invalid_dest_path(simple_plugin):
+def test_install_with_invalid_dest_path(simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
 
     # Trying to install in the plugin on an different path informed on the construction of the HookMan object
     from hookman.exceptions import InvalidDestinationPathError
 
-    with pytest.raises(InvalidDestinationPathError, match=f"Invalid destination path"):
+    with pytest.raises(InvalidDestinationPathError, match="Invalid destination path"):
         hm.install_plugin(
             plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"] / "INVALID_PATH"
         )
 
 
-def test_install_plugin_duplicate(simple_plugin):
+def test_install_plugin_duplicate(simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"].parent])
     import os
 
@@ -215,20 +219,20 @@ def test_install_plugin_duplicate(simple_plugin):
     # Trying to install the plugin in a folder that already has a folder with the same name and version of plugin.
     from hookman.exceptions import PluginAlreadyInstalledError
 
-    with pytest.raises(PluginAlreadyInstalledError, match=f"Plugin already installed"):
+    with pytest.raises(PluginAlreadyInstalledError, match="Plugin already installed"):
         hm.install_plugin(
             plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"].parent
         )
 
 
-def test_install_plugin(datadir, simple_plugin):
+def test_install_plugin(datadir, simple_plugin) -> None:
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=[simple_plugin["path"]])
-    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == False
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() is False
     hm.install_plugin(plugin_file_path=simple_plugin["zip"], dest_path=simple_plugin["path"])
-    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() == True
+    assert (simple_plugin["path"] / "simple_plugin-1.0.0").exists() is True
 
 
-def test_remove_plugin(datadir, simple_plugin, simple_plugin_2):
+def test_remove_plugin(datadir, simple_plugin, simple_plugin_2) -> None:
     plugins_dirs = [simple_plugin["path"], simple_plugin_2["path"]]
     hm = HookMan(specs=simple_plugin["specs"], plugin_dirs=plugins_dirs)
 

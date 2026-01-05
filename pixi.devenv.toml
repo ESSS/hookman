@@ -1,0 +1,29 @@
+[devenv.dependencies]
+strictyaml = "*"
+invoke = ">=1.0.0"
+click = ">=7.0.0"
+pytest = "*"
+pytest-cov = "*"
+pytest-datadir = "*"
+pytest-mock = "*"
+pytest-regressions = "*"
+pre-commit = ">=1.18.3"
+black = ">=19.3b0"
+# C++ compilation
+pybind11 = "*"
+ninja = "*"
+cmake = ">=3.5.2"
+
+[devenv.target.unix.dependencies]
+clangdev = ">=6.0.0"
+
+[devenv.target.win.dependencies]
+vs2015_runtime = "*"
+
+[devenv.env-vars]
+PYTHONPATH = ["${{ devenv_project_dir }}/src", "${{ devenv_project_dir }}/build/artifacts"]
+MYPYPATH = ["${{ devenv_project_dir }}/src"]
+PATH = ["${{ devenv_project_dir }}/build/artifacts"]
+
+[devenv.target.unix.env-vars]
+LD_LIBRARY_PATH = ["${{ devenv_project_dir }}/build/artifacts"]

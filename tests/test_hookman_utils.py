@@ -1,12 +1,16 @@
 # mypy: allow-untyped-defs
+import os
 import sys
 
 import pytest
 
+from hookman.exceptions import SharedLibraryLoadError
+from hookman.hookman_utils import change_path_env
+from hookman.hookman_utils import find_config_files
+from hookman.hookman_utils import load_shared_lib
+
 
 def test_find_config_files(datadir) -> None:
-    from hookman.hookman_utils import find_config_files
-
     config_files = find_config_files(datadir)
     assert len(config_files) == 2
 
@@ -27,9 +31,6 @@ def test_find_config_files(datadir) -> None:
     not sys.platform.startswith("win"), reason="path only needs changing on Windows"
 )
 def test_change_path_env(simple_plugin_dll) -> None:
-    import os
-    from hookman.hookman_utils import change_path_env
-
     dll_dir = str(simple_plugin_dll.parent)
     assert dll_dir not in os.environ["PATH"]
     with change_path_env(str(simple_plugin_dll)):
@@ -42,8 +43,22 @@ def test_change_path_env(simple_plugin_dll) -> None:
 )
 def test_path_change_when_load_library(simple_plugin_dll, mocker) -> None:
     mocked = mocker.patch("hookman.hookman_utils.change_path_env")
-    from hookman.hookman_utils import load_shared_lib
 
     with load_shared_lib(str(simple_plugin_dll)):
         pass
     mocked.assert_called_once()
+
+
+def test_load_shared_lib_raises_shared_library_load_error_for_corrupt_file(tmp_path) -> None:
+    """A file that exists but is not a valid shared library raises SharedLibraryLoadError."""
+
+    lib_name = "my_plugin.dll" if sys.platform == "win32" else "libmy_plugin.so"
+    corrupt_lib = tmp_path / lib_name
+    corrupt_lib.write_text("not a real shared library")
+
+    with pytest.raises(SharedLibraryLoadError) as exc_info:
+        with load_shared_lib(str(corrupt_lib)):
+            pass  # pragma: no cover
+
+    assert exc_info.value.shared_lib_path == corrupt_lib
+    assert exc_info.value.reason  # Non-empty OS-dependent error description.

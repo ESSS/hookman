@@ -39,6 +39,10 @@ def test_get_shared_libs_path(datadir, mocker, mock_plugin_id_from_dll) -> None:
     assert plugin_config.shared_lib_path == expected_path
 
 
+def test_parse_id(datadir) -> None:
+    assert PluginInfo.parse_id(datadir / "assets/plugin.yaml") == "name_of_the_shared_lib"
+
+
 def test_plugin_id_conflict(simple_plugin, datadir) -> None:
     yaml_file = simple_plugin["path"] / "assets/plugin.yaml"
     assert PluginInfo(yaml_file, None)

@@ -6,6 +6,14 @@ UNRELEASED
 ==========
 
 - Added full type annotations and exported types (via ``py.typed``).
+- Suppress the Windows hard-error dialog that ``LoadLibraryW`` would raise when a plugin
+  DLL has unresolved imports (e.g. a conflicting dependency version bundled inside the
+  plugin). The OS error is now captured and raised as the new ``SharedLibraryLoadError``
+  exception instead of blocking the process with a modal dialog.
+- Plugin discovery is now resilient to individual load failures: ``get_plugins_available``
+  skips broken plugins with a warning, and the new ``get_plugins_available_and_failures``
+  method returns the successful plugins together with a list of ``PluginLoadFailure``
+  records so callers can surface the reason to the user.
 
 0.8.0 (2025-08-18)
 ==================

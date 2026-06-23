@@ -1,4 +1,5 @@
 import inspect
+import logging
 import shutil
 from collections.abc import Callable
 from collections.abc import Sequence
@@ -12,8 +13,12 @@ from pluggy import HookCaller
 from hookman import hookman_utils
 from hookman.exceptions import InvalidDestinationPathError
 from hookman.exceptions import PluginAlreadyInstalledError
+from hookman.exceptions import SharedLibraryLoadError
+from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -24,6 +29,20 @@ class InstalledPluginInfo:
 
     id: str
     version: Version
+
+
+@dataclass(frozen=True)
+class PluginLoadFailure:
+    """Information about a plugin that was found but failed to load during discovery."""
+
+    yaml_location: Path
+    """Path to the plugin's plugin.yaml file."""
+
+    plugin_id: str
+    """The plugin id, read from the plugin's YAML config file."""
+
+    reason: str
+    """Human-readable description of why the plugin failed to load."""
 
 
 class HookSpecs:
@@ -203,6 +222,49 @@ class HookMan:
                 self._try_clear_trash(root_dir)
                 break
 
+    def get_plugins_available_and_failures(
+        self, ignored_plugins: Sequence[str] = ()
+    ) -> tuple[list[PluginInfo], list[PluginLoadFailure]]:
+        """
+        Return all plugins that loaded successfully, plus a list of those that failed.
+
+        A single incompatible plugin DLL will not abort discovery of the remaining
+        plugins — `SharedLibraryLoadError` is caught per-plugin and reported in the
+        failures list instead.
+
+        Optionally you can pass a list of plugin ids to exclude from both lists.
+
+        :returns:
+            A tuple of (successful `PluginInfo` list, `PluginLoadFailure` list).
+        """
+        plugin_ids_and_files = [
+            (plugin_id, f)
+            for f in hookman_utils.find_config_files(
+                self.plugins_dirs, ignored_sub_dir_names=[self._TRASH_DIR_NAME]
+            )
+            if (plugin_id := PluginInfo.parse_id(f)) not in ignored_plugins
+        ]
+
+        plugins: list[PluginInfo] = []
+        failures: list[PluginLoadFailure] = []
+        for plugin_id, plugin_file in plugin_ids_and_files:
+            try:
+                plugin_info = PluginInfo(plugin_file, self.hooks_available)
+            except (SharedLibraryLoadError, SharedLibraryNotFoundError) as error:
+                reason = str(error)
+                _logger.warning("Plugin at '%s' failed to load: %s", plugin_file, reason)
+                failures.append(
+                    PluginLoadFailure(
+                        yaml_location=plugin_file,
+                        plugin_id=plugin_id,
+                        reason=reason,
+                    )
+                )
+                continue
+            else:
+                plugins.append(plugin_info)
+        return plugins, failures
+
     def get_plugins_available(self, ignored_plugins: Sequence[str] = ()) -> Sequence[PluginInfo]:
         """
         Return a list of :ref:`plugin-info-api-section` that are available on ``plugins_dirs``
@@ -211,20 +273,11 @@ class HookMan:
         When informed, the `ignored_plugins` must be a list with the names of the plugins (same as shared_lib_name)
         instead of the plugin caption.
 
-        The :ref:`plugin-info-api-section` is a object that holds all information related to the plugin.
+        Plugins whose DLL fails to load are silently skipped with a warning logged.
+        Use `get_plugins_available_and_failures` to receive the failure details.
         """
-        plugin_config_files = hookman_utils.find_config_files(
-            self.plugins_dirs, ignored_sub_dir_names=[self._TRASH_DIR_NAME]
-        )
-
-        plugins_available = [
-            PluginInfo(plugin_file, self.hooks_available) for plugin_file in plugin_config_files
-        ]
-        return [
-            plugin_info
-            for plugin_info in plugins_available
-            if plugin_info.id not in ignored_plugins
-        ]
+        plugins, _failures = self.get_plugins_available_and_failures(ignored_plugins)
+        return plugins
 
     def get_hook_caller(self, ignored_plugins: Sequence[str] = ()) -> HookCaller:
         """
@@ -233,6 +286,10 @@ class HookMan:
 
         When informed, the `ignored_plugins` must be a list with the names of the plugins (same as shared_lib_name)
         instead of the plugin caption.
+
+        Plugins whose DLL fails to load are silently skipped with a warning logged — they
+        do not raise an exception here. Use `get_plugins_available_and_failures` to
+        inspect load failures.
         """
         assert self.specs.pyd_name is not None, f"Specs {self.specs!r}.pyd_name must be set"
         _hookman = __import__(self.specs.pyd_name)

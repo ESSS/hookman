@@ -117,6 +117,12 @@ class PluginInfo:
         return hooks_implemented
 
     @classmethod
+    def parse_id(cls, yaml_location: Path) -> str:
+        """Read the plugin id from the YAML config file without loading the shared library."""
+        content = cls._load_yaml_file(yaml_location.read_text(encoding="utf-8"))
+        return str(content["id"])
+
+    @classmethod
     def is_implemented_on_plugin(cls, plugin_dll: ctypes.CDLL, hook_name: str) -> bool:
         """
         Check if the given function name is available on the plugin_dll informed

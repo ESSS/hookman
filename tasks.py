@@ -97,11 +97,14 @@ def compile_build_files(ctx):
     os.makedirs(artifacts_dir)
     os.makedirs(ninja_dir)
 
+    import pybind11
+
     call_cmake = (
         f"cmake "
         f"-DCMAKE_BUILD_TYPE=Release "
         f'-G Ninja "{build_dir}" '
         f"-DPYTHON_EXECUTABLE={sys.executable} "
+        f"-DCMAKE_PREFIX_PATH={pybind11.get_cmake_dir()} "
     )
     call_ninja = "ninja -j 8"
     call_install = "ninja install"
@@ -123,6 +126,7 @@ def compile_build_files(ctx):
                 ),
                 # Path for vcvars on GithubAction
                 r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat",
+                r"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat",
             )
             for msvc_path in paths:
                 if os.path.isfile(msvc_path):

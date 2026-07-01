@@ -70,7 +70,12 @@ public:
         std::wstring w_filename = utf8_to_wstring(utf8_filename);
         auto handle = this->load_dll(w_filename);
         if (handle == NULL) {
-            throw std::runtime_error("Error loading library " + utf8_filename + ": " + std::to_string(GetLastError()));
+            DWORD error_code = GetLastError();
+            char error_buf[512] = {};
+            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error_code, 0, error_buf, sizeof(error_buf), nullptr);
+            std::string error_msg(error_buf);
+            while (!error_msg.empty() && (error_msg.back() <= ' ')) { error_msg.pop_back(); }
+            throw std::runtime_error("Error loading library " + utf8_filename + ": " + error_msg + " (code " + std::to_string(error_code) + ")");
         }
         this->handles.push_back(handle);
 
@@ -141,8 +146,19 @@ private:
     HMODULE load_dll(const std::wstring& filename) {
         // Path Modifier
         PathGuard path_guard{ filename };
-        // Load library (DLL)
-        return LoadLibraryW(filename.c_str());
+        // Suppress the Windows hard-error dialog that LoadLibraryW would otherwise
+        // show for unresolved DLL imports before returning NULL.
+        // NOTE: the same suppression logic exists in suppress_dll_error_dialog() in
+        // hookman_utils.py - keep both in sync when changing flags or error handling.
+        DWORD old_error_mode = 0;
+        if (!SetThreadErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX, &old_error_mode)) {
+            throw std::runtime_error("SetThreadErrorMode failed: " + std::to_string(GetLastError()));
+        }
+        HMODULE handle = LoadLibraryW(filename.c_str());
+        if (!SetThreadErrorMode(old_error_mode, nullptr)) {
+            throw std::runtime_error("SetThreadErrorMode restore failed: " + std::to_string(GetLastError()));
+        }
+        return handle;
     }
 
 

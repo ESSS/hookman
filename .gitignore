@@ -115,3 +115,4 @@ environment.yml
 _
 /docs/build/
 /_build/
+/.claude/

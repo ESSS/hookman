@@ -1,7 +1,18 @@
 # mypy: allow-untyped-defs
+import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def add_artifacts_to_path() -> Iterator[None]:
+    artifacts = Path(__file__).parents[1] / "build/artifacts"
+    assert artifacts.is_dir(), f"{artifacts} not found, run 'inv build' first"
+    sys.path.insert(0, str(artifacts))
+    yield
+    sys.path.remove(str(artifacts))
 
 
 @pytest.fixture

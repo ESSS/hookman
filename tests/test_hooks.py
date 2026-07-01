@@ -1,5 +1,7 @@
 # mypy: allow-untyped-defs
 import dataclasses
+import sys
+from pathlib import Path
 
 import pytest
 from packaging.version import Version
@@ -132,6 +134,96 @@ def test_plugins_available_plain(simple_plugin, simple_plugin_2) -> None:
 
     plugins = hm.get_plugins_available(ignored_plugins=["simple_plugin_2"])
     assert len(plugins) == 1
+
+
+def _make_broken_plugin_dir(root: Path) -> Path:
+    """Create a plugin directory with a valid yaml but an unloadable shared library."""
+    broken_plugin_dir = root / "broken_plugin-1.0.0"
+    (broken_plugin_dir / "assets").mkdir(parents=True)
+    (broken_plugin_dir / "assets" / "plugin.yaml").write_text(
+        "caption: 'Broken Plugin'\nversion: '1.0.0'\nauthor: 'a'\nemail: 'a@a.com'\nid: 'broken_plugin'\n"
+    )
+    artifacts_dir = broken_plugin_dir / "artifacts"
+    artifacts_dir.mkdir()
+    lib_name = "broken_plugin.dll" if sys.platform == "win32" else "libbroken_plugin.so"
+    (artifacts_dir / lib_name).write_text("not a real shared library")
+    return broken_plugin_dir
+
+
+def test_get_plugins_available_and_failures_with_broken_plugin(
+    tmp_path, simple_plugin, acme_hook_specs
+) -> None:
+    """A plugin with an unloadable DLL appears in the failures list; valid plugins still load."""
+    # Use a dedicated subdirectory so that pytest-datadir content written to tmp_path
+    # by other fixtures (e.g. multiple_plugins without compiled .so files) is not
+    # picked up by find_config_files' recursive glob.
+    plugins_root = tmp_path / "plugins"
+    plugins_root.mkdir()
+    broken_plugin_dir = _make_broken_plugin_dir(plugins_root)
+
+    hm = HookMan(specs=acme_hook_specs, plugin_dirs=[simple_plugin["path"], plugins_root])
+    plugins, failures = hm.get_plugins_available_and_failures()
+
+    assert [p.id for p in plugins] == ["simple_plugin"]
+    [failure] = failures
+    assert failure.plugin_id == "broken_plugin"
+    assert failure.yaml_location == broken_plugin_dir / "assets" / "plugin.yaml"
+    assert failure.reason  # Non-empty OS-dependent error message.
+
+
+def test_get_plugins_available_skips_failures(tmp_path, simple_plugin, acme_hook_specs) -> None:
+    """get_plugins_available silently skips plugins that fail to load."""
+    plugins_root = tmp_path / "plugins"
+    plugins_root.mkdir()
+    _make_broken_plugin_dir(plugins_root)
+
+    hm = HookMan(specs=acme_hook_specs, plugin_dirs=[simple_plugin["path"], plugins_root])
+    plugins = hm.get_plugins_available()
+
+    # The broken plugin is skipped; the valid one still loads.
+    assert [p.id for p in plugins] == ["simple_plugin"]
+
+
+def _make_missing_dll_plugin_dir(root: Path) -> Path:
+    """Create a plugin directory with a valid YAML but no shared library file."""
+    plugin_dir = root / "missing_dll_plugin-1.0.0"
+    (plugin_dir / "assets").mkdir(parents=True)
+    (plugin_dir / "assets" / "plugin.yaml").write_text(
+        "caption: 'Missing DLL Plugin'\nversion: '1.0.0'\nauthor: 'a'\nemail: 'a@a.com'\nid: 'missing_dll_plugin'\n"
+    )
+    (plugin_dir / "artifacts").mkdir()
+    return plugin_dir
+
+
+def test_get_plugins_available_and_failures_with_missing_dll(tmp_path, acme_hook_specs) -> None:
+    """A plugin whose DLL is absent (SharedLibraryNotFoundError) lands in the failures list."""
+    plugins_root = tmp_path / "plugins"
+    plugins_root.mkdir()
+    missing_plugin_dir = _make_missing_dll_plugin_dir(plugins_root)
+
+    hm = HookMan(specs=acme_hook_specs, plugin_dirs=[plugins_root])
+    plugins, failures = hm.get_plugins_available_and_failures()
+
+    assert plugins == []
+    [failure] = failures
+    assert failure.plugin_id == "missing_dll_plugin"
+    assert failure.yaml_location == missing_plugin_dir / "assets" / "plugin.yaml"
+    assert failure.reason
+
+
+def test_get_plugins_available_and_failures_ignored_plugin_excluded_from_failures(
+    tmp_path, acme_hook_specs
+) -> None:
+    """An ignored plugin that also fails to load must not appear in failures."""
+    plugins_root = tmp_path / "plugins"
+    plugins_root.mkdir()
+    _make_broken_plugin_dir(plugins_root)
+
+    hm = HookMan(specs=acme_hook_specs, plugin_dirs=[plugins_root])
+    plugins, failures = hm.get_plugins_available_and_failures(ignored_plugins=["broken_plugin"])
+
+    assert plugins == []
+    assert failures == []
 
 
 def test_plugins_available_ignore_trash(datadir, simple_plugin, simple_plugin_2) -> None:

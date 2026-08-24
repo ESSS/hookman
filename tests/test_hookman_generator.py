@@ -301,9 +301,10 @@ def test_generate_plugin_package(
 def test_generate_plugin_package_with_missing_folders(acme_hook_specs_file, tmpdir, mocker) -> None:
     import sys
     from textwrap import dedent
+
     from hookman.exceptions import (
-        AssetsDirNotFoundError,
         ArtifactsDirNotFoundError,
+        AssetsDirNotFoundError,
         SharedLibraryNotFoundError,
     )
 

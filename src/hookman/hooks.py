@@ -1,8 +1,7 @@
 import inspect
 import logging
 import shutil
-from collections.abc import Callable
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from zipfile import ZipFile
@@ -11,10 +10,12 @@ from packaging.version import Version
 from pluggy import HookCaller
 
 from hookman import hookman_utils
-from hookman.exceptions import InvalidDestinationPathError
-from hookman.exceptions import PluginAlreadyInstalledError
-from hookman.exceptions import SharedLibraryLoadError
-from hookman.exceptions import SharedLibraryNotFoundError
+from hookman.exceptions import (
+    InvalidDestinationPathError,
+    PluginAlreadyInstalledError,
+    SharedLibraryLoadError,
+    SharedLibraryNotFoundError,
+)
 from hookman.hookman_utils import change_path_env
 from hookman.plugin_config import PluginInfo
 
@@ -212,9 +213,12 @@ class HookMan:
             root_dir = plugin_dir.parent
             remove_plugin = False
 
-            if version is None and caption in plugin_dir.name:
-                remove_plugin = True
-            elif plugin.id == caption and version == plugin.version:
+            if (
+                version is None
+                and caption in plugin_dir.name
+                or plugin.id == caption
+                and version == plugin.version
+            ):
                 remove_plugin = True
 
             if remove_plugin:

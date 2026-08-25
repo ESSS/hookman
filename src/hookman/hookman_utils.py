@@ -5,6 +5,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
+from hookman.dll_diagnostics import LoadDiagnostics, register_dll_directory
 from hookman.exceptions import SharedLibraryLoadError
 
 
@@ -43,8 +44,10 @@ def change_path_env(shared_lib_path: str) -> Iterator[None]:
     handle = None
     if sys.platform.startswith("win"):
         # We explict opted to not cover this on windows.
-        os.environ["PATH"] = old_path + os.pathsep + os.path.dirname(shared_lib_path)
-        handle = os.add_dll_directory(os.path.dirname(shared_lib_path))  # pragma: no cover
+        plugin_dir = os.path.dirname(shared_lib_path)
+        os.environ["PATH"] = old_path + os.pathsep + plugin_dir
+        handle = os.add_dll_directory(plugin_dir)  # pragma: no cover
+        register_dll_directory(Path(plugin_dir))  # pragma: no cover
     try:
         yield
     finally:
@@ -111,7 +114,10 @@ def load_shared_lib(shared_lib_path: str) -> Iterator[ctypes.CDLL]:
         try:
             plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
         except OSError as error:
-            raise SharedLibraryLoadError(Path(shared_lib_path), str(error)) from error
+            # Built while PATH still holds the value `change_path_env` set for this
+            # load, so the diagnostic reflects the actual search environment.
+            diagnostics = LoadDiagnostics.collect(Path(shared_lib_path))
+            raise SharedLibraryLoadError(Path(shared_lib_path), str(error), diagnostics) from error
 
     try:
         yield plugin_dll

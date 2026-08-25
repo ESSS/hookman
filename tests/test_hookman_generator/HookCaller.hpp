@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdlib>
 
 #ifdef _WIN32
-    #include <cstdlib>
     #include <windows.h>
 #else
     #include <dlfcn.h>
@@ -75,7 +75,8 @@ public:
             FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error_code, 0, error_buf, sizeof(error_buf), nullptr);
             std::string error_msg(error_buf);
             while (!error_msg.empty() && (error_msg.back() <= ' ')) { error_msg.pop_back(); }
-            throw std::runtime_error("Error loading library " + utf8_filename + ": " + error_msg + " (code " + std::to_string(error_code) + ")");
+            std::string diagnostics = format_load_diagnostics(w_filename);
+            throw std::runtime_error("Error loading library " + utf8_filename + ": " + error_msg + " (code " + std::to_string(error_code) + ")\n\n" + diagnostics);
         }
         this->handles.push_back(handle);
 
@@ -116,6 +117,108 @@ private:
     }
 
 
+    static std::string wstring_to_utf8(const std::wstring& s) {
+        if (s.empty()) {
+            return std::string();
+        }
+        int required_size = WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string result;
+        if (required_size == 0) {
+            return result;
+        }
+        result.resize(required_size);
+        WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, &result[0], required_size, nullptr, nullptr);
+        // required_size counts the null terminator that WideCharToMultiByte writes; drop it.
+        if (!result.empty() && result.back() == '\0') {
+            result.pop_back();
+        }
+        return result;
+    }
+
+
+    // Explains the DLL search environment for `filename`'s failed load: libraries
+    // bundled alongside it that are shadowed by a same-named file earlier on PATH
+    // (the failure mode behind ASIM-6769), followed by the full PATH listing.
+    // NOTE: mirrors LoadDiagnostics.__str__()/.collect() in
+    // dll_diagnostics.py - keep both in sync when changing what is reported or
+    // how it is formatted.
+    static std::string format_load_diagnostics(const std::wstring& filename) {
+        std::wstring::size_type dir_name_size = filename.find_last_of(L"/\\");
+        std::wstring dir = filename.substr(0, dir_name_size);
+
+        rsize_t path_len = 0;
+        wchar_t* path_buf = nullptr;
+        errno_t path_err = _wdupenv_s(&path_buf, &path_len, L"PATH");
+        std::wstring path_env = (path_err == 0 && path_buf != nullptr)
+            ? std::wstring(path_buf)
+            : std::wstring();
+        if (path_buf != nullptr) {
+            free(path_buf);
+        }
+
+        std::vector<std::wstring> search_dirs;
+        std::wstring::size_type start = 0;
+        while (start <= path_env.size()) {
+            std::wstring::size_type sep = path_env.find(L';', start);
+            std::wstring entry = sep == std::wstring::npos
+                ? path_env.substr(start)
+                : path_env.substr(start, sep - start);
+            if (!entry.empty()) {
+                search_dirs.push_back(entry);
+            }
+            if (sep == std::wstring::npos) {
+                break;
+            }
+            start = sep + 1;
+        }
+
+        // Libraries bundled alongside the plugin's own DLL (its `artifacts/` directory).
+        std::vector<std::wstring> bundled_names;
+        WIN32_FIND_DATAW find_data;
+        HANDLE find_handle = FindFirstFileW((dir + L"\\*.dll").c_str(), &find_data);
+        if (find_handle != INVALID_HANDLE_VALUE) {
+            do {
+                if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                    bundled_names.push_back(find_data.cFileName);
+                }
+            } while (FindNextFileW(find_handle, &find_data));
+            FindClose(find_handle);
+        }
+
+        std::string shadow_section;
+        for (const auto& search_dir : search_dirs) {
+            if (search_dir == dir) {
+                // Our own directory is appended to PATH by PathGuard for this load;
+                // entries from here on are irrelevant to shadowing.
+                break;
+            }
+            for (const auto& name : bundled_names) {
+                std::wstring candidate = search_dir + L"\\" + name;
+                if (GetFileAttributesW(candidate.c_str()) != INVALID_FILE_ATTRIBUTES) {
+                    shadow_section += "  - " + wstring_to_utf8(name) + " in " + wstring_to_utf8(search_dir) + "\n";
+                    shadow_section += "    (plugin also ships " + wstring_to_utf8(dir) + "\\" + wstring_to_utf8(name) + ")\n";
+                }
+            }
+        }
+
+        std::string result;
+        if (!shadow_section.empty()) {
+            result += "Possible conflicting libraries found earlier in the search path:\n" + shadow_section + "\n";
+        }
+
+        result += "PATH (" + std::to_string(search_dirs.size()) + " entries):\n";
+        int index = 1;
+        for (const auto& search_dir : search_dirs) {
+            bool exists = GetFileAttributesW(search_dir.c_str()) != INVALID_FILE_ATTRIBUTES;
+            result += "  " + std::to_string(index) + ". " + wstring_to_utf8(search_dir);
+            result += exists ? "" : "  (does not exist)";
+            result += "\n";
+            index++;
+        }
+        return result;
+    }
+
+
     class PathGuard {
     public:
         explicit PathGuard(std::wstring filename)
@@ -133,10 +236,14 @@ private:
     private:
         static std::wstring get_path() {
             rsize_t _len = 0;
-            wchar_t *buf;
-            _wdupenv_s(&buf, &_len, L"PATH");
-            std::wstring path_env{ buf };
-            free(buf);
+            wchar_t *buf = nullptr;
+            errno_t err = _wdupenv_s(&buf, &_len, L"PATH");
+            std::wstring path_env = (err == 0 && buf != nullptr)
+                ? std::wstring(buf)
+                : std::wstring();
+            if (buf != nullptr) {
+                free(buf);
+            }
             return path_env;
         } 
 
@@ -179,7 +286,14 @@ public:
     void load_impls_from_library(const std::string& utf8_filename, const std::string& plugin_id) {
         auto handle = dlopen(utf8_filename.c_str(), RTLD_LAZY);
         if (handle == nullptr) {
-            throw std::runtime_error("Error loading library " + utf8_filename + ": dlopen failed");
+            const char* dlopen_error = dlerror();
+            std::string error_msg = dlopen_error != nullptr ? dlopen_error : "unknown error";
+            const char* ld_library_path = std::getenv("LD_LIBRARY_PATH");
+            std::string ld_library_path_str =
+                ld_library_path != nullptr ? ld_library_path : "(not set)";
+            throw std::runtime_error(
+                "Error loading library " + utf8_filename + ": " + error_msg +
+                "\n\nLD_LIBRARY_PATH: " + ld_library_path_str);
         }
         this->handles.push_back(handle);
 

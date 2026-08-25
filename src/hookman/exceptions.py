@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from hookman.dll_diagnostics import LoadDiagnostics
+
 
 class HookmanError(Exception):
     """
@@ -24,11 +26,24 @@ class SharedLibraryLoadError(HookmanError):
 
     :param shared_lib_path: Path to the shared library that failed to load.
     :param reason: Human-readable OS error description.
+    :param diagnostics:
+        Structured breakdown of the DLL search environment at load time (`PATH`
+        entries, registered `os.add_dll_directory` directories, and any bundled library
+        shadowed by a same-named file earlier on `PATH`), or `None` if it was not
+        collected. Kept separate from `reason` so callers can keep the one-line summary
+        short while still inspecting the full detail directly, or rendering it (via
+        `str()`) where there is room for it (e.g. logs, a collapsible GUI section).
     """
 
-    def __init__(self, shared_lib_path: Path, reason: str) -> None:
+    def __init__(
+        self,
+        shared_lib_path: Path,
+        reason: str,
+        diagnostics: LoadDiagnostics | None = None,
+    ) -> None:
         self.shared_lib_path = shared_lib_path
         self.reason = reason
+        self.diagnostics = diagnostics
         super().__init__(f"Failed to load '{shared_lib_path}': {reason}")
 
 

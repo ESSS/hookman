@@ -167,6 +167,9 @@ def test_get_plugins_available_and_failures_with_broken_plugin(
     assert failure.plugin_id == "broken_plugin"
     assert failure.yaml_location == broken_plugin_dir / "assets" / "plugin.yaml"
     assert failure.reason  # Non-empty OS-dependent error message.
+    assert failure.diagnostics is not None  # SharedLibraryLoadError always collects one.
+    assert failure.diagnostics.path_entries  # Structured field, not a string to parse.
+    assert "PATH" in str(failure.diagnostics)
 
 
 def test_get_plugins_available_skips_failures(tmp_path, simple_plugin, acme_hook_specs) -> None:
@@ -207,6 +210,8 @@ def test_get_plugins_available_and_failures_with_missing_dll(tmp_path, acme_hook
     assert failure.plugin_id == "missing_dll_plugin"
     assert failure.yaml_location == missing_plugin_dir / "assets" / "plugin.yaml"
     assert failure.reason
+    # SharedLibraryNotFoundError carries no load environment.
+    assert failure.diagnostics is None
 
 
 def test_get_plugins_available_and_failures_ignored_plugin_excluded_from_failures(

@@ -10,6 +10,7 @@ from packaging.version import Version
 from pluggy import HookCaller
 
 from hookman import hookman_utils
+from hookman.dll_diagnostics import LoadDiagnostics
 from hookman.exceptions import (
     InvalidDestinationPathError,
     PluginAlreadyInstalledError,
@@ -44,6 +45,11 @@ class PluginLoadFailure:
 
     reason: str
     """Human-readable description of why the plugin failed to load."""
+
+    diagnostics: LoadDiagnostics | None = None
+    """Structured breakdown of the DLL search environment at load time (`PATH`,
+    registered DLL directories, and any shadowed bundled library). `None` when the
+    failure is a `SharedLibraryNotFoundError`, which carries no such environment."""
 
 
 class HookSpecs:
@@ -256,12 +262,19 @@ class HookMan:
                 plugin_info = PluginInfo(plugin_file, self.hooks_available)
             except (SharedLibraryLoadError, SharedLibraryNotFoundError) as error:
                 reason = str(error)
-                _logger.warning("Plugin at '%s' failed to load: %s", plugin_file, reason)
+                diagnostics = (
+                    error.diagnostics if isinstance(error, SharedLibraryLoadError) else None
+                )
+                diagnostics_suffix = f"\n{diagnostics}" if diagnostics is not None else ""
+                _logger.warning(
+                    "Plugin at '%s' failed to load: %s%s", plugin_file, reason, diagnostics_suffix
+                )
                 failures.append(
                     PluginLoadFailure(
                         yaml_location=plugin_file,
                         plugin_id=plugin_id,
                         reason=reason,
+                        diagnostics=diagnostics,
                     )
                 )
                 continue

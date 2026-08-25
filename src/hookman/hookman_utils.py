@@ -1,8 +1,7 @@
 import ctypes
 import os
 import sys
-from collections.abc import Iterator
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -108,12 +107,11 @@ def load_shared_lib(shared_lib_path: str) -> Iterator[ctypes.CDLL]:
         If the shared library exists but fails to load, e.g. because of an
         incompatible or missing dependency DLL.
     """
-    with change_path_env(shared_lib_path):
-        with suppress_dll_error_dialog():
-            try:
-                plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
-            except OSError as error:
-                raise SharedLibraryLoadError(Path(shared_lib_path), str(error)) from error
+    with change_path_env(shared_lib_path), suppress_dll_error_dialog():
+        try:
+            plugin_dll = ctypes.cdll.LoadLibrary(shared_lib_path)
+        except OSError as error:
+            raise SharedLibraryLoadError(Path(shared_lib_path), str(error)) from error
 
     try:
         yield plugin_dll

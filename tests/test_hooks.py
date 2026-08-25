@@ -6,9 +6,7 @@ from pathlib import Path
 import pytest
 from packaging.version import Version
 
-from hookman.hooks import HookMan
-from hookman.hooks import HookSpecs
-from hookman.hooks import PluginInfo
+from hookman.hooks import HookMan, HookSpecs, PluginInfo
 
 
 def _get_plugin_id_set(plugin_info_list):

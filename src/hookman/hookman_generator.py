@@ -5,16 +5,12 @@ import sys
 from collections.abc import Mapping
 from pathlib import Path
 from textwrap import dedent
-from typing import Any
-from typing import NamedTuple
+from typing import Any, NamedTuple
 from zipfile import ZipFile
 
-from hookman.exceptions import ArtifactsDirNotFoundError
-from hookman.exceptions import AssetsDirNotFoundError
-from hookman.exceptions import HookmanError
+from hookman.exceptions import ArtifactsDirNotFoundError, AssetsDirNotFoundError, HookmanError
 from hookman.hooks import HookSpecs
-from hookman.plugin_config import PLUGIN_CONFIG_SCHEMA
-from hookman.plugin_config import PluginInfo
+from hookman.plugin_config import PLUGIN_CONFIG_SCHEMA, PluginInfo
 
 
 class Hook(NamedTuple):
@@ -87,7 +83,7 @@ class HookManGenerator:
         assert module is not None, f"Could not find module for {hook_spec_file_path}"
         spec.loader.exec_module(module)
         try:
-            specs = getattr(module, "specs")
+            specs = module.specs
         except AttributeError:
             raise RuntimeError(f"Invalid module {module}, 'specs' variable not defined.")
         else:

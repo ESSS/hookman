@@ -1,18 +1,12 @@
 import ctypes
 import sys
 from collections.abc import Sequence
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
 from zipfile import ZipFile
 
 from packaging.version import Version
-from strictyaml import Map
-from strictyaml import MapPattern
-from strictyaml import Optional
-from strictyaml import Str
-from strictyaml import YAML
-from strictyaml import YAMLValidationError
+from strictyaml import YAML, Map, MapPattern, Optional, Str, YAMLValidationError
 
 from hookman.exceptions import SharedLibraryNotFoundError
 from hookman.hookman_utils import load_shared_lib

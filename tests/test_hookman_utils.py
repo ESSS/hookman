@@ -5,9 +5,7 @@ import sys
 import pytest
 
 from hookman.exceptions import SharedLibraryLoadError
-from hookman.hookman_utils import change_path_env
-from hookman.hookman_utils import find_config_files
-from hookman.hookman_utils import load_shared_lib
+from hookman.hookman_utils import change_path_env, find_config_files, load_shared_lib
 
 
 def test_find_config_files(datadir) -> None:
@@ -56,9 +54,8 @@ def test_load_shared_lib_raises_shared_library_load_error_for_corrupt_file(tmp_p
     corrupt_lib = tmp_path / lib_name
     corrupt_lib.write_text("not a real shared library")
 
-    with pytest.raises(SharedLibraryLoadError) as exc_info:
-        with load_shared_lib(str(corrupt_lib)):
-            pass  # pragma: no cover
+    with pytest.raises(SharedLibraryLoadError) as exc_info, load_shared_lib(str(corrupt_lib)):
+        pass  # pragma: no cover
 
     assert exc_info.value.shared_lib_path == corrupt_lib
     assert exc_info.value.reason  # Non-empty OS-dependent error description.

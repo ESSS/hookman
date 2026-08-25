@@ -1,2 +1,8 @@
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+ignore = [
+    "TRY004",  # Prefer `TypeError` exception for invalid type
+    "RUF059",  # Unpacked variable `name` is never used
+]

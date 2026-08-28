@@ -59,3 +59,7 @@ def test_load_shared_lib_raises_shared_library_load_error_for_corrupt_file(tmp_p
 
     assert exc_info.value.shared_lib_path == corrupt_lib
     assert exc_info.value.reason  # Non-empty OS-dependent error description.
+    diagnostics = exc_info.value.diagnostics
+    assert diagnostics is not None  # An OSError during load always collects one.
+    assert diagnostics.path_entries  # Structured field, not a string to parse.
+    assert "PATH" in str(diagnostics)

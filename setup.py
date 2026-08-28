@@ -11,6 +11,7 @@ requirements = [
     "invoke",
     "packaging",
     "strictyaml",
+    "typing_extensions",
 ]
 
 setup(

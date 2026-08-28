@@ -14,6 +14,17 @@ UNRELEASED
   skips broken plugins with a warning, and the new ``get_plugins_available_and_failures``
   method returns the successful plugins together with a list of ``PluginLoadFailure``
   records so callers can surface the reason to the user.
+- ``SharedLibraryLoadError`` and ``PluginLoadFailure`` now carry a ``diagnostics`` field,
+  a structured ``LoadDiagnostics | None`` describing the DLL search environment at load
+  time: the effective ``PATH`` entries, the directories registered via
+  ``os.add_dll_directory``, and any library bundled with the plugin that is shadowed by
+  a same-named file earlier on ``PATH`` (the failure mode behind a plugin resolving the
+  wrong copy of a dependency, e.g. a conflicting Anaconda installation). It is ``None``
+  when no load was attempted (e.g. the shared library was never found); otherwise call
+  ``LoadDiagnostics.collect()`` to build one, inspect its fields directly, or use
+  ``str(diagnostics)`` for the same rendered block as before. The generated C++
+  ``HookCaller::load_impls_from_library`` raises the same information on Windows, and
+  reports ``dlerror()`` plus ``LD_LIBRARY_PATH`` on Linux.
 
 0.8.0 (2025-08-18)
 ==================

@@ -16,8 +16,7 @@ import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-
-from typing_extensions import Self
+from typing import Self
 
 #: Directories explicitly registered via `os.add_dll_directory` by this process,
 #: in registration order. `os` provides no API to enumerate them, so callers that add

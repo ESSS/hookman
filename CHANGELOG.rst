@@ -5,6 +5,7 @@ History
 UNRELEASED
 ==========
 
+- Dropped support for Python 3.10 (EOL).
 - Added full type annotations and exported types (via ``py.typed``).
 - Suppress the Windows hard-error dialog that ``LoadLibraryW`` would raise when a plugin
   DLL has unresolved imports (e.g. a conflicting dependency version bundled inside the
